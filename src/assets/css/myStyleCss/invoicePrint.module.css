@@ -1,0 +1,119 @@
+body {
+    background:#f7f7f7; 
+    padding:20px;
+}
+.invoiceBox {
+    background:#fff; 
+    padding:25px; 
+}
+.invoiceBox p {
+    font-size: 16px !important;
+}
+.invoiceTable {
+    border:none !important;
+    margin-bottom: 15px !important;
+}
+.invoiceTable th, .invoiceTable td {
+    border-bottom:1px solid #000 !important; 
+    border-top:none !important;
+    padding: 0px 2px !important;
+    font-size: 16px !important;
+}
+.invoiceTable th {
+    border-bottom: 2px solid #000 !important;
+}
+.summaryRow {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dashed #000;
+    font-size: 16px;
+    padding: 2px 0;
+}
+.payable {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 2px solid #000;
+    font-size: 16px;
+    padding: 2px 0;
+}
+.invoiceBox .subTable th,
+.invoiceBox .subTable td {
+    border:1px solid #000 !important;
+    padding: 2px 5px !important;
+}
+.barcode {
+    width:220px;
+    height:70px;
+    /* display:block !important; */
+}
+
+.topHeading{
+    text-align: center;
+}
+.topHeading h3{
+    display: inline-block;
+    border: 2px solid #000;
+    padding: 5px 30px;
+    border-radius: 20px;
+}
+
+.paidBox {
+    text-align: center;
+    
+}
+.paidBox span{
+    font-size: 18px;
+    display: inline-block;
+    padding: 2px 5px;
+    border: 1px solid #000;
+}
+
+@page {
+    size: A4;
+    margin: 0;
+}
+
+@media print {
+
+    :global(body) {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        background: #fff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .container {
+        max-width: 100% !important;
+    }
+
+    .invoiceBox {
+        width: 210mm;          /* A4 width */
+        min-height: 297mm;     /* A4 height */
+        padding: 20mm !important;
+        margin: 0 auto;
+    }
+
+    .barcode {
+        margin-left: auto;
+        margin-right: 0;
+    }
+
+    /* Page break protection */
+     .invoiceTable, .invoiceTable th, .invoiceTable td {
+        page-break-inside: avoid !important;
+    }
+    .invoiceTable th {
+        border-bottom: 2px solid #000 !important;
+    }
+
+    .noPrint {
+        display: none !important;
+    }
+
+    .invoiceBox .subTable th,
+    .invoiceBox .subTable td {
+        border:1px solid #000 !important;
+    }
+
+}
