@@ -21,7 +21,7 @@
     "@mui/material": "^5.15.17",
     "@reduxjs/toolkit": "^1.9.7",
     "@simonwep/pickr": "^1.9.1",
-    "apexcharts": "^3.49.1",
+    "apexcharts": "^5.3.6",
     "bootstrap": "^5.3.3",
     "chart.js": "^4.4.2",
     "date-fns": "^4.1.0",
