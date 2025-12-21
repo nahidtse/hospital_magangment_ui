@@ -5,7 +5,7 @@ import LeaveInfoTables from "../components/hr/LeaveInfoTables";
 import LeaveType from "../components/hr/leavetype/LeaveType";
 
 import DataTables from "../components/hr/leavetype/DataTables";
-import BusinessUnitTables from "../components/businessunit/BusinessUnitTables";
+import BusinessUnitTables from "../components/businessUnit/BusinessUnitTables";
 import BusinessUnitForm from "../components/businessunit/BusinessUnitForm";
 import BusinessUnitEditForm from "../components/businessunit/BusinessUnitEditForm";
 import SingleTableFunction from "../components/businessunit/SingleTablefunction";
