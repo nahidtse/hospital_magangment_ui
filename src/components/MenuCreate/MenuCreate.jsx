@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
-import SingleTableFunction from '../businessunit/SingleTablefunction';
+// import SingleTableFunction from '../businessunit/SingleTablefunction';
 import ModuleEditForm from '../module/ModuleEditForm';
 import MenuView from './MenuView';
 import MenuEdit from './MenuEdit';
