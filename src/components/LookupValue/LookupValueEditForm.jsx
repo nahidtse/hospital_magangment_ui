@@ -2,6 +2,7 @@ import { Fragment, useEffect, useState } from 'react';
 import { Button, Card, Col, Form, Row } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const LookupValueEditForm = ({
   setBusinessUnitList,
@@ -43,7 +44,7 @@ const LookupValueEditForm = ({
    * Load all Lookup Types (Modules)
    */
   useEffect(() => {
-    fetch(`${basURL}/lookuptype`)
+    fetch(`${baseURL}/lookuptype`)
       .then((response) => response.json())
       .then((data) => {
         setModuleData(data.data);
@@ -109,7 +110,7 @@ const LookupValueEditForm = ({
       // console.log(submitData)
       // return;
 
-      const result = await fetch(`${basURL}/lookupvalue/update/${passEditFormData.id}`, {
+      const result = await fetch(`${baseURL}/lookupvalue/update/${passEditFormData.id}`, {
         method: 'POST',
         headers: {
           "Content-type": "application/json"
