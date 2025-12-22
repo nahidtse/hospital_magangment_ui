@@ -259,7 +259,7 @@ export const BasicTable = () => {
                                 <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
                             </div>
                             <table {...getTableProps()} className="table table-sm table-primary table-striped table-hover mb-0 table-bordered">
-                                <thead style={{backgroundColor: '#8B85D8'}}>
+                                <thead className="bg-primary text-center">
                                     {headerGroups.map((headerGroup) => (
                                         <tr {...headerGroup.getHeaderGroupProps()} key={Math.random()}>
                                             {headerGroup.headers.map((column) => (

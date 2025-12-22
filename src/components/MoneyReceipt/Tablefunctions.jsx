@@ -1,13 +1,12 @@
-import { Button, Card, Col, Row, Table } from "react-bootstrap";
+import { Button, Badge, Card, Col, Row, Table } from "react-bootstrap";
 import { useTable, useSortBy, useGlobalFilter, usePagination, } from "react-table";
 import { useEffect, useMemo, useState } from "react";
 
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
-import RoleEditForm from "./BankAccountInfoEditForm";
-import SingleTableFunction from "./SingleTableFunction";
-import BankAccountInfoEditForm from "./BankAccountInfoEditForm";
-const basURL = import.meta.env.VITE_API_BASE_URL;
+import RoleEditForm from "./MoneyReceiptEditForm";
+import { format } from 'date-fns';
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
 // ******************************************************
@@ -17,63 +16,66 @@ const basURL = import.meta.env.VITE_API_BASE_URL;
 
 export const COLUMNS = [
     {
-        Header: "#",
+        Header: (<div className="text-center">{"Id"}</div>),
         accessor: "id",
     },
     {
-        Header: "Doctor's Name",
-        accessor: "doctorename",
+        Header: (<div className="text-center">{"Receipt No"}</div>),
+        accessor: "mr_no",
     },
     {
-        Header: "BMDC No",
-        accessor: "bmdcno",
+        Header: (<div className="text-center">{"Receipt Date"}</div>),
+        accessor: "payment_date",
     },
     {
-        Header: "Speciality",
-        accessor: "speciality",
+        Header: (<div className="text-center">{"Patient"}</div>),
+        accessor: "patient",
     },
     {
-        Header: "Appointment Date",
-        accessor: "appointment_date",
+        Header: (<div className="text-center">{"Activity Type"}</div>),
+        accessor: "activity_type",
     },
     {
-        Header: "Days",
-        accessor: "daytime",
+        Header: (<div className="text-center">{"Amount"}</div>),
+        accessor: "amount",
     },
     {
-        Header: "Patient Name",
-        accessor: "patient_name",
+        Header: (<div className="text-center">Status</div>),
+        accessor: "status",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
     {
-        Header: "Mobile No",
-        accessor: "mobile",
-    },
-    {
-        Header: "Actions",
+        Header: (<div className="text-center">Action</div>),
         accessor: "action",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
 ];
 
-export const DATATABLE = (doctorAppointment, handlers) =>
-    doctorAppointment.map((appointment, id) => ({
-        id: id + 1,
-        doctorename: appointment.doctor.doctor_name || "Doctor Name",
-        speciality: appointment.doctor.speciality.lookup_value || "Speciality",
-        bmdcno: appointment.doctor.bmdc_no || "MBDC No",
-        appointment_date: appointment.appointment_date || "Appointment Date",
-        daytime: appointment.days || "Days & Schedule Time",
-        patient_name: appointment.patient_name || "Patient Name",
-        mobile: appointment.mobile_no || "Mobile No",
+export const DATATABLE = (moneyReceiptList, handlers) =>
+    moneyReceiptList.map((receipt, id) => ({
+        id: (<div className="text-center">{id + 1}</div>),
+        mr_no: (<div className="text-center">{receipt.money_receipt_no}</div>),
+        patient: receipt.patient_info.patient_name || "",
+        activity_type: (<div className="text-center">{receipt.activity_type?.lookup_value || ""}</div>),
+        payment_date: (<div className="text-center">{receipt.money_receipt_date && !isNaN(new Date(receipt.money_receipt_date))
+                        ? format(new Date(receipt.money_receipt_date), 'dd-MM-yyyy')
+                        : null}</div>),
+        amount: (<div className="text-end">{Number(receipt.mr_amount).toLocaleString('en-US')}</div>),
+        patient_name: receipt.patient_name || "Patient Name",
+        status: <Badge bg='primary-gradient' className="rounded-pill">Prepared</Badge>,
         action: (
             <>
-                <span onClick={() => handlers.handleShowDataById(appointment)}  className="btn-sm bg-info" style={{ cursor: "pointer" }}>
-                <i className="bi bi-eye"></i>
-                </span>
-                <span onClick={() => handlers.handleEditDataById(appointment)} className="btn-sm bg-primary ms-2" style={{ cursor: "pointer" }}>
-                    <i className="bi bi-pencil"></i>
-                </span>
-                <span onClick={() => handlers.deletePermissionAlert(appointment.id)} className="btn-sm bg-danger ms-2" style={{ cursor: "pointer" }}>
+                <Link to={`${import.meta.env.BASE_URL}moneyreceipt/singledata/${receipt.id}`}>
+                    <i className="bi bi-eye btn-sm bg-info"></i>
+                </Link>
+                <Link to={`${import.meta.env.BASE_URL}moneyreceipt/edit/${receipt.id}`}>
+                    <i className="bi bi-pencil btn-sm bg-primary ms-2"></i>
+                </Link>
+                <span onClick={() => handlers.deletePermissionAlert(receipt.id)} className="btn-sm bg-danger ms-2" style={{ cursor: "pointer" }}>
                     <i className="bi bi-trash"></i>
+                </span>
+                <span  className="btn-sm bg-success ms-2" style={{ cursor: "pointer" }}>
+                    <i className="bi bi-file-pdf"></i>
                 </span>
             </>
         )
@@ -93,20 +95,15 @@ export const GlobalFilter = ({ filter, setFilter }) => {
 };
 
 export const BasicTable = () => {
-
-
-    const [showData, setShowData] = useState(false);
-    const [doctorAppointment, setDoctorAppointment] = useState([]);
-    const [showSingleData, setSingleData] = useState([]);
-    const [passEditFormData, setPassingEditFormData] = useState(null);
+    const [moneyReceiptList, setMoneyReceiptList] = useState([]);
 
 
 
     const fetchItems = () => {
-        fetch(`${basURL}/appointment`)
+        fetch(`${baseURL}/money_receipt`)
             .then((response) => response.json())
             .then((data) => {
-            setDoctorAppointment(data.data);
+            setMoneyReceiptList(data.data);
             })
             .catch((error) => {
             console.log("Error Fetching the data: ", error);
@@ -117,38 +114,33 @@ export const BasicTable = () => {
         fetchItems();
         }, []);
 
-    // console.log(doctorAppointment);
+    // console.log(moneyReceiptList);
 
-    const handleShowDataById = (appointment) => {
-        setShowData(true);
-        setSingleData(appointment);
-
-    }
 
     /** Delete Handler */
-    // const handleDeleteClick = async (appointmentId) => {
-    //     try {
-    //         const result = await fetch(`${basURL}/appointment/destroy/${appointmentId}`, {
-    //             method: 'GET',
-    //             headers: {
-    //                 'Content-Type': 'application/json'
-    //             }
-    //         });
+    const handleDeleteClick = async (receiptId) => {
+        try {
+            const result = await fetch(`${baseURL}/money_receipt/destroy/${receiptId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-    //         const response = await result.json();
+            const response = await result.json();
 
-    //         if (response.status == 'success') {
-    //             setDoctorAppointment(prevContact => prevContact.filter(c => c.id !== appointmentId));
+            if (response.status == 'success') {
+                setMoneyReceiptList(prevContact => prevContact.filter(c => c.id !== receiptId));
 
-    //         }
-    //         return response;
+            }
+            return response;
 
-    //     } catch (error) {
-    //         console.log(error);
-    //         return error;
-    //     }
+        } catch (error) {
+            console.log(error);
+            return error;
+        }
 
-    // };
+    };
 
 
     /*** Delete Permission Alert  */
@@ -188,49 +180,12 @@ export const BasicTable = () => {
     }
 
 
-    /** Edit Handler */
-    const handleEditDataById = (appointment) => {
-        // const data = doctorAppointment.find((appointment) => appointment.id == experienceId);
-
-        setShowData(true);
-        setSingleData(null)
-        setPassingEditFormData(appointment);
-
-    }
-
-
-    /** Show Component */
-    let content;
-    if (showSingleData) {
-        content = (
-            <SingleTableFunction 
-                setShowData={setShowData} 
-                singleAppointment={showSingleData} 
-                setSingleData={setSingleData} 
-                />
-        )
-    } else if (passEditFormData) {
-        content = (
-            <BankAccountInfoEditForm
-                setShowData={setShowData} 
-                setDoctorAppointment={setDoctorAppointment} 
-                passEditFormData={passEditFormData} 
-                setPassingEditFormData={setPassingEditFormData} 
-                existingAppointment = {doctorAppointment} //for duplicate check
-                fetchItems={fetchItems}
-            />
-        )
-    }
-
-
     
 
-    const dataTable = useMemo(() => DATATABLE(doctorAppointment, {
-        handleShowDataById,
+    const dataTable = useMemo(() => DATATABLE(moneyReceiptList, {
         deletePermissionAlert,
-        handleEditDataById
 
-    }), [doctorAppointment]);
+    }), [moneyReceiptList]);
 
 
 
@@ -238,6 +193,7 @@ export const BasicTable = () => {
         {
             columns: COLUMNS,
             data: dataTable,
+            initialState: { pageSize: 50 },
         },
         useGlobalFilter,
         useSortBy,
@@ -266,160 +222,149 @@ export const BasicTable = () => {
 
     return (
         <>
-            {!showData ? (
-                <>
-                    <Row className="row-sm">
-                        <Col xl={12}>
-                            <Card className="custom-card">
-                                <Card.Header className="justify-content-between">
-                                    <div className='card-title'>Money Receipt List</div>
-                                    <div className="prism-toggle">
-                                        <Link to={`${import.meta.env.BASE_URL}moneyreceipt/createform`} state={{doctorAppointment}}><button
-                                            type="button"
-                                            className="btn btn-sm btn-primary"> New
-                                        </button>
-                                        </Link>
-                                    </div>
+            <Row className="row-sm">
+                <Col xl={12}>
+                    <Card className="custom-card">
+                        <Card.Header className="justify-content-between">
+                            <div className='card-title'>Money Receipt List</div>
+                            <div className="prism-toggle">
+                                <Link to={`${import.meta.env.BASE_URL}moneyreceipt/createform`} state={{moneyReceiptList}}><button
+                                    type="button"
+                                    className="btn btn-sm btn-primary"> New
+                                </button>
+                                </Link>
+                            </div>
 
-                                </Card.Header>
+                        </Card.Header>
 
-                                <Card.Body>
+                        <Card.Body>
 
-                                    <div className="d-flex">
-                                        <select
-                                            className=" mb-4 selectpage border me-1"
-                                            value={pageSize}
-                                            onChange={(e) => setPageSize((e.target.value))}
-                                        >
-                                            {[10, 25, 50, 100].map((pageSize) => (
-                                                <option key={pageSize} value={pageSize}>
-                                                    Show {pageSize}
-                                                </option>
+                            <div className="d-flex">
+                                <select
+                                    className=" mb-4 selectpage border me-1"
+                                    value={pageSize}
+                                    onChange={(e) => setPageSize((e.target.value))}
+                                >
+                                    {[50, 100, 200, 300].map((pageSize) => (
+                                        <option key={pageSize} value={pageSize}>
+                                            Show {pageSize}
+                                        </option>
+                                    ))}
+                                </select>
+                                <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
+                            </div>
+                            <table {...getTableProps()} className="table table-sm table-primary table-striped table-hover mb-0 table-bordered">
+                                <thead className="bg-primary">
+                                    {headerGroups.map((headerGroup) => (
+                                        <tr {...headerGroup.getHeaderGroupProps()} key={Math.random()}>
+                                            {headerGroup.headers.map((column) => (
+                                                <th
+                                                    {...column.getHeaderProps(column.getSortByToggleProps())}
+                                                    className={column.className} key={Math.random()}
+                                                >
+                                                    <span className="tabletitle text-white">{column.render("Header")}</span>
+                                                    <span className="float-end">
+                                                        {column.isSorted ? (
+                                                            column.isSortedDesc ? (
+                                                                <i className="fa fa-angle-down"></i>
+                                                            ) : (
+                                                                <i className="fa fa-angle-up"></i>
+                                                            )
+                                                        ) : (
+                                                            ""
+                                                        )}
+                                                    </span>
+                                                </th>
                                             ))}
-                                        </select>
-                                        <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
-                                    </div>
-                                    <table {...getTableProps()} className="table table-hover mb-0 table-bordered">
-                                        <thead>
-                                            {headerGroups.map((headerGroup) => (
-                                                <tr {...headerGroup.getHeaderGroupProps()} key={Math.random()}>
-                                                    {headerGroup.headers.map((column) => (
-                                                        <th
-                                                            {...column.getHeaderProps(column.getSortByToggleProps())}
-                                                            className={column.className} key={Math.random()}
-                                                        >
-                                                            <span className="tabletitle">{column.render("Header")}</span>
-                                                            <span className="float-end">
-                                                                {column.isSorted ? (
-                                                                    column.isSortedDesc ? (
-                                                                        <i className="fa fa-angle-down"></i>
-                                                                    ) : (
-                                                                        <i className="fa fa-angle-up"></i>
-                                                                    )
-                                                                ) : (
-                                                                    ""
-                                                                )}
-                                                            </span>
-                                                        </th>
-                                                    ))}
-                                                </tr>
-                                            ))}
-                                        </thead>
-                                        <tbody {...getTableBodyProps()}>
-                                            {page.map((row) => {
-                                                prepareRow(row);
-                                                return (
-                                                    <tr {...row.getRowProps()} key={Math.random()}>
-                                                        {row.cells.map((cell) => {
-                                                            return (
-                                                                <td className="borderrigth" {...cell.getCellProps()} key={Math.random()}>
-                                                                    {cell.render("Cell")}
-                                                                </td>
-                                                            );
-                                                        })}
-                                                    </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
-                                    <div className="d-block d-sm-flex mt-4 ">
-                                        <span>
-                                            Showing {pageIndex * pageSize + 1} to{" "}
-                                            {Math.min((pageIndex + 1) * pageSize, doctorAppointment.length)} of{" "}
-                                            {doctorAppointment.length} entries
-                                        </span>
-                                        <span className="ms-sm-auto ">
-                                            <Button
-                                                variant=""
-                                                className="btn-outline-light tablebutton me-2 d-sm-inline d-block my-1"
-                                                onClick={() => gotoPage(0)}
-                                                disabled={!canPreviousPage}
-                                            >
-                                                {" Previous "}
-                                            </Button>
-                                            <Button
-                                                variant=""
-                                                className="btn-outline-light tablebutton me-2 my-1"
-                                                onClick={() => {
-                                                    previousPage();
-                                                }}
-                                                disabled={!canPreviousPage}
-                                            >
-                                                {" << "}
-                                            </Button>
-                                            <Button
-                                                variant=""
-                                                className="btn-outline-light tablebutton me-2 my-1"
-                                                onClick={() => {
-                                                    previousPage();
-                                                }}
-                                                disabled={!canPreviousPage}
-                                            >
-                                                {" < "}
-                                            </Button>
-                                            <Button
-                                                variant=""
-                                                className="btn-outline-light tablebutton me-2 my-1"
-                                                onClick={() => {
-                                                    nextPage();
-                                                }}
-                                                disabled={!canNextPage}
-                                            >
-                                                {" > "}
-                                            </Button>
-                                            <Button
-                                                variant=""
-                                                className="btn-outline-light tablebutton me-2 my-1"
-                                                onClick={() => {
-                                                    nextPage();
-                                                }}
-                                                disabled={!canNextPage}
-                                            >
-                                                {" >> "}
-                                            </Button>
-                                            <Button
-                                                variant=""
-                                                className="btn-outline-light tablebutton me-2 d-sm-inline d-block my-1"
-                                                onClick={() => gotoPage(pageCount - 1)}
-                                                disabled={!canNextPage}
-                                            >
-                                                {" Next "}
-                                            </Button>
-                                        </span>
-                                    </div>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                    </Row>
-
-
-                </>
-            ) : (
-                <div>
-                    {content}
-                </div>
-
-            )}
+                                        </tr>
+                                    ))}
+                                </thead>
+                                <tbody {...getTableBodyProps()}>
+                                    {page.map((row) => {
+                                        prepareRow(row);
+                                        return (
+                                            <tr {...row.getRowProps()} key={Math.random()}>
+                                                {row.cells.map((cell) => {
+                                                    return (
+                                                        <td className="borderrigth" {...cell.getCellProps()} key={Math.random()}>
+                                                            {cell.render("Cell")}
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                            <div className="d-block d-sm-flex mt-4 ">
+                                <span>
+                                    Showing {pageIndex * pageSize + 1} to{" "}
+                                    {Math.min((pageIndex + 1) * pageSize, moneyReceiptList.length)} of{" "}
+                                    {moneyReceiptList.length} entries
+                                </span>
+                                <span className="ms-sm-auto ">
+                                    <Button
+                                        variant=""
+                                        className="btn-outline-light tablebutton me-2 d-sm-inline d-block my-1"
+                                        onClick={() => gotoPage(0)}
+                                        disabled={!canPreviousPage}
+                                    >
+                                        {" Previous "}
+                                    </Button>
+                                    <Button
+                                        variant=""
+                                        className="btn-outline-light tablebutton me-2 my-1"
+                                        onClick={() => {
+                                            previousPage();
+                                        }}
+                                        disabled={!canPreviousPage}
+                                    >
+                                        {" << "}
+                                    </Button>
+                                    <Button
+                                        variant=""
+                                        className="btn-outline-light tablebutton me-2 my-1"
+                                        onClick={() => {
+                                            previousPage();
+                                        }}
+                                        disabled={!canPreviousPage}
+                                    >
+                                        {" < "}
+                                    </Button>
+                                    <Button
+                                        variant=""
+                                        className="btn-outline-light tablebutton me-2 my-1"
+                                        onClick={() => {
+                                            nextPage();
+                                        }}
+                                        disabled={!canNextPage}
+                                    >
+                                        {" > "}
+                                    </Button>
+                                    <Button
+                                        variant=""
+                                        className="btn-outline-light tablebutton me-2 my-1"
+                                        onClick={() => {
+                                            nextPage();
+                                        }}
+                                        disabled={!canNextPage}
+                                    >
+                                        {" >> "}
+                                    </Button>
+                                    <Button
+                                        variant=""
+                                        className="btn-outline-light tablebutton me-2 d-sm-inline d-block my-1"
+                                        onClick={() => gotoPage(pageCount - 1)}
+                                        disabled={!canNextPage}
+                                    >
+                                        {" Next "}
+                                    </Button>
+                                </span>
+                            </div>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
 
         </>
     )

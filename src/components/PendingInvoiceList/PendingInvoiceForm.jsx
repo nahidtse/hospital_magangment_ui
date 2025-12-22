@@ -6,7 +6,7 @@ import Select from 'react-select';
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
-const BankInfoForm = () => {
+const PendingInvoiceForm = () => {
 
   const location = useLocation();
   const stateBankInfo = location.state?.bankInfo;  //For Duplicate Check
@@ -204,7 +204,7 @@ const BankInfoForm = () => {
         <Col xl={12}>
           <Card className="custom-card">
             <Card.Header className="justify-content-between">
-              <div className='card-title'>New Bank</div>
+              <div className='card-title'>New Pending Invoice</div>
               <div className="prism-toggle">
                 <Link to={`${import.meta.env.BASE_URL}bankinfo/dataTable`}>
                   <button className="btn btn-sm btn-primary">List</button>
@@ -308,4 +308,4 @@ const BankInfoForm = () => {
   );
 };
 
-export default BankInfoForm;
+export default PendingInvoiceForm;

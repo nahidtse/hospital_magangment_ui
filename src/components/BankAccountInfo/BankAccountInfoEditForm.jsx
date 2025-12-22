@@ -80,7 +80,6 @@ const BankAccountInfoEditForm = () => {
         fetch(`${baseURL}/bank_account/single_data/${id}`)
             .then((response) => response.json())
             .then((data) => {
-              console.log("Fetched Data:", data);
               if(data.status === 'success') {
                 setEditFormData({
                   id: data.data.id || '',  //Dublicate Check

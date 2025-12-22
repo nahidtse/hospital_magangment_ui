@@ -151,6 +151,11 @@ export const MENUITEMS = [
                     { path: `${import.meta.env.BASE_URL}moneyreceipt/createform`, type: 'link', active: false, selected: false, dirchange: false },
                 ]
             },
+            {
+                title: "Pending Invoice List", path: `${import.meta.env.BASE_URL}pendinginvoice/dataTable`, type: "link", badgetxt: '', menusub: true, active: false, selected: false, dirchange: false, children: [
+                    // { path: `${import.meta.env.BASE_URL}moneyreceipt/createform`, type: 'link', active: false, selected: false, dirchange: false },
+                ]
+            },
 
         ]
     },

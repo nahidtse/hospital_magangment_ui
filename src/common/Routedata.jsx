@@ -48,7 +48,9 @@ import BankInfoSingleTable from "../components/BankInfo/BankInfoSingleTable";
 import BankInfoEditForm from "../components/BankInfo/BankInfoEditForm";
 import BankAccountSingleTable from "../components/BankAccountInfo/BankAccountSingleTable";
 import BankAccountInfoEditForm from "../components/BankAccountInfo/BankAccountInfoEditForm";
-
+import MoneyReceiptSingleTable from "../components/MoneyReceipt/MoneyReceiptSingleTable";
+import MoneyReceiptEditForm from "../components/MoneyReceipt/MoneyReceiptEditForm";
+import PendingInvoiceListTable from "../components/PendingInvoiceList/PendingInvoiceListTable";
 
 
 export const Routedata = [
@@ -119,6 +121,14 @@ export const Routedata = [
   // Money Receipt
    { id: 34, path: `${import.meta.env.BASE_URL}moneyreceipt/dataTable`, element: <MoneyReceiptTable/> },
    { id: 35, path: `${import.meta.env.BASE_URL}moneyreceipt/createform`, element: <MoneyReceiptForm /> },
+   { id: 36, path: `${import.meta.env.BASE_URL}moneyreceipt/singledata/:id`, element: <MoneyReceiptSingleTable /> },
+   { id: 37, path: `${import.meta.env.BASE_URL}moneyreceipt/edit/:id`, element: <MoneyReceiptEditForm /> },
+
+  // Pending Invoice 
+   { id: 38, path: `${import.meta.env.BASE_URL}pendinginvoice/dataTable`, element: <PendingInvoiceListTable/> },
+  //  { id: 35, path: `${import.meta.env.BASE_URL}moneyreceipt/createform`, element: <MoneyReceiptForm /> },
+  //  { id: 36, path: `${import.meta.env.BASE_URL}moneyreceipt/singledata/:id`, element: <MoneyReceiptSingleTable /> },
+  //  { id: 36, path: `${import.meta.env.BASE_URL}moneyreceipt/edit/:id`, element: <MoneyReceiptEditForm /> },
 
 
   

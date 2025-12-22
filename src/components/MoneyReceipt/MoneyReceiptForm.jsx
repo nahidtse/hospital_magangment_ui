@@ -13,9 +13,10 @@ const MoneyReceiptForm = () => {
 
   const [moneyReceiptList, setMoneyReceiptList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  console.log(moneyReceiptList)
+  // console.log(moneyReceiptList)
 
 
+  //Get Money Receipt List
   const fetchMoneyReceiptList = () => {
     fetch(`${baseURL}/money_receipt`)
         .then((response) => response.json())

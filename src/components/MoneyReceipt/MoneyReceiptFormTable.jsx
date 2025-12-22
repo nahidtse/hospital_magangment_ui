@@ -4,9 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
-import RoleEditForm from "./BankAccountInfoEditForm";
+import RoleEditForm from "./MoneyReceiptEditForm";
 import { format } from 'date-fns';
-const basURL = import.meta.env.VITE_API_BASE_URL;
 
 
 // ******************************************************
@@ -41,21 +40,21 @@ export const COLUMNS = [
     },
     {
         Header: "Status",
-        accessor: "action",
+        accessor: "status",
     },
 ];
 
 export const DATATABLE = (todayList, handlers) =>
-    todayList.map((recepit, id) => ({
-        id: recepit.money_receipt_no,
-        payment_type: recepit.payment_type.lookup_code || "",
-        payment_date: recepit.money_receipt_date && !isNaN(new Date(recepit.money_receipt_date))
-                            ? format(new Date(recepit.money_receipt_date), 'dd-MM-yyyy')
-                            : "",
-        patient: recepit.patient_info.patient_name || "",
-        activity_type: recepit.activity_type.lookup_value || "",
-        amount: (<div className="text-end">{recepit.mr_amount}</div>),
-        action: <Badge bg='primary-gradient' className="rounded-pill">Prepared</Badge>
+    todayList.map((receipt, id) => ({
+        id: receipt.money_receipt_no,
+        payment_type: receipt.payment_type?.lookup_value || "",
+        payment_date: receipt.money_receipt_date && !isNaN(new Date(receipt.money_receipt_date))
+                    ? format(new Date(receipt.money_receipt_date), 'dd-MM-yyyy')
+                    : "",
+        patient: receipt.patient_info?.patient_name || "",
+        activity_type: receipt.activity_type?.lookup_value || "",
+        amount: (<div className="text-end">{receipt.mr_amount}</div>),
+        status: <Badge bg='primary-gradient' className="rounded-pill">Prepared</Badge>
     }));
 
 export const GlobalFilter = ({ filter, setFilter }) => {

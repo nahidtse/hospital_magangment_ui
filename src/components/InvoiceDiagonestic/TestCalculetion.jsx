@@ -1,7 +1,11 @@
-import { useEffect } from "react";
-import { Form, Col, InputGroup } from "react-bootstrap";
+import { useEffect, useState } from "react";
+import { Form, Row, Col, InputGroup } from "react-bootstrap";
+import Select from "react-select";
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-const TestCalculetion = ({totalAmount, addFormData, setFormData}) => {
+const TestCalculetion = ({customStyles, totalAmount, addFormData, setFormData}) => {
+
+    const [activityType, setActivityType] = useState([]); //For React Select Api State
 
     // Discount Percent Change
     const handleDiscountPercent = (e) => {
@@ -67,7 +71,10 @@ const TestCalculetion = ({totalAmount, addFormData, setFormData}) => {
     useEffect(() => {
         setFormData(prev => ({
             ...prev, 
-            grossTotal: grossTotal
+            grossTotal: grossTotal,
+            mr_amount: '',
+            advanceAmount: '',
+            dueAmount: ''
         }))
     }, [totalAmount, 
         addFormData.serviceCharge, 
@@ -89,6 +96,60 @@ const TestCalculetion = ({totalAmount, addFormData, setFormData}) => {
             dueAmount: grossTotal - (value || 0)
         }))                
     };
+
+    
+    //----------React Select paymentType, activityType Start----------
+        //Lookup value Get By Code
+        const getLookupValueDataByCode = async (code) => {
+            try {
+            const response = await fetch(`${baseURL}/lookupvalue/multiplefilter/${code}`)
+            const result = await response.json()
+        
+            if(!result?.data) return ;
+        
+            if(code === 'AT') {
+                setActivityType(result.data);
+            }
+        
+            } catch (err) {
+                console.error(`Failed to load lookup value for code ${code}:`, err);
+            }
+        }
+        
+        useEffect(()=> {
+            const lookupValueCode = ['AT'];
+        
+            lookupValueCode.forEach((code) => {
+            getLookupValueDataByCode(code);
+            })
+        }, []);
+
+
+        const activityTypeOptions = activityType.map(activity => ({
+            value: activity.id,
+            label: `${activity.lookup_value} (${activity.lookup_code})`,
+        }));
+
+        // react-select  onChange handler
+        const activityTypeChange = (selectedOption) => {
+            setFormData(prev => ({
+            ...prev,
+            activity_type_id: selectedOption? selectedOption.value : null,
+            }));
+        };
+    //----------React Select paymentType, activityType End----------
+
+
+    const onChangeHandler = (e) => {
+        const {name, value} = e.target;
+
+        setFormData(prev => ({
+            ...prev,
+            [name]:value,
+            advanceAmount:value,
+            dueAmount: grossTotal - (value || 0)
+        }))
+    }
 
   return (
     <>
@@ -145,6 +206,51 @@ const TestCalculetion = ({totalAmount, addFormData, setFormData}) => {
             </InputGroup>
         {/* <Form.Control.Feedback type='invalid'>{showValidationError.test}</Form.Control.Feedback> */}
         </Form.Group>
+
+        <Row className="mt-3 p-3">
+            <Col md={12} className="p-2 border border-dark rounded">
+                <Row>
+                    <Form.Group as={Col} md="6" controlId="validationCustom02">
+                        <Form.Label>Collection Type<span className='text-danger ms-1'>*</span></Form.Label>
+                        <Select
+                        styles={customStyles} 
+                        name="testName"
+                        options={activityTypeOptions}
+                        classNamePrefix="react-select"
+                        // className={`react-select-container ${showValidationError.test_name ? 'is-invalid' : ''}`}
+                        onChange={activityTypeChange}
+                        placeholder="Select Bank"
+                        isSearchable={true}
+                        isClearable={true}
+                        tabIndex={12}
+                        value={activityTypeOptions.find(option => option.value === addFormData.activity_type_id) || null}
+                        />
+
+                        {/* {showValidationError.doctor_name && (
+                        <Form.Control.Feedback type="invalid" className="d-block">
+                            {showValidationError.doctor_name}
+                        </Form.Control.Feedback>
+                        )} */}
+                    </Form.Group>
+
+                    <Form.Group as={Col} md="6" controlId="validationCustom01">
+                        <Form.Label>Amount <span className='text-danger ms-1'>*</span></Form.Label>
+                        <Form.Control
+                            required
+                            type="text"
+                            className='border-dark'
+                            placeholder="Type Amount"
+                            name='mr_amount'
+                            value={addFormData.mr_amount || ''}
+                            // isInvalid={!!showValidationError.bank_name}
+                            onChange={onChangeHandler}
+                            tabIndex={13}
+                        />
+                        {/* <Form.Control.Feedback type='invalid'>{showValidationError.bank_name}</Form.Control.Feedback> */}
+                    </Form.Group>
+                </Row>
+            </Col>
+        </Row>
     </>
   )
 }

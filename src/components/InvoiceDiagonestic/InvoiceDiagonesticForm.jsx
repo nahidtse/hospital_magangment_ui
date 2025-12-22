@@ -10,7 +10,7 @@ import {intervalToDuration, format } from "date-fns";
 import TestCalculetion from './TestCalculetion';
 import TestSelectFormTable from './TestSelectFormTable';
 import InvoicePrint from './InvoicePrint';
-const basURL = import.meta.env.VITE_API_BASE_URL;
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
 const InvoiceDiagonesticForm = () => {
@@ -32,6 +32,7 @@ const InvoiceDiagonesticForm = () => {
   const [showValidationError, setValidationErrors] = useState({
     doctor: '',
     patient_name: '',
+    test_id: ''
   });
 
   const [addFormData, setFormData] = useState({
@@ -64,9 +65,11 @@ const InvoiceDiagonesticForm = () => {
     dueAmount: '',
     grossTotal: '',
     totalAmount: '',
+    activity_type_id: '',
+    mr_amount: ''
   })
 
-  // console.log(addFormData)
+  console.log(addFormData)
 
   const [doctorsInfo, setDoctorsInfo] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState(null); //React Select--CreatableSelect
@@ -156,8 +159,8 @@ const InvoiceDiagonesticForm = () => {
       errors.doctor = "Doctor's Name Required"
     }
 
-    if(!addFormData.patientName) {
-      errors.patient_name = "Patient Name Required"
+    if(addFormData.testListStor.length === 0) {
+      errors.test_id = "Minimum One Test Required"
     }
 
     // Check if any errors
@@ -200,15 +203,23 @@ const InvoiceDiagonesticForm = () => {
         test_list: addFormData.testListStor,
       }
 
-      const payload = {
-        master: submitDataMaster,
-        details: submitDataDelaits
+      const submitDataMoneyReceipt = {
+        activity_type_id: addFormData.activity_type_id,
+        mr_amount: addFormData.mr_amount,
+        money_receipt_date: format(addFormData.invoiceDate, "yyyy-MM-dd HH:mm:ss"),
+        patient_id: addFormData.patientId,
       }
 
-      // console.log(submitDataDelaits, submitDataMaster)
+      const payload = {
+        master: submitDataMaster,
+        details: submitDataDelaits,
+        moneyReceipt: submitDataMoneyReceipt
+      }
+
+      console.log(payload)
       // return;
 
-      const result = await fetch(`${basURL}/invoice_master/create`, {
+      const result = await fetch(`${baseURL}/invoice_master/create`, {
         method: 'POST',
         headers: {
           "Content-type": "application/json"
@@ -219,10 +230,10 @@ const InvoiceDiagonesticForm = () => {
       const response = await result.json();
       console.log(response)
       // return
-      setResInvoiceData(response.data)
-
+      
       if (response.status == 'success') {
         toast.success(response.message);
+        setResInvoiceData(response.data)
 
         // Clear formd
         setFormData(clearInput)
@@ -258,7 +269,7 @@ const InvoiceDiagonesticForm = () => {
    * TODO:: Optimize
   */
   useEffect(() => {
-    fetch(`${basURL}/doctors`)
+    fetch(`${baseURL}/doctors`)
       .then((response) => response.json())
       .then((data) => {
         setDoctorsInfo(data.data);
@@ -297,7 +308,7 @@ const InvoiceDiagonesticForm = () => {
  //Get all Patient start
   const fetchPatients = async() => {
     try {
-      const response = await fetch(`${basURL}/patient`);
+      const response = await fetch(`${baseURL}/patient`);
       const data = await response.json();
       setPatientInfo(data.data || []);
     }  catch (error) {
@@ -405,7 +416,29 @@ const InvoiceDiagonesticForm = () => {
 
             <Card.Body>
 
-              <Form noValidate onSubmit={handleSubmit}>
+              <Form 
+                noValidate 
+                onSubmit={handleSubmit}
+                onKeyDown={(e) => {
+                  const activeEl = document.activeElement;
+
+                  if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") {
+
+                    // Allow Enter on submit button
+                    if (activeEl?.type === "submit") {
+                      return;
+                    }
+
+                    // Allow Enter on Add button
+                    if (activeEl?.tagName === "BUTTON" && activeEl?.type === "button") {
+                      return;
+                    }
+
+                    // Otherwise block Enter
+                    e.preventDefault();
+                  }
+                }}
+              >
                 <Row>
                   <Col md="8">
 
@@ -636,7 +669,12 @@ const InvoiceDiagonesticForm = () => {
                   </Col>
 
                   <Col md="4">
-                      <TestCalculetion totalAmount={totalAmount} addFormData={addFormData} setFormData={setFormData}/>
+                      <TestCalculetion
+                        customStyles = {customStyles} 
+                        totalAmount={totalAmount} 
+                        addFormData={addFormData} 
+                        setFormData={setFormData}
+                      />
                   </Col>
 
                 </Row>
@@ -647,7 +685,7 @@ const InvoiceDiagonesticForm = () => {
                 
                 <div className='d-flex justify-content-end'>
                   <button type="reset" id="resetBtn" className="btn btn-outline-secondary me-2" onClick={resetHandling} tabIndex={-1}>Reset</button>
-                  <Button type="submit" tabIndex={12} disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save"}</Button>
+                  <Button type="submit" tabIndex={14} disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save"}</Button>
                 </div>
               </Form>
 

@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import RoleEditForm from "./BankInfoEditForm";
 import BankInfoEditForm from "./BankInfoEditForm";
+import { format, parseISO } from 'date-fns';
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
@@ -20,43 +21,64 @@ export const COLUMNS = [
         accessor: "id",
     },
     {
-        Header: (<div className="text-center">{"Bank Name"}</div>),
-        accessor: "bankname",
+        Header: (<div className="text-center">{"Invoice Date"}</div>),
+        accessor: "invoiceDate",
     },
     {
-        Header: (<div className="text-center">{"Short Name"}</div>),
-        accessor: "shortname",
+        Header: (<div className="text-center">{"Invoice Time"}</div>),
+        accessor: "invoiceTime",
     },
     {
-        Header: (<div className="text-center">{"Business Unit"}</div>),
-        accessor: "businessunit",
+        Header: (<div className="text-center">{"Invoice No"}</div>),
+        accessor: "invoiceNo",
     },
     {
-        Header: (<div className="text-center">{"Status"}</div>),
-        accessor: "status",
+        Header: (<div className="text-center">{"Pateint Name"}</div>),
+        accessor: "patientName",
+    },
+    {
+        Header: (<div className="text-center">{"Mobile No"}</div>),
+        accessor: "mobileNo",
+    },
+    {
+        Header: (<div className="text-center">{"Gross Total"}</div>),
+        accessor: "grossTotal",
+    },
+    {
+        Header: (<div className="text-center">{"Advance Amount"}</div>),
+        accessor: "advAmount",
+    },
+    {
+        Header: (<div className="text-center">{"Dues Amount"}</div>),
+        accessor: "duesAmount",
     },
     {
         Header: (<div className="text-center">{"Actions"}</div>),
         accessor: "action",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
 ];
 
-export const DATATABLE = (bankInfo, handlers) =>
-    bankInfo.map((bank, id) => ({
-        id: id + 1,
-        bankname: bank.bank_name || "Bank Name", 
-        shortname: bank.short_name || "Short Name",
-        businessunit: bank.business_unit.business_unit || "Business Unit",
-        status: bank.is_active == 1 ? "Active" : "Inactive",
+export const DATATABLE = (dueAmount, handlers) =>
+    dueAmount.map((due, id) => ({
+        id: (<div className="text-center">{id + 1}</div>),
+        invoiceNo: (<div className="text-center">{due.invoice_no || ""}</div>), 
+        invoiceDate: (<div className="text-center">{due.invoice_date ? format(parseISO(due.invoice_date), 'dd-MM-yyyy') : '' || ""}</div>), 
+        invoiceTime: (<div className="text-center">{due.invoice_date ? format(parseISO(due.invoice_date), 'hh:mm a') : '' || ""}</div>), 
+        patientName: due.patient_name || "",
+        mobileNo: (<div className="text-center">{due.mobile_no || ""}</div>),
+        grossTotal: (<div className="text-end">{due.gross_total || ""}</div>),
+        advAmount: (<div className="text-end">{due.adv_amount || ""}</div>),
+        duesAmount: (<div className="text-end">{due.due_amount || ""}</div>),
         action: (
             <>
-                <Link to={`${import.meta.env.BASE_URL}bankinfo/singledata/${bank.id}`}>
+                <Link to={`${import.meta.env.BASE_URL}bankinfo/singledata/${due.id}`}>
                     <i className="bi bi-eye btn-sm bg-info"></i> 
                 </Link>
-                <Link to={`${import.meta.env.BASE_URL}bankinfo/edit/${bank.id}`}>
+                <Link to={`${import.meta.env.BASE_URL}bankinfo/edit/${due.id}`}>
                     <i className="bi bi-pencil btn-sm bg-primary ms-2"></i>
                 </Link>
-                <span onClick={() => handlers.deletePermissionAlert(bank.id)} className="btn-sm bg-danger ms-2" style={{ cursor: "pointer" }}>
+                <span onClick={() => handlers.deletePermissionAlert(due.id)} className="btn-sm bg-danger ms-2" style={{ cursor: "pointer" }}>
                     <i className="bi bi-trash"></i>
                 </span>
             </>
@@ -79,15 +101,15 @@ export const GlobalFilter = ({ filter, setFilter }) => {
 export const BasicTable = () => {
 
 
-    const [bankInfo, setBankInfo] = useState([]);
+    const [dueAmount, setDueAmount] = useState([]);
 
-
+    console.log(dueAmount)
 
     const fetchItems = () => {
-        fetch(`${baseURL}/bank_info`)
+        fetch(`${baseURL}/invoice_master/deu_amount`)
             .then((response) => response.json())
             .then((data) => {
-            setBankInfo(data.data);
+            setDueAmount(data.data);
             })
             .catch((error) => {
             console.log("Error Fetching the data: ", error);
@@ -98,7 +120,7 @@ export const BasicTable = () => {
         fetchItems();
         }, []);
 
-    // console.log(bankInfo);
+    // console.log(dueAmount);
 
     
 
@@ -115,7 +137,7 @@ export const BasicTable = () => {
             const response = await result.json();
 
             if (response.status == 'success') {
-                setBankInfo(prevContact => prevContact.filter(c => c.id !== bankId));
+                setDueAmount(prevContact => prevContact.filter(c => c.id !== bankId));
 
             }
             return response;
@@ -168,10 +190,10 @@ export const BasicTable = () => {
 
     
 
-    const dataTable = useMemo(() => DATATABLE(bankInfo, {
+    const dataTable = useMemo(() => DATATABLE(dueAmount, {
         deletePermissionAlert,
 
-    }), [bankInfo]);
+    }), [dueAmount]);
 
 
 
@@ -179,6 +201,7 @@ export const BasicTable = () => {
         {
             columns: COLUMNS,
             data: dataTable,
+            initialState: { pageSize: 50 },
         },
         useGlobalFilter,
         useSortBy,
@@ -211,9 +234,9 @@ export const BasicTable = () => {
                 <Col xl={12}>
                     <Card className="custom-card">
                         <Card.Header className="justify-content-between">
-                            <div className='card-title'>Bank Information List</div>
+                            <div className='card-title'>Pending Invoice List</div>
                             <div className="prism-toggle">
-                                <Link to={`${import.meta.env.BASE_URL}bankinfo/createform`} state={{bankInfo}}><button
+                                <Link to={`${import.meta.env.BASE_URL}bankinfo/createform`} state={{dueAmount}}><button
                                     type="button"
                                     className="btn btn-sm btn-primary"> New
                                 </button>
@@ -230,7 +253,7 @@ export const BasicTable = () => {
                                     value={pageSize}
                                     onChange={(e) => setPageSize((e.target.value))}
                                 >
-                                    {[10, 25, 50, 100].map((pageSize) => (
+                                    {[50, 100, 200, 300].map((pageSize) => (
                                         <option key={pageSize} value={pageSize}>
                                             Show {pageSize}
                                         </option>
@@ -284,8 +307,8 @@ export const BasicTable = () => {
                             <div className="d-block d-sm-flex mt-4 ">
                                 <span>
                                     Showing {pageIndex * pageSize + 1} to{" "}
-                                    {Math.min((pageIndex + 1) * pageSize, bankInfo.length)} of{" "}
-                                    {bankInfo.length} entries
+                                    {Math.min((pageIndex + 1) * pageSize, dueAmount.length)} of{" "}
+                                    {dueAmount.length} entries
                                 </span>
                                 <span className="ms-sm-auto ">
                                     <Button

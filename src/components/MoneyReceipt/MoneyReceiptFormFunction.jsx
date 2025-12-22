@@ -51,6 +51,8 @@ const MoneyReceiptFormFunction = ({onSubmit}) => {
   const onChangeHandler = (e) => {
       const { name, value } = e.target;
 
+      if (name === "mobile_no" && value.length > 11) return;
+
       setFormData((prev) => ({
           ...prev,
           [name]: value,
@@ -178,7 +180,7 @@ const MoneyReceiptFormFunction = ({onSubmit}) => {
 
   //-----------onChange Hide function Start------------
     const isCash = addFormData.activity_type_name === "CASH" //if cash then hide 4 bank input    
-    const mobileBanking = ['Bkash', 'Nagat', 'Roket']  //if Select Mobile banking then Mobile no input Show
+    const mobileBanking = ['Bkash', 'Nagad', 'Roket']  //if Select Mobile banking then Mobile no input Show
     const isMobileBanking = mobileBanking.includes(addFormData.activity_type_name)
         useEffect(() => { 
             if(isMobileBanking || isCash) {
@@ -217,12 +219,12 @@ const MoneyReceiptFormFunction = ({onSubmit}) => {
           patient_id: addFormData.patient_id,
           payment_type_id: addFormData.payment_type_id,
           activity_type_id: addFormData.activity_type_id,
-          mobile_no: addFormData.mobile_no,
-          branch_name: addFormData.branch_name,
+          mobile_no: isMobileBanking ? addFormData.mobile_no : null,
+          branch_name: showBankFields ? addFormData.branch_name : '',
           mr_amount: addFormData.mr_amount,
-          cheque_no: addFormData.cheque_no,
-          bank_id: addFormData.bank_id,
-          cheque_date: addFormData.cheque_date ? format(addFormData.cheque_date, "yyyy-MM-dd") : null,
+          cheque_no: showBankFields  ? addFormData.cheque_no : '',
+          bank_id: showBankFields ? addFormData.bank_id : '',
+          cheque_date: showBankFields && addFormData.cheque_date ? format(addFormData.cheque_date, "yyyy-MM-dd") : null,
           remarks: addFormData.remarks,
         }
 
@@ -330,6 +332,7 @@ const MoneyReceiptFormFunction = ({onSubmit}) => {
                     onChange={(date) =>
                       setFormData({ ...addFormData, money_receipt_date: date })
                     }
+                    maxDate={new Date()}
                     placeholderText="Select date"
                     className="form-control flex-grow-1 border-dark"
                     tabIndex={2}
@@ -478,8 +481,9 @@ const MoneyReceiptFormFunction = ({onSubmit}) => {
                             dateFormat="dd/MM/yyyy"
                             selected={addFormData.cheque_date || null}
                             onChange={(date) =>
-                                setFormData({ ...addFormData, cheque_date: date })
+                              setFormData({ ...addFormData, cheque_date: date })
                             }
+                            maxDate={new Date()}
                             placeholderText="Select Cheque date"
                             className="form-control flex-grow-1 border-dark"
                             tabIndex={11}

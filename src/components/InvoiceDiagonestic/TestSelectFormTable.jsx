@@ -127,24 +127,24 @@ const TestSelectFormTable = ({
             <Form.Group as={Col} md="5" controlId="validationCustom02">
                 <Form.Label>Test Code + Name<span className='text-danger ms-1'>*</span></Form.Label>
                 <Select
-                styles={customStyles} 
-                name="testName"
-                options={testInfoOptions}
-                classNamePrefix="react-select"
-                className={`react-select-container ${showValidationError.test_name ? 'is-invalid' : ''}`}
-                onChange={onChangeTestHandler}
-                placeholder="Select Test Code + Name"
-                isSearchable={true}
-                isClearable={true}
-                tabIndex={4}
-                value={testInfoOptions.find(option => option.value === addFormData.testId) || null}
+                    styles={customStyles} 
+                    name="testName"
+                    options={testInfoOptions}
+                    classNamePrefix="react-select"
+                    className={`react-select-container ${showValidationError.test_name ? 'is-invalid' : ''}`}
+                    onChange={onChangeTestHandler}
+                    placeholder="Select Test Code + Name"
+                    isSearchable={true}
+                    isClearable={true}
+                    tabIndex={4}
+                    value={testInfoOptions.find(option => option.value === addFormData.testId) || null}
                 />
 
-                {/* {showValidationError.doctor_name && (
+                {showValidationError.test_id && (
                 <Form.Control.Feedback type="invalid" className="d-block">
-                    {showValidationError.doctor_name}
+                    {showValidationError.test_id}
                 </Form.Control.Feedback>
-                )} */}
+                )}
             </Form.Group>
 
             <Form.Group as={Col} md="2" controlId="validationCustom01">
