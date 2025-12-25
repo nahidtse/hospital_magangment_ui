@@ -9,7 +9,7 @@ const PendingInvoiceSingleTable = () => {
     const location = useLocation();
     const singleInvoice = location.state?.singleData;
 
-    // console.log(singleInvoice)
+    console.log(singleInvoice)
 
     //-----------Adv & Toatal Collection Amount Calculetion Start---------
     const totalDuesAmountCollection = singleInvoice?.money_receipt?.reduce(

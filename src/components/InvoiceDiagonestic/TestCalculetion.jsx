@@ -25,7 +25,7 @@ const TestCalculetion = ({customStyles, totalAmount, addFormData, setFormData}) 
         setFormData(prev =>({
             ...prev,
             discountAmount:amount,
-            discountPercent: amount ? ((totalAmount / amount) * 100).toFixed(2) : ''
+            discountPercent: amount ? ((amount / totalAmount) * 100).toFixed(2) : ''
         }))
     };
 

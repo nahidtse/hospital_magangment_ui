@@ -205,7 +205,8 @@ const TestSelectFormTable = ({
                             <td style={{ padding: '5px 5px' }} className="text-center">{item.roomNo}</td>
                             <td style={{ padding: '5px 5px' }}>
                                 <input 
-                                    type="number" 
+                                    type="number"
+                                    className="text-end" 
                                     min={1}
                                     value={item.quantity || 1}
                                     onChange={(e)=>handleQtyChange(index, e.target.value)} 

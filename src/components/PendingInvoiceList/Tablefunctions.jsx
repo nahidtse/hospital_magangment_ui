@@ -1,11 +1,12 @@
 import { Button, Card, Col, Row, Table } from "react-bootstrap";
 import { useTable, useSortBy, useGlobalFilter, usePagination, } from "react-table";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { format, parseISO } from 'date-fns';
 import { DuesCollectionModal } from "./DuesCollectionModal";
+import InvoicePrint from "../../common/utils/InvoicePrint";
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
@@ -80,7 +81,13 @@ export const DATATABLE = (dueAmount, handlers) =>
                             <i className="bi bi-eye btn-sm bg-info"></i> 
                         </Link>
 
-                        <i style={{ cursor: "pointer" }} onClick={()=> handlers.openDuesModal(due)} className="bi bi-bank btn-sm bg-primary ms-2"></i>
+                        <span onClick={()=> handlers.openDuesModal(due)} className="btn-sm bg-primary ms-2" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-bank"></i>
+                        </span>
+
+                        <span onClick={() => handlers.handleInvoiceAction(due, "download")} className="btn-sm bg-success ms-2" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-file-pdf"></i>
+                        </span>
                     </>
                 )
             }));
@@ -103,7 +110,29 @@ export const BasicTable = () => {
 
     const [dueAmount, setDueAmount] = useState([]);   //React Select for Dues Amount Collection
     const [showDuesModal, setShowDuesModal] = useState(false);  //Modal Open Close
-    const [selectedDue, setSelectedDue] = useState(null);  //Selected Id for modal 
+    const [selectedDue, setSelectedDue] = useState(null);  //Selected Id for modal
+    
+     const [invoiceData, setInvoiceData] = useState(null);
+     const invoicePrintRef = useRef(null);
+
+
+        const handleInvoiceAction = (due, action = "download") => {
+        setInvoiceData(due); // triggers useEffect
+        };
+
+        // auto trigger PDF after invoiceData set
+        useEffect(() => {
+        if (!invoiceData) return;
+
+        const timer = setTimeout(() => {
+            if (invoicePrintRef.current) {
+            invoicePrintRef.current.downloadPdf(); // অথবা printPdf()
+            setInvoiceData(null); // reset after download
+            }
+        }, 200); // 200ms delay
+
+        return () => clearTimeout(timer);
+        }, [invoiceData]);
 
     // console.log(dueAmount)
 
@@ -160,7 +189,8 @@ export const BasicTable = () => {
     const dataTable = useMemo(() => DATATABLE(dueAmount, {
         openDuesModal: openDuesModal,
         totalDuesAmountCollection: totalDuesAmountCollection,
-        totalDuesAddAdvAmount: totalDuesAddAdvAmount
+        totalDuesAddAdvAmount: totalDuesAddAdvAmount,
+        handleInvoiceAction: handleInvoiceAction
     }), [dueAmount]);
 
 
@@ -215,6 +245,13 @@ export const BasicTable = () => {
                                     due={selectedDue}
                                     fetchItems={fetchItems} //for List Render
                                 />
+
+                                {/* Hidden invoice render */}
+                                {invoiceData && (
+                                <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+                                    <InvoicePrint ref={invoicePrintRef} resInvoiceData={invoiceData} />
+                                </div>
+                                )}
                             </div>
 
                         </Card.Header>

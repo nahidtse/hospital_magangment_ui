@@ -1,16 +1,43 @@
 import React, { useEffect, useRef } from 'react'
 import html2pdf from "html2pdf.js";
 import style from "../../assets/css/myStyleCss/invoicePrint.module.css"
+import paidSeal from "../../assets/images/InvoicePaidDues/Seal_paid_1.png"
+import dueSeal from "../../assets/images/InvoicePaidDues/Seal_due.png"
 import JsBarcode from 'jsbarcode';
 import { format } from "date-fns";
+import { ToWords } from "to-words"; //npm install to-words
 
 function InvoicePrint({resInvoiceData, onDone}) {
-    console.log(resInvoiceData)
+    console.log("PrintAllData", resInvoiceData)
 
     const pdfRef = useRef();
     //Invoice Date formet
     const originalDate = resInvoiceData.master.invoice_date
     const formatedInvoiceDate = format(new Date(originalDate), "yyyy-MM-dd hh:mm a")
+
+    //-----Gross Total inWord Start------
+        const toWords = new ToWords({
+            localeCode: 'en-BD', // Bangladesh
+            converterOptions: {
+                currency: true,
+                ignoreDecimal: false,
+                doNotAddOnly: false,
+            },
+        });
+        
+        const grossTotalWord = toWords.convert(
+            Number(resInvoiceData.master.gross_total || 0)
+        );
+    //-----Gross Total inWord End------
+
+    //--------Adv & total Collection Amount Start -----------
+    const totalDuesAmountCollection = resInvoiceData?.moneyReceipt?.reduce(
+        (sum, item) => sum + Number(item?.mr_amount || 0),
+        0
+    ) || 0;
+
+    const presentDuesAmount = resInvoiceData.master?.gross_total - totalDuesAmountCollection;
+    //--------Adv & total Collection Amount End -----------
 
     useEffect(()=> {
 
@@ -18,13 +45,14 @@ function InvoicePrint({resInvoiceData, onDone}) {
 
         // Ensure DOM loaded before generating barcode + pdf
         setTimeout(() => {
-
-            JsBarcode("#barcode", `*${resInvoiceData.master.invoice_no}*`, {
+            const barcodeOptions = {
                 format: "code128",
                 width: 2,
                 height: 60,
                 displayValue: false
-            });
+            }
+            JsBarcode(".barcode-customer", `*${resInvoiceData.master.invoice_no}*`, barcodeOptions);
+            JsBarcode(".barcode-ofice", `*${resInvoiceData.master.invoice_no}*`, barcodeOptions);
 
             generatePdf ();
 
@@ -55,7 +83,7 @@ function InvoicePrint({resInvoiceData, onDone}) {
         // Auto Download
         worker.save();
 
-        console.log("Pdf Create Successfully");
+        // console.log("Pdf Create Successfully");
 
         // Open in new tab
         window.open(URL.createObjectURL(pdfBlob));
@@ -64,12 +92,11 @@ function InvoicePrint({resInvoiceData, onDone}) {
     }
 
 
-  return (
-    <div ref={pdfRef}>
-        <div className={style.container}>
+    //------------Main Part For Render 2 Copy Start---------------
+        const RenderInvoice = ({type, barcodeClass}) => (
             <div className={style.invoiceBox}>
                 <div className={style.topHeading}>
-                    <h3 className="mb-3">Customer Copy</h3>
+                    <h3 className="mb-3">{type}</h3>
                 </div>
                 <div className="row">
                     <div className="col-6">
@@ -85,7 +112,7 @@ function InvoicePrint({resInvoiceData, onDone}) {
                     <div className="col-6 text-end">
                     <div className="text-end mb-3">
                         {/* Dynamic Barcode */}
-                        <svg id="barcode" className={style.barcode} />
+                        <svg className={`${style.barcode} ${barcodeClass}`} />
                     </div>
                     <p><strong>Date: </strong>{ formatedInvoiceDate}</p>
                     <p><strong>Contact No.:</strong>{resInvoiceData.master.mobile_no}</p>
@@ -120,24 +147,28 @@ function InvoicePrint({resInvoiceData, onDone}) {
                     <div className="sub-total-left">
                         <p><strong>Remarks:</strong></p>
                         <p>Delivery Time:<br />All reports will be delivered after 07:00 PM.<br />Sample after 03:00 PM next day.</p>
-                        <div className={style.paidBox}><span>Paid</span></div>
-                        <p className="mt-3"><strong>In Word:</strong> One thousand eight hundred twenty Taka only.</p>
+                        <div className={style.paidBox}>{presentDuesAmount > 0 ? (
+                            <img src={dueSeal} className={style.watermarkImage} alt="Due" />
+                        ) : (
+                            <img src={paidSeal} className={style.watermarkImage} alt="Full Paid" />
+                        )}</div>
+                        <p className="mt-3"><strong>In Word:</strong> {grossTotalWord}</p>
                         <table className={`${style.subTable} w-100`}>
                             <thead>
                                 <tr>
                                     <th>Payment Type</th>
                                     <th>Collect By</th>
-                                    <th>Mode</th>
                                     <th>Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>Initial Collection</td>
-                                    <td>Farhad</td>
-                                    <td>Card</td>
-                                    <td>{resInvoiceData.master.adv_amount || "0.00"}</td>
-                                </tr>
+                                {resInvoiceData?.moneyReceipt.map((item, index) => (
+                                    <tr key={item.id || index}>
+                                        <td>{item?.activity_type?.lookup_value}</td>
+                                        <td>Farhad</td>
+                                        <td>{item.mr_amount || "0.00"}</td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                         <p className="mt-3"><strong>Prepared By:</strong> MD. FARHAD HOSSEN</p>
@@ -164,15 +195,29 @@ function InvoicePrint({resInvoiceData, onDone}) {
                                 <span><strong>Gross Total.</strong></span><span><strong>{resInvoiceData.master.gross_total || "0.00"}</strong></span>
                             </div>
                             <div className={style.summaryRow}>
-                                 <span>Advance Tk.</span><span>{resInvoiceData.master.adv_amount || "0.00"}</span>
+                                 <span>Advance Tk.</span><span>{totalDuesAmountCollection || "0.00"}</span>
                             </div>
                             <div className={style.summaryRow}>
-                                <span>Due Tk.</span><span>{resInvoiceData.master.due_amount || "0.00"}</span>
+                                <span>Due Tk.</span><span>{presentDuesAmount || "0.00"}</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        )
+    //------------Main Part For Render 2 Copy End-----------------
+
+
+  return (
+    <div ref={pdfRef}>
+        <div className={style.container}>
+            
+            <RenderInvoice type="Customer Copy" barcodeClass="barcode-customer"/>
+
+            <div className={style.pageBreak}></div>  
+
+            <RenderInvoice type="Office Copy" barcodeClass="barcode-ofice"/>
+
         </div>
     </div>
   )

@@ -234,7 +234,7 @@ const InvoiceDiagonesticForm = () => {
       if (response.status == 'success') {
         toast.success(response.message);
         setResInvoiceData(response.data)
-
+        console.log(response.data)
         // Clear formd
         setFormData(clearInput)
         setValidationErrors({});
