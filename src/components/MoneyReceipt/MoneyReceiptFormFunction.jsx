@@ -179,9 +179,10 @@ const MoneyReceiptFormFunction = ({onSubmit}) => {
 
 
   //-----------onChange Hide function Start------------
-    const isCash = addFormData.activity_type_name === "CASH" //if cash then hide 4 bank input    
-    const mobileBanking = ['Bkash', 'Nagad', 'Roket']  //if Select Mobile banking then Mobile no input Show
-    const isMobileBanking = mobileBanking.includes(addFormData.activity_type_name)
+    const activityName = addFormData.activity_type_name?.toLowerCase() || '';
+    const isCash = activityName === "cash" //if cash then hide 4 bank input    
+    const mobileBanking = ['bkash', 'nagad', 'roket']  //if Select Mobile banking then Mobile no input Show
+    const isMobileBanking = mobileBanking.includes(activityName)
         useEffect(() => { 
             if(isMobileBanking || isCash) {
                 setFormData(prev => ({
@@ -215,7 +216,7 @@ const MoneyReceiptFormFunction = ({onSubmit}) => {
       setIsSubmitting(true);
 
       const submitData = {
-          money_receipt_date: format(addFormData.money_receipt_date, "yyyy-MM-dd"),
+          money_receipt_date: format(addFormData.money_receipt_date, "yyyy-MM-dd HH:mm:ss"),
           patient_id: addFormData.patient_id,
           payment_type_id: addFormData.payment_type_id,
           activity_type_id: addFormData.activity_type_id,

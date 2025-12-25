@@ -51,6 +51,7 @@ import BankAccountInfoEditForm from "../components/BankAccountInfo/BankAccountIn
 import MoneyReceiptSingleTable from "../components/MoneyReceipt/MoneyReceiptSingleTable";
 import MoneyReceiptEditForm from "../components/MoneyReceipt/MoneyReceiptEditForm";
 import PendingInvoiceListTable from "../components/PendingInvoiceList/PendingInvoiceListTable";
+import PendingInvoiceSingleTable from "../components/PendingInvoiceList/PendingInvoiceSingleTable";
 
 
 export const Routedata = [
@@ -127,7 +128,7 @@ export const Routedata = [
   // Pending Invoice 
    { id: 38, path: `${import.meta.env.BASE_URL}pendinginvoice/dataTable`, element: <PendingInvoiceListTable/> },
   //  { id: 35, path: `${import.meta.env.BASE_URL}moneyreceipt/createform`, element: <MoneyReceiptForm /> },
-  //  { id: 36, path: `${import.meta.env.BASE_URL}moneyreceipt/singledata/:id`, element: <MoneyReceiptSingleTable /> },
+   { id: 40, path: `${import.meta.env.BASE_URL}pendinginvoice/singledata`, element: <PendingInvoiceSingleTable /> },
   //  { id: 36, path: `${import.meta.env.BASE_URL}moneyreceipt/edit/:id`, element: <MoneyReceiptEditForm /> },
 
 

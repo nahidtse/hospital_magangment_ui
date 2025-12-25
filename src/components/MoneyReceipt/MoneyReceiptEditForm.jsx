@@ -252,7 +252,7 @@ const MoneyReceiptEditForm = () => {
 
       try {  
         const submitData = {
-          money_receipt_date: format(editFormData.money_receipt_date, "yyyy-MM-dd"),
+          money_receipt_date: format(editFormData.money_receipt_date, "yyyy-MM-dd HH:mm:ss"),
           patient_id: editFormData.patient_id,
           payment_type_id: editFormData.payment_type_id,
           activity_type_id: editFormData.activity_type_id,

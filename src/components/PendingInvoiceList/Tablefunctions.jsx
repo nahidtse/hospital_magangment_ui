@@ -4,9 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
-import RoleEditForm from "./BankInfoEditForm";
-import BankInfoEditForm from "./BankInfoEditForm";
 import { format, parseISO } from 'date-fns';
+import { DuesCollectionModal } from "./DuesCollectionModal";
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
@@ -31,6 +30,7 @@ export const COLUMNS = [
     {
         Header: (<div className="text-center">{"Invoice No"}</div>),
         accessor: "invoiceNo",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
     {
         Header: (<div className="text-center">{"Pateint Name"}</div>),
@@ -39,6 +39,7 @@ export const COLUMNS = [
     {
         Header: (<div className="text-center">{"Mobile No"}</div>),
         accessor: "mobileNo",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
     {
         Header: (<div className="text-center">{"Gross Total"}</div>),
@@ -60,30 +61,29 @@ export const COLUMNS = [
 ];
 
 export const DATATABLE = (dueAmount, handlers) =>
-    dueAmount.map((due, id) => ({
-        id: (<div className="text-center">{id + 1}</div>),
-        invoiceNo: (<div className="text-center">{due.invoice_no || ""}</div>), 
-        invoiceDate: (<div className="text-center">{due.invoice_date ? format(parseISO(due.invoice_date), 'dd-MM-yyyy') : '' || ""}</div>), 
-        invoiceTime: (<div className="text-center">{due.invoice_date ? format(parseISO(due.invoice_date), 'hh:mm a') : '' || ""}</div>), 
-        patientName: due.patient_name || "",
-        mobileNo: (<div className="text-center">{due.mobile_no || ""}</div>),
-        grossTotal: (<div className="text-end">{due.gross_total || ""}</div>),
-        advAmount: (<div className="text-end">{due.adv_amount || ""}</div>),
-        duesAmount: (<div className="text-end">{due.due_amount || ""}</div>),
-        action: (
-            <>
-                <Link to={`${import.meta.env.BASE_URL}bankinfo/singledata/${due.id}`}>
-                    <i className="bi bi-eye btn-sm bg-info"></i> 
-                </Link>
-                <Link to={`${import.meta.env.BASE_URL}bankinfo/edit/${due.id}`}>
-                    <i className="bi bi-pencil btn-sm bg-primary ms-2"></i>
-                </Link>
-                <span onClick={() => handlers.deletePermissionAlert(due.id)} className="btn-sm bg-danger ms-2" style={{ cursor: "pointer" }}>
-                    <i className="bi bi-trash"></i>
-                </span>
-            </>
-        )
-    }));
+    dueAmount
+            .filter(due => handlers.totalDuesAmountCollection(due) > 0)
+            .map((due, id) => ({
+                id: (<div className="text-center">{id + 1}</div>),
+                invoiceNo: due.invoice_no || "", 
+                invoiceDate: (<div className="text-center">{due.invoice_date ? format(parseISO(due.invoice_date), 'dd-MM-yyyy') : '' || ""}</div>), 
+                invoiceTime: (<div className="text-center">{due.invoice_date ? format(parseISO(due.invoice_date), 'hh:mm a') : '' || ""}</div>), 
+                patientName: due.patient_name || "",
+                mobileNo: due.mobile_no || "",
+                grossTotal: (<div className="text-end">{due.gross_total || ""}</div>),
+                advAmount: (<div className="text-end">{handlers.totalDuesAddAdvAmount(due)}</div>),
+                // duesAmount: (<div className="text-end">{due.due_amount || ""}</div>),
+                duesAmount: (<div className="text-end">{handlers.totalDuesAmountCollection(due)}</div>),
+                action: (
+                    <>
+                        <Link to={`${import.meta.env.BASE_URL}pendinginvoice/singledata`} state={{ singleData: due }}>
+                            <i className="bi bi-eye btn-sm bg-info"></i> 
+                        </Link>
+
+                        <i style={{ cursor: "pointer" }} onClick={()=> handlers.openDuesModal(due)} className="bi bi-bank btn-sm bg-primary ms-2"></i>
+                    </>
+                )
+            }));
 
 export const GlobalFilter = ({ filter, setFilter }) => {
     return (
@@ -101,9 +101,11 @@ export const GlobalFilter = ({ filter, setFilter }) => {
 export const BasicTable = () => {
 
 
-    const [dueAmount, setDueAmount] = useState([]);
+    const [dueAmount, setDueAmount] = useState([]);   //React Select for Dues Amount Collection
+    const [showDuesModal, setShowDuesModal] = useState(false);  //Modal Open Close
+    const [selectedDue, setSelectedDue] = useState(null);  //Selected Id for modal 
 
-    console.log(dueAmount)
+    // console.log(dueAmount)
 
     const fetchItems = () => {
         fetch(`${baseURL}/invoice_master/deu_amount`)
@@ -117,82 +119,48 @@ export const BasicTable = () => {
         };
 
         useEffect(() => {
-        fetchItems();
+         fetchItems();
         }, []);
 
-    // console.log(dueAmount);
+        //-----Advance & all collection Calculate Start-------------
+        const totalDuesAmountCollection = (allCollection) => {
+            const collectedAmount = allCollection?.money_receipt?.reduce(
+                (sum, item) => sum + Number(item?.mr_amount || 0),
+                0
+            ) || 0;
 
-    
+            return Number(allCollection?.gross_total || 0) - collectedAmount;
+        };
 
-    /** Delete Handler */
-    const handleDeleteClick = async (bankId) => {
-        try {
-            const result = await fetch(`${baseURL}/bank_info/destroy/${bankId}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+        const totalDuesAddAdvAmount = (allCollection) => {
+            const collectedAmount = allCollection?.money_receipt?.reduce(
+                (sum, item) => sum + Number(item?.mr_amount || 0),
+                0
+            ) || 0;
 
-            const response = await result.json();
+            return collectedAmount;
+        };
+        //-----Advance & all collection Calculate End-------------
 
-            if (response.status == 'success') {
-                setDueAmount(prevContact => prevContact.filter(c => c.id !== bankId));
 
-            }
-            return response;
-
-        } catch (error) {
-            console.log(error);
-            return error;
+    //--------Modal Handler Start-----------
+        const openDuesModal = (due) => {
+            setSelectedDue(due) //Clicked Due data set
+            setShowDuesModal(true)
         }
-
-    };
-
-
-    /*** Delete Permission Alert  */
-    const deletePermissionAlert = (id) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            buttonsStyling: false, 
-            customClass: {
-                confirmButton: 'btn border mx-2',
-                cancelButton: 'btn btn-primary mx-2'
-            },
-            confirmButtonText: 'Yes, delete it!'
-
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                const response = await handleDeleteClick(id);
-                if (response.status == 'success') {
-                    Swal.fire(
-                        'Deleted!',
-                        'Your file has been deleted.',
-                        'success'
-                    )
-                } else {
-                    Swal.fire(
-                        'Error!',
-                        'There was an issue deleting the item.',
-                        'error'
-                    );
-                }
-
-            }
-        })
-
-    }
+        
+        const closeDuesModal = () => {
+            setSelectedDue(null);
+            setShowDuesModal(false);
+        };
+    //--------Modal Handler End-----------    
 
 
-
-    
 
     const dataTable = useMemo(() => DATATABLE(dueAmount, {
-        deletePermissionAlert,
-
+        openDuesModal: openDuesModal,
+        totalDuesAmountCollection: totalDuesAmountCollection,
+        totalDuesAddAdvAmount: totalDuesAddAdvAmount
     }), [dueAmount]);
 
 
@@ -236,11 +204,17 @@ export const BasicTable = () => {
                         <Card.Header className="justify-content-between">
                             <div className='card-title'>Pending Invoice List</div>
                             <div className="prism-toggle">
-                                <Link to={`${import.meta.env.BASE_URL}bankinfo/createform`} state={{dueAmount}}><button
+                                {/* <Link to={`${import.meta.env.BASE_URL}bankinfo/createform`} state={{dueAmount}}><button
                                     type="button"
                                     className="btn btn-sm btn-primary"> New
                                 </button>
-                                </Link>
+                                </Link> */}
+                                <DuesCollectionModal
+                                    show={showDuesModal}
+                                    onHide={closeDuesModal}
+                                    due={selectedDue}
+                                    fetchItems={fetchItems} //for List Render
+                                />
                             </div>
 
                         </Card.Header>
@@ -306,10 +280,16 @@ export const BasicTable = () => {
                             </table>
                             <div className="d-block d-sm-flex mt-4 ">
                                 <span>
-                                    Showing {pageIndex * pageSize + 1} to{" "}
-                                    {Math.min((pageIndex + 1) * pageSize, dueAmount.length)} of{" "}
-                                    {dueAmount.length} entries
-                                </span>
+                                    {dataTable.length > 0 ? (
+                                        <>
+                                        Showing {pageIndex * pageSize + 1} to{" "}
+                                        {Math.min((pageIndex + 1) * pageSize, dataTable.length)} of{" "}
+                                        {dataTable.length} entries
+                                        </>
+                                    ) : (
+                                        "Showing 0 entries"
+                                    )}
+                                    </span>
                                 <span className="ms-sm-auto ">
                                     <Button
                                         variant=""

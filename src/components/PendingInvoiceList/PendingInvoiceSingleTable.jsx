@@ -1,30 +1,25 @@
 import { Fragment } from 'react';
 
 import { Card, Col, Form, InputGroup, Row, Table } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { format, parseISO } from "date-fns";
 
 
-const SingleTableFunction = ({ setShowData, singleInvoice, setSingleData }) => {
-
+const PendingInvoiceSingleTable = () => {
+    const location = useLocation();
+    const singleInvoice = location.state?.singleData;
 
     // console.log(singleInvoice)
 
-    //--------Adv & total Collection Amount Start -----------
+    //-----------Adv & Toatal Collection Amount Calculetion Start---------
     const totalDuesAmountCollection = singleInvoice?.money_receipt?.reduce(
         (sum, item) => sum + Number(item?.mr_amount || 0),
         0
     ) || 0;
 
     const PresentDuesAmount = singleInvoice.gross_total - totalDuesAmountCollection;
-    //--------Adv & total Collection Amount End -----------
+    //-----------Adv & Toatal Collection Amount Calculetion End---------
 
-
-    const goToInvoiceList = () => {
-        setSingleData(null);
-        setShowData(false);
-    }
-    
     return (
         <Fragment>
 
@@ -33,10 +28,10 @@ const SingleTableFunction = ({ setShowData, singleInvoice, setSingleData }) => {
                     <Card className="custom-card">
                         <Card.Header className="justify-content-between">
 
-                            <div className='card-title'>Invoice (Diagonestic) Show</div>
+                            <div className='card-title'>Pending Show</div>
                             <div className="prism-toggle">
-                                <Link to={`${import.meta.env.BASE_URL}invoicediagonestic/dataTable`}>
-                                    <button className="btn btn-sm btn-primary" onClick={goToInvoiceList}>List</button>
+                                <Link to={`${import.meta.env.BASE_URL}pendinginvoice/dataTable`}>
+                                    <button className="btn btn-sm btn-primary">List</button>
                                 </Link>
                             </div>
 
@@ -139,7 +134,6 @@ const SingleTableFunction = ({ setShowData, singleInvoice, setSingleData }) => {
                                                         <Form.Control aria-label="Last name" value={singleInvoice.age_month || '00'} className='readableInputBgColor' readOnly />
                                                         <Form.Control aria-label="Last name" value={singleInvoice.age_day || '00'} className='readableInputBgColor' readOnly />
                                                     </InputGroup>
-                                                {/* <Form.Control.Feedback type='invalid'>{showValidationError.test}</Form.Control.Feedback> */}
                                             </Form.Group> 
 
                                             <Form.Group as={Col} md="3">
@@ -181,9 +175,9 @@ const SingleTableFunction = ({ setShowData, singleInvoice, setSingleData }) => {
                                                     <>
                                                     {singleInvoice.invoice_details.map((item, index) => (
                                                         <tr key={item.id || index}>
-                                                            <td className="text-center">{item.test_info.test_code}</td>
-                                                            <td>{item.test_info.test_name}</td>
-                                                            <td>{item.test_info.delivery_instruction}</td>
+                                                            <td  className="text-center">{item.test_info.test_code}</td>
+                                                            <td >{item.test_info.test_name}</td>
+                                                            <td >{item.test_info.delivery_instruction}</td>
                                                             <td className="text-center">{item.test_info.room_no}</td>
                                                             <td className="text-end">{item.quantity}</td>
                                                             <td className="text-end">{ item.test_info.amount }</td>
@@ -193,7 +187,7 @@ const SingleTableFunction = ({ setShowData, singleInvoice, setSingleData }) => {
                                                     {/* Total Amount Row */}
                                                     <tr>
                                                         <td colSpan="5" style={{ padding: '5px 5px' }} className="text-end fw-bold">Total Amount:</td>
-                                                        <td className="fw-bold text-end">{Number(singleInvoice?.total_amount).toLocaleString("en-US") || '0.00'}</td>
+                                                        <td style={{ padding: '5px 5px' }} className="fw-bold text-end">{Number(singleInvoice?.total_amount).toLocaleString("en-US") || '0.00'}</td>
                                                     </tr>
                                                     </>
                                                 ):(<tr><td  colSpan="7" className="text-center">No Tests Added</td></tr>)}
@@ -204,64 +198,54 @@ const SingleTableFunction = ({ setShowData, singleInvoice, setSingleData }) => {
 
                                     <Col md={4}>
                                         <Form.Group as={Col} md="12" controlId="validationCustom01">
-                                            {/* <Form.Label>Discount<span className='text-danger ms-1'></span></Form.Label> */}
                                             <InputGroup className="mb-1 mt-3 input-group-dark">
                                                 <InputGroup.Text style={{width: '130px'}}>Discount(%)</InputGroup.Text>
                                                 <Form.Control type="text" value={singleInvoice.dis_per || "0%"} className='readableInputBgColor text-end' aria-label="First name" readOnly/>
                                                 <InputGroup.Text style={{width: '110px'}}>Discount</InputGroup.Text>
                                                 <Form.Control type="text" value={singleInvoice.per_amount || "00"} className='readableInputBgColor text-end' aria-label="Last name" readOnly/>
                                             </InputGroup>
-                                        {/* <Form.Control.Feedback type='invalid'>{showValidationError.test}</Form.Control.Feedback> */}
                                         </Form.Group>
                                         
                                         <Form.Group as={Col} md="12" controlId="validationCustom01">
-                                            {/* <Form.Label>Discount<span className='text-danger ms-1'></span></Form.Label> */}
                                             <InputGroup className="mb-1 mt-1 input-group-dark">
                                                 <InputGroup.Text style={{width: '130px'}}>Service Charge</InputGroup.Text>
                                                 <Form.Control type="text" value={singleInvoice.ser_amount || "00"} className='readableInputBgColor text-end' aria-label="First name" readOnly/>
                                                 <InputGroup.Text style={{width: '110px'}}>Urgent</InputGroup.Text>
                                                 <Form.Control value={singleInvoice.urgent_amount || "00"} type="text" className='readableInputBgColor text-end' aria-label="Last name"readOnly/>
                                             </InputGroup>
-                                        {/* <Form.Control.Feedback type='invalid'>{showValidationError.test}</Form.Control.Feedback> */}
                                         </Form.Group>
                                         <Form.Group as={Col} md="12" controlId="validationCustom01">
-                                            {/* <Form.Label>Discount<span className='text-danger ms-1'></span></Form.Label> */}
                                             <InputGroup className="mb-1 mt-1 input-group-dark">
                                                 <InputGroup.Text style={{width: '130px'}}>VAT (%)</InputGroup.Text>
                                                 <Form.Control type="text" value={singleInvoice.vat_per || "0%"} className='readableInputBgColor text-end' aria-label="First name" readOnly/>
                                                 <InputGroup.Text style={{width: '110px'}}>VAT Amount</InputGroup.Text>
                                                 <Form.Control value={singleInvoice.vat_amount || '00'}  readOnly className='readableInputBgColor text-end' aria-label="Last name"/>
                                             </InputGroup>
-                                        {/* <Form.Control.Feedback type='invalid'>{showValidationError.test}</Form.Control.Feedback> */}
                                         </Form.Group>
 
                                         <Form.Group as={Col} md="12" controlId="validationCustom01">
-                                            {/* <Form.Label>Discount<span className='text-danger ms-1'></span></Form.Label> */}
                                             <InputGroup className="mb-1 mt-1 input-group-dark">
                                                 <InputGroup.Text style={{width: '130px'}}>Total Amount</InputGroup.Text>
                                                 <Form.Control aria-label="First name" value={singleInvoice.total_amount || '00'} readOnly tabIndex={-1} className='readableInputBgColor text-end'/>
                                                 <InputGroup.Text style={{width: '110px'}}>Gross Total</InputGroup.Text>
                                                 <Form.Control  aria-label="Last name" value={singleInvoice.gross_total || '00'} readOnly tabIndex={-1} className='readableInputBgColor text-end'/>
                                             </InputGroup>
-                                        {/* <Form.Control.Feedback type='invalid'>{showValidationError.test}</Form.Control.Feedback> */}
                                         </Form.Group>
 
                                         <Form.Group as={Col} md="12" controlId="validationCustom01">
-                                            {/* <Form.Label>Discount<span className='text-danger ms-1'></span></Form.Label> */}
                                             <InputGroup className="mb-1 mt-1 input-group-dark">
                                                 <InputGroup.Text style={{width: '130px'}}>Advance Amount</InputGroup.Text>
                                                 <Form.Control type="text" value={totalDuesAmountCollection || '00'} className='readableInputBgColor text-end' aria-label="First name" readOnly/>
                                                 <InputGroup.Text style={{width: '110px'}}>Due Amount</InputGroup.Text>
                                                 <Form.Control  aria-label="Last name" value={PresentDuesAmount || '00'} readOnly tabIndex={-1} className='readableInputBgColor text-end'/>
                                             </InputGroup>
-                                        {/* <Form.Control.Feedback type='invalid'>{showValidationError.test}</Form.Control.Feedback> */}
                                         </Form.Group>
 
                                         <Row className="mt-3 p-3">
                                             <Col md={12} className="p-2 border border-dark rounded">
                                                 {singleInvoice?.money_receipt?.length > 0 ? (
                                                 <Table bordered size="sm">
-                                                    <thead>
+                                                    <thead className="bg-primary text-white">
                                                     <tr className="text-center">
                                                         <th className="bg-primary text-white">Date</th>
                                                         <th className="bg-primary text-white">Type</th>
@@ -273,7 +257,7 @@ const SingleTableFunction = ({ setShowData, singleInvoice, setSingleData }) => {
                                                         <tr key={item.id || index}>
                                                         <td className="text-center">
                                                             {item?.money_receipt_date
-                                                            ? format(parseISO(item.money_receipt_date), "dd-MM-yyyy")
+                                                            ? format(parseISO(item.money_receipt_date), "dd-MM-yyyy (hh:mm a)")
                                                             : ""}
                                                         </td>
                                                         <td className="text-center">{item?.activity_type?.lookup_value}</td>
@@ -308,4 +292,4 @@ const SingleTableFunction = ({ setShowData, singleInvoice, setSingleData }) => {
 
 };
 
-export default SingleTableFunction;
+export default PendingInvoiceSingleTable;

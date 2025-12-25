@@ -57,25 +57,22 @@ export const COLUMNS = [
     {
         Header: "Actions",
         accessor: "action",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
 ];
 
 export const DATATABLE = (invoiceMaster, handlers) =>
     invoiceMaster.map((invoice, id) => ({
-        id: id + 1,
+        id: (<div className="text-center">{ id + 1 }</div>),
         patientname: invoice.patient_name || "Patient Name",
-        mobile: invoice.mobile_no || "Mobile No",
-        invoiceNo: invoice.invoice_no || "Invoice No",
-        sex: invoice.sex || "Sex",
-        age: (
-                <div className="text-center">
-                    {invoice.age_year || "Age"}
-                </div>
-            ),
-        invoiceDate: invoice.invoice_date ? format(parseISO(invoice.invoice_date), 'dd-MM-yyyy') : '' || "Invoice Date",
-        invoiceTime: invoice.invoice_date ? format(parseISO(invoice.invoice_date), 'hh:mm a') : '' || "Invoice Time",
+        mobile: (<div className="text-center">{ invoice.mobile_no || "Mobile No" }</div>),
+        invoiceNo: (<div className="text-center">{ invoice.invoice_no || "Invoice No" }</div>),
+        sex: (<div className="text-center">{ invoice.sex || "Sex" }</div>),
+        age: (<div className="text-center">{ invoice.age_year || "" }</div>),
+        invoiceDate: (<div className="text-center">{ invoice.invoice_date ? format(parseISO(invoice.invoice_date), 'dd-MM-yyyy') : '' || "Invoice Date" }</div>),
+        invoiceTime: (<div className="text-center">{ invoice.invoice_date ? format(parseISO(invoice.invoice_date), 'hh:mm a') : '' || "Invoice Time" }</div>),
         grossTotal: (
-            <div className="text-center">{invoice.gross_total || "Invoice Total"}</div>
+            <div className="text-end">{Number(invoice.gross_total).toLocaleString('en-US') || ""}</div>
         ),
         action: (
             <>
