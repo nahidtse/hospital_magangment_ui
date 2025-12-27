@@ -61,7 +61,7 @@ export const COLUMNS = [
     },
 ];
 
-export const DATATABLE = (dueAmount, handlers) =>
+export const DATATABLE = (dueAmount, handlers, isGeneratingPdf) =>
     dueAmount
             .filter(due => handlers.totalDuesAmountCollection(due) > 0)
             .map((due, id) => ({
@@ -85,9 +85,16 @@ export const DATATABLE = (dueAmount, handlers) =>
                             <i className="bi bi-bank"></i>
                         </span>
 
-                        <span onClick={() => handlers.handleInvoiceAction(due, "download")} className="btn-sm bg-success ms-2" style={{ cursor: "pointer" }}>
+                        <span 
+                            onClick={() => !isGeneratingPdf && handlers.handleInvoiceAction(due, "download")} 
+                            className={`btn-sm ms-2 ${isGeneratingPdf ? "bg-secondary" : "bg-success"}`} 
+                            style={{ cursor: isGeneratingPdf ? "not-allowed" : "pointer" }}
+                        >
                             <i className="bi bi-file-pdf"></i>
                         </span>
+                        {/* <span onClick={() => handlers.handleInvoiceAction(due, "print")} className="btn-sm bg-success ms-2" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-file-pdf"></i>
+                        </span> */}
                     </>
                 )
             }));
@@ -111,30 +118,26 @@ export const BasicTable = () => {
     const [dueAmount, setDueAmount] = useState([]);   //React Select for Dues Amount Collection
     const [showDuesModal, setShowDuesModal] = useState(false);  //Modal Open Close
     const [selectedDue, setSelectedDue] = useState(null);  //Selected Id for modal
-    
-     const [invoiceData, setInvoiceData] = useState(null);
-     const invoicePrintRef = useRef(null);
+    const [invoiceData, setInvoiceData] = useState(null);  //For Invoice
+    const [actionType, setActionType] = useState("download");  //For Invoice ActionType "Print"/"Download"
+    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);  // For Duble Click problem
+   
 
+    //For Invoice Pdf
+    const handleInvoiceAction = (due, type) => {
+        if (isGeneratingPdf) return; // block double click
+        setIsGeneratingPdf(true);
+        setActionType(type) //set action type
 
-        const handleInvoiceAction = (due, action = "download") => {
-        setInvoiceData(due); // triggers useEffect
-        };
-
-        // auto trigger PDF after invoiceData set
-        useEffect(() => {
-        if (!invoiceData) return;
-
-        const timer = setTimeout(() => {
-            if (invoicePrintRef.current) {
-            invoicePrintRef.current.downloadPdf(); // অথবা printPdf()
-            setInvoiceData(null); // reset after download
-            }
-        }, 200); // 200ms delay
-
-        return () => clearTimeout(timer);
-        }, [invoiceData]);
-
-    // console.log(dueAmount)
+        const formatedData = {
+            master : {...due},
+            details: due.invoice_details || [],
+            moneyReceipt: due.money_receipt || [],
+            doctorNameById: due.doctor_info || null
+        }
+        setInvoiceData(formatedData); // triggers useEffect
+    };
+ 
 
     const fetchItems = () => {
         fetch(`${baseURL}/invoice_master/deu_amount`)
@@ -191,7 +194,7 @@ export const BasicTable = () => {
         totalDuesAmountCollection: totalDuesAmountCollection,
         totalDuesAddAdvAmount: totalDuesAddAdvAmount,
         handleInvoiceAction: handleInvoiceAction
-    }), [dueAmount]);
+    }, isGeneratingPdf), [dueAmount, isGeneratingPdf]);
 
 
 
@@ -249,7 +252,14 @@ export const BasicTable = () => {
                                 {/* Hidden invoice render */}
                                 {invoiceData && (
                                 <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
-                                    <InvoicePrint ref={invoicePrintRef} resInvoiceData={invoiceData} />
+                                    <InvoicePrint 
+                                        invoiceData={invoiceData} 
+                                        actionType={actionType} 
+                                        onDone={() => {
+                                            setInvoiceData(null);
+                                            setIsGeneratingPdf(false); // unlock
+                                        }}
+                                    />
                                 </div>
                                 )}
                             </div>

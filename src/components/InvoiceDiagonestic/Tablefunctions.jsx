@@ -8,6 +8,7 @@ import RoleEditForm from "./InvoiceDiagonesticEditForm";
 import SingleTableFunction from "./SingleTableFunction";
 import InvoiceDiagonesticEditForm from "./InvoiceDiagonesticEditForm";
 import { format, parseISO } from 'date-fns';
+import InvoicePrint from "../../common/utils/InvoicePrint";
 const basURL = import.meta.env.VITE_API_BASE_URL;
 
 
@@ -61,7 +62,7 @@ export const COLUMNS = [
     },
 ];
 
-export const DATATABLE = (invoiceMaster, handlers) =>
+export const DATATABLE = (invoiceMaster, handlers, isGeneratingPdf) =>
     invoiceMaster.map((invoice, id) => ({
         id: (<div className="text-center">{ id + 1 }</div>),
         patientname: invoice.patient_name || "Patient Name",
@@ -84,6 +85,13 @@ export const DATATABLE = (invoiceMaster, handlers) =>
                 </span>
                 <span onClick={() => handlers.deletePermissionAlert(invoice.id)} className="btn-sm bg-danger ms-2" style={{ cursor: "pointer" }}>
                     <i className="bi bi-x-circle"></i>
+                </span>
+                <span 
+                    onClick={() => !isGeneratingPdf && handlers.handleInvoiceAction(invoice, "download")} 
+                    className={`btn-sm ms-2 ${isGeneratingPdf ? "bg-secondary" : "bg-success"}`} 
+                    style={{ cursor: isGeneratingPdf ? "not-allowed" : "pointer" }}
+                >
+                    <i className="bi bi-file-pdf"></i>
                 </span>
             </>
         )
@@ -109,6 +117,30 @@ export const BasicTable = () => {
     const [invoiceMaster, setInvoiceMaster] = useState([]);
     const [showSingleData, setSingleData] = useState([]);
     const [passEditFormData, setPassingEditFormData] = useState(null);
+
+
+
+     //-----------Invoice Pdf Start------------------
+    const [invoiceData, setInvoiceData] = useState(null);  //For Invoice
+    const [actionType, setActionType] = useState("download");  //For Invoice ActionType "Print"/"Download"
+    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);  // For Duble Click problem
+    
+
+
+    const handleInvoiceAction = (singleInvoice, type) => {
+        if (isGeneratingPdf) return; // block double click
+        setIsGeneratingPdf(true);
+        setActionType(type) //set action type
+
+        const formatedData = {
+            master : {...singleInvoice},
+            details: singleInvoice.invoice_details || [],
+            moneyReceipt: singleInvoice.money_receipt || [],
+            doctorNameById: singleInvoice.doctor_info || null
+        }
+        setInvoiceData(formatedData); // triggers useEffect
+    };
+    //-----------Invoice Pdf End------------------
 
 
 
@@ -238,9 +270,9 @@ export const BasicTable = () => {
     const dataTable = useMemo(() => DATATABLE(invoiceMaster, {
         handleShowDataById,
         deletePermissionAlert,
-        handleEditDataById
-
-    }), [invoiceMaster]);
+        handleEditDataById,
+        handleInvoiceAction,
+    }, isGeneratingPdf), [invoiceMaster, isGeneratingPdf]);
 
 
 
@@ -288,9 +320,24 @@ export const BasicTable = () => {
                                         <Link to={`${import.meta.env.BASE_URL}invoicediagonestic/createform`} state={{invoiceMaster}}>
                                         <button
                                             type="button"
-                                            className="btn btn-sm btn-primary"> New
+                                            className="btn btn-md btn-primary"> New
                                         </button>
                                         </Link>
+
+
+                                        {/* Hidden invoice render */}
+                                        {invoiceData && (
+                                        <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+                                            <InvoicePrint 
+                                                invoiceData={invoiceData} 
+                                                actionType={actionType} 
+                                                onDone={() => {
+                                                    setInvoiceData(null);
+                                                    setIsGeneratingPdf(false); // unlock
+                                                }}
+                                            />
+                                        </div>
+                                        )}
                                     </div>
 
                                 </Card.Header>

@@ -1,14 +1,15 @@
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 
 import { Card, Col, Form, InputGroup, Row, Table } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { format, parseISO } from "date-fns";
+import InvoicePrint from '../../common/utils/InvoicePrint';
 
 
 const SingleTableFunction = ({ setShowData, singleInvoice, setSingleData }) => {
 
 
-    // console.log(singleInvoice)
+    console.log(singleInvoice)
 
     //--------Adv & total Collection Amount Start -----------
     const totalDuesAmountCollection = singleInvoice?.money_receipt?.reduce(
@@ -18,6 +19,29 @@ const SingleTableFunction = ({ setShowData, singleInvoice, setSingleData }) => {
 
     const PresentDuesAmount = singleInvoice.gross_total - totalDuesAmountCollection;
     //--------Adv & total Collection Amount End -----------
+
+
+    //-----------Invoice Pdf Start------------------
+    const [invoiceData, setInvoiceData] = useState(null);  //For Invoice
+    const [actionType, setActionType] = useState("download");  //For Invoice ActionType "Print"/"Download"
+    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);  // For Duble Click problem
+    
+
+
+    const handleInvoiceAction = (singleInvoice, type) => {
+        if (isGeneratingPdf) return; // block double click
+        setIsGeneratingPdf(true);
+        setActionType(type) //set action type
+
+        const formatedData = {
+            master : {...singleInvoice},
+            details: singleInvoice.invoice_details || [],
+            moneyReceipt: singleInvoice.money_receipt || [],
+            doctorNameById: singleInvoice.doctor_info || null
+        }
+        setInvoiceData(formatedData); // triggers useEffect
+    };
+    //-----------Invoice Pdf End------------------
 
 
     const goToInvoiceList = () => {
@@ -35,8 +59,31 @@ const SingleTableFunction = ({ setShowData, singleInvoice, setSingleData }) => {
 
                             <div className='card-title'>Invoice (Diagonestic) Show</div>
                             <div className="prism-toggle">
+
+                                <span 
+                                    onClick={() => !isGeneratingPdf && handleInvoiceAction(singleInvoice, "download")} 
+                                    className={`btn btn-md me-2 px-3 ${isGeneratingPdf ? "bg-secondary" : "bg-success"}`}
+                                    style={{ cursor: isGeneratingPdf ? "not-allowed" : "pointer" }}
+                                >
+                                    <i className="bi bi-file-pdf"></i>
+                                </span>
+
+                                {/* Hidden invoice render */}
+                                {invoiceData && (
+                                <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+                                    <InvoicePrint
+                                        invoiceData={invoiceData} 
+                                        actionType={actionType} 
+                                        onDone={() => {
+                                            setInvoiceData(null);
+                                            setIsGeneratingPdf(false); // unlock
+                                        }}
+                                    />
+                                </div>
+                                )}
+
                                 <Link to={`${import.meta.env.BASE_URL}invoicediagonestic/dataTable`}>
-                                    <button className="btn btn-sm btn-primary" onClick={goToInvoiceList}>List</button>
+                                    <button className="btn btn-md btn-primary" onClick={goToInvoiceList}>List</button>
                                 </Link>
                             </div>
 
@@ -66,7 +113,6 @@ const SingleTableFunction = ({ setShowData, singleInvoice, setSingleData }) => {
                                                     className='readableInputBgColor border-dark'
                                                     readOnly
                                                     value={singleInvoice.invoice_date ? format(parseISO(singleInvoice.invoice_date), "dd-MM-yyyy") : ""}
-
                                                 />
                                             </Form.Group>
                                             
@@ -257,7 +303,7 @@ const SingleTableFunction = ({ setShowData, singleInvoice, setSingleData }) => {
                                         {/* <Form.Control.Feedback type='invalid'>{showValidationError.test}</Form.Control.Feedback> */}
                                         </Form.Group>
 
-                                        <Row className="mt-3 p-3">
+                                        <Row className="mt-1 p-3">
                                             <Col md={12} className="p-2 border border-dark rounded">
                                                 {singleInvoice?.money_receipt?.length > 0 ? (
                                                 <Table bordered size="sm">

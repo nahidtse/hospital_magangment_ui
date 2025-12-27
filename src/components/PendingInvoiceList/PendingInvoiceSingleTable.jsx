@@ -1,15 +1,16 @@
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 
 import { Card, Col, Form, InputGroup, Row, Table } from 'react-bootstrap';
 import { Link, useLocation } from 'react-router-dom';
 import { format, parseISO } from "date-fns";
+import InvoicePrint from '../../common/utils/InvoicePrint';
 
 
 const PendingInvoiceSingleTable = () => {
     const location = useLocation();
     const singleInvoice = location.state?.singleData;
 
-    console.log(singleInvoice)
+    // console.log(singleInvoice)
 
     //-----------Adv & Toatal Collection Amount Calculetion Start---------
     const totalDuesAmountCollection = singleInvoice?.money_receipt?.reduce(
@@ -19,6 +20,29 @@ const PendingInvoiceSingleTable = () => {
 
     const PresentDuesAmount = singleInvoice.gross_total - totalDuesAmountCollection;
     //-----------Adv & Toatal Collection Amount Calculetion End---------
+
+
+    //-----------Invoice Pdf Start------------------
+    const [invoiceData, setInvoiceData] = useState(null);  //For Invoice
+    const [actionType, setActionType] = useState("download");  //For Invoice ActionType "Print"/"Download"
+    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);  // For Duble Click problem
+    
+
+
+    const handleInvoiceAction = (singleInvoice, type) => {
+        if (isGeneratingPdf) return; // block double click
+        setIsGeneratingPdf(true);
+        setActionType(type) //set action type
+
+        const formatedData = {
+            master : {...singleInvoice},
+            details: singleInvoice.invoice_details || [],
+            moneyReceipt: singleInvoice.money_receipt || [],
+            doctorNameById: singleInvoice.doctor_info || null
+        }
+        setInvoiceData(formatedData); // triggers useEffect
+    };
+    //-----------Invoice Pdf End------------------
 
     return (
         <Fragment>
@@ -30,6 +54,28 @@ const PendingInvoiceSingleTable = () => {
 
                             <div className='card-title'>Pending Show</div>
                             <div className="prism-toggle">
+                                <span 
+                                    onClick={() => !isGeneratingPdf && handleInvoiceAction(singleInvoice, "download")} 
+                                    className={`btn btn-sm me-2 px-3 ${isGeneratingPdf ? "bg-secondary" : "bg-success"}`}
+                                    style={{ cursor: isGeneratingPdf ? "not-allowed" : "pointer" }}
+                                >
+                                    <i className="bi bi-file-pdf"></i>
+                                </span>
+
+                                {/* Hidden invoice render */}
+                                {invoiceData && (
+                                <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+                                    <InvoicePrint
+                                        invoiceData={invoiceData} 
+                                        actionType={actionType} 
+                                        onDone={() => {
+                                            setInvoiceData(null);
+                                            setIsGeneratingPdf(false); // unlock
+                                        }}
+                                    />
+                                </div>
+                                )}
+
                                 <Link to={`${import.meta.env.BASE_URL}pendinginvoice/dataTable`}>
                                     <button className="btn btn-sm btn-primary">List</button>
                                 </Link>
@@ -171,23 +217,23 @@ const PendingInvoiceSingleTable = () => {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                {singleInvoice.invoice_details.length > 0 ? (
+                                                {singleInvoice?.invoice_details?.length > 0 ? (
                                                     <>
                                                     {singleInvoice.invoice_details.map((item, index) => (
                                                         <tr key={item.id || index}>
-                                                            <td  className="text-center">{item.test_info.test_code}</td>
-                                                            <td >{item.test_info.test_name}</td>
-                                                            <td >{item.test_info.delivery_instruction}</td>
-                                                            <td className="text-center">{item.test_info.room_no}</td>
-                                                            <td className="text-end">{item.quantity}</td>
-                                                            <td className="text-end">{ item.test_info.amount }</td>
+                                                            <td  className="text-center">{item?.test_info?.test_code || ''}</td>
+                                                            <td >{item?.test_info?.test_name || ''}</td>
+                                                            <td >{item?.test_info?.delivery_instruction || ''}</td>
+                                                            <td className="text-center">{item?.test_info?.room_no || ''}</td>
+                                                            <td className="text-end">{item?.quantity || ''}</td>
+                                                            <td className="text-end">{ item?.test_info?.amount || ''}</td>
                                                         </tr>
                                                     ))}
 
                                                     {/* Total Amount Row */}
                                                     <tr>
                                                         <td colSpan="5" style={{ padding: '5px 5px' }} className="text-end fw-bold">Total Amount:</td>
-                                                        <td style={{ padding: '5px 5px' }} className="fw-bold text-end">{Number(singleInvoice?.total_amount).toLocaleString("en-US") || '0.00'}</td>
+                                                        <td style={{ padding: '5px 5px' }} className="fw-bold text-end">{Number(singleInvoice?.total_amount || '').toLocaleString("en-US") || '0.00'}</td>
                                                     </tr>
                                                     </>
                                                 ):(<tr><td  colSpan="7" className="text-center">No Tests Added</td></tr>)}
@@ -241,7 +287,7 @@ const PendingInvoiceSingleTable = () => {
                                             </InputGroup>
                                         </Form.Group>
 
-                                        <Row className="mt-3 p-3">
+                                        <Row className="mt-1 p-3">
                                             <Col md={12} className="p-2 border border-dark rounded">
                                                 {singleInvoice?.money_receipt?.length > 0 ? (
                                                 <Table bordered size="sm">
