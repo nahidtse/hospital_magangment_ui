@@ -9,7 +9,7 @@ import {PatientInfoModal} from './PatientInfoModal'
 import {intervalToDuration, format } from "date-fns";
 import TestCalculetion from './TestCalculetion';
 import TestSelectFormTable from './TestSelectFormTable';
-import InvoicePrint from './InvoicePrint';
+import InvoicePrint from "../../common/utils/InvoicePrint";
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
@@ -76,9 +76,9 @@ const InvoiceDiagonesticForm = () => {
   const [isOpenDate, setIsOpenDate] = useState(false); //for date picker open use icon
   const [patientInfo, setPatientInfo] = useState([]); // Patient all get
   const [modalShow, setModalShow] = useState(false);  //Patient's Info Modal
-  const [resInvoiceData, setResInvoiceData] = useState(null);  //Patient's Info Modal
+  const [invoiceData, setInvoiceData] = useState(null);  //Patient's Info Modal
   const [isSubmitting, setIsSubmitting] = useState(false);  // For Submit button Dubble click control
-  // console.log(resInvoiceData)
+  // console.log(invoiceData)
 
   // react-select Patient onChange handler
   const handlePatientSelect = (selectedPatient) => {
@@ -233,8 +233,8 @@ const InvoiceDiagonesticForm = () => {
       
       if (response.status == 'success') {
         toast.success(response.message);
-        setResInvoiceData(response.data)
-        console.log(response.data)
+        setInvoiceData(response.data)  //Set responce data for Invoice
+        // console.log(response.data)
         // Clear formd
         setFormData(clearInput)
         setValidationErrors({});
@@ -695,11 +695,11 @@ const InvoiceDiagonesticForm = () => {
         </Col>
       </Row>
 
-      {resInvoiceData && (
+      {invoiceData && (
         <div style={{display: 'none'}}>
           <InvoicePrint 
-            resInvoiceData = {resInvoiceData}
-            onDone = {()=> setResInvoiceData(null)}
+            invoiceData = {invoiceData}
+            onDone = {()=> setInvoiceData(null)}
           />
         </div>
       )} 
