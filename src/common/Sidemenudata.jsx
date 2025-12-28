@@ -156,6 +156,13 @@ export const MENUITEMS = [
                     { path: `${import.meta.env.BASE_URL}pendinginvoice/singledata`, type: 'link', active: false, selected: false, dirchange: false },
                 ]
             },
+            {
+                title: "Test Info", path: `${import.meta.env.BASE_URL}testinfo/dataTable`, type: "link", badgetxt: '', menusub: true, active: false, selected: false, dirchange: false, children: [
+                    { path: `${import.meta.env.BASE_URL}testinfo/createform`, type: 'link', active: false, selected: false, dirchange: false },
+                    { path: `${import.meta.env.BASE_URL}testinfo/singledata`, type: 'link', active: false, selected: false, dirchange: false },
+                    { path: `${import.meta.env.BASE_URL}testinfo/edit`, type: 'link', active: false, selected: false, dirchange: false },
+                ]
+            },
 
         ]
     },

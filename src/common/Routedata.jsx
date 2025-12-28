@@ -52,6 +52,10 @@ import MoneyReceiptSingleTable from "../components/MoneyReceipt/MoneyReceiptSing
 import MoneyReceiptEditForm from "../components/MoneyReceipt/MoneyReceiptEditForm";
 import PendingInvoiceListTable from "../components/PendingInvoiceList/PendingInvoiceListTable";
 import PendingInvoiceSingleTable from "../components/PendingInvoiceList/PendingInvoiceSingleTable";
+import TestInfoTable from "../components/TestInfo/TestInfoTable";
+import TestInfoForm from "../components/TestInfo/TestInfoForm";
+import TestInfoSingleTable from "../components/TestInfo/TestInfoSingleTable";
+import TestInfoEditForm from "../components/TestInfo/TestInfoEditForm";
 
 
 export const Routedata = [
@@ -130,6 +134,13 @@ export const Routedata = [
   //  { id: 35, path: `${import.meta.env.BASE_URL}moneyreceipt/createform`, element: <MoneyReceiptForm /> },
    { id: 40, path: `${import.meta.env.BASE_URL}pendinginvoice/singledata`, element: <PendingInvoiceSingleTable /> },
   //  { id: 36, path: `${import.meta.env.BASE_URL}moneyreceipt/edit/:id`, element: <MoneyReceiptEditForm /> },
+
+
+  // Test Info
+   { id: 42, path: `${import.meta.env.BASE_URL}testinfo/dataTable`, element: <TestInfoTable/> },
+   { id: 43, path: `${import.meta.env.BASE_URL}testinfo/createform`, element: <TestInfoForm /> },
+   { id: 44, path: `${import.meta.env.BASE_URL}testinfo/singledata`, element: <TestInfoSingleTable /> },
+   { id: 45, path: `${import.meta.env.BASE_URL}testinfo/edit`, element: <TestInfoEditForm /> },
 
 
   
