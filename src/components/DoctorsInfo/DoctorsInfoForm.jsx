@@ -9,6 +9,7 @@ const basURL = import.meta.env.VITE_API_BASE_URL;
 
 
   const generateTinyDoctorId = (prefix = "DR") => {
+    
     const now = new Date();
     const timestamp =
       String(now.getFullYear()).slice(2) +
@@ -27,6 +28,19 @@ const DoctorsInfoForm = () => {
   // console.log(existingLookupValuData);
 
   const fileInputRef = useRef(null); //For image filed clear
+
+
+  //*********Check Authentication Start***********
+  const token = localStorage.getItem('auth_token'); //Check Authentication
+  const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+  if (!token || (expiry && Date.now() > Number(expiry))) {
+      localStorage.clear();
+      window.location.href = "/login";
+      return;
+  }
+  //*********Check Authentication End***********
+
 
   const [showValidationError, setValidationErrors] = useState({
     doctors_name: '',
@@ -131,14 +145,6 @@ const DoctorsInfoForm = () => {
       //   console.log(pair[0], pair[1]);
       // }
       // return;
-      const token = localStorage.getItem('auth_token'); //Check Authentication
-      const expiry = localStorage.getItem('auth_token_expiry'); //check Token Expiry or not
-
-      if (!token || (expiry && Date.now() > Number(expiry))) {
-        localStorage.clear();
-        window.location.href = "/login";
-        return;
-      }
 
       const result = await fetch(`${basURL}/doctors/create`,{
         method: 'POST',

@@ -4,7 +4,7 @@ import { ADD_TO_CART, REMOVE_FROM_CART, UPDATE_CART_QUANTITY } from "./Action";
 const initialState = {
     lang: "en",
     dir: "ltr",
-    datanavlayout: "vertical",
+    datanavlayout: "horizontal",
     datathememode: "light",
     dataheaderstyles: "light",
     datamenustyles: "light",
@@ -12,7 +12,7 @@ const initialState = {
     stylebodybg: "",
     styledarkbg: "",
     toggled: "",
-    datanavstyle: "",
+    datanavstyle: "menu-hover",
     horstyle: "",
     datapagestyle: "regular",
     datawidth: "fullwidth",
@@ -52,9 +52,17 @@ export default function reducer(state = initialState, action) {
 
     switch (type) {
 
+        // case "ThemeChanger":
+        //     state = payload;
+        //     return state;
+
         case "ThemeChanger":
-            state = payload;
-            return state;
+            return {
+                ...state,
+                ...payload,
+                datanavlayout: payload.datanavlayout ?? state.datanavlayout,
+                datanavstyle: payload.datanavstyle ?? state.datanavstyle,
+            };
 
         case "SET_SELECTED_ITEM":
             return {
