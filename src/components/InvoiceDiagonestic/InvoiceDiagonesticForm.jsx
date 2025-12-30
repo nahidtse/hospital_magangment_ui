@@ -29,6 +29,17 @@ const InvoiceDiagonesticForm = () => {
   }, []);
   //---------------Auto Focus End----------------
 
+  //*********Check Authentication Start***********
+  const token = localStorage.getItem('auth_token'); //Check Authentication
+  const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+  if (!token || (expiry && Date.now() > Number(expiry))) {
+      localStorage.clear();
+      window.location.href = "/login";
+      return;
+  }
+  //*********Check Authentication End***********
+
   const [showValidationError, setValidationErrors] = useState({
     doctor: '',
     patient_name: '',
@@ -222,7 +233,8 @@ const InvoiceDiagonesticForm = () => {
       const result = await fetch(`${baseURL}/invoice_master/create`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(payload)
       });
@@ -269,7 +281,12 @@ const InvoiceDiagonesticForm = () => {
    * TODO:: Optimize
   */
   useEffect(() => {
-    fetch(`${baseURL}/doctors`)
+    fetch(`${baseURL}/doctors`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`  // <-- must send token
+      }
+    })
       .then((response) => response.json())
       .then((data) => {
         setDoctorsInfo(data.data);
@@ -308,7 +325,12 @@ const InvoiceDiagonesticForm = () => {
  //Get all Patient start
   const fetchPatients = async() => {
     try {
-      const response = await fetch(`${baseURL}/patient`);
+      const response = await fetch(`${baseURL}/patient`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`  // <-- must send token
+        }
+      });
       const data = await response.json();
       setPatientInfo(data.data || []);
     }  catch (error) {

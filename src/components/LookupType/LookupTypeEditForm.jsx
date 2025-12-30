@@ -26,8 +26,6 @@ const LookupTypeEditForm = ({
   // console.log(existingPermissionsData)
   const [isHidden, setIsHidden] = useState([false]);
 
-  const [moduleData, setModuleData] = useState([]);
-
   const [showValidationError, setValidationErrors] = useState({});
 
   useEffect(() => {
@@ -45,13 +43,6 @@ const LookupTypeEditForm = ({
     * Module
     * TODO:: Optimize
    */
-  useEffect(() => {
-    fetch('https://cserp.store/api/module')
-      .then((response) => response.json())
-      .then((data) => {
-        setModuleData(data.data);
-      })
-  }, [])
 
   const goToModuleList = () => {
     setBusinessUnitList(false);
@@ -126,11 +117,13 @@ const LookupTypeEditForm = ({
 
       // console.log(submitData);
       // return;
+      const token = localStorage.getItem('auth_token'); //Check Authentication
 
       const result = await fetch(`${basURL}/lookuptype/update/${passEditFormData.id}`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(submitData)
       });

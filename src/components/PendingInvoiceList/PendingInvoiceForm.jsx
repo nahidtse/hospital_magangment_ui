@@ -26,7 +26,18 @@ const PendingInvoiceForm = () => {
       }, 100);
       return () => clearTimeout(timer);
     }, []);
-  //-----------Focus Input End-----------------------------------  
+  //-----------Focus Input End----------------------------------- 
+  
+  //*********Check Authentication Start***********
+  const token = localStorage.getItem('auth_token'); //Check Authentication
+  const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+  if (!token || (expiry && Date.now() > Number(expiry))) {
+      localStorage.clear();
+      window.location.href = "/login";
+      return;
+  }
+  //*********Check Authentication End***********
 ;
 
   const [showValidationError, setValidationErrors] = useState({
@@ -114,7 +125,8 @@ const PendingInvoiceForm = () => {
       const result = await fetch(`${baseURL}/bank_info/create`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(submitData)
       });
@@ -160,7 +172,12 @@ const PendingInvoiceForm = () => {
 
   //----------React Select Business unit Start--------
     useEffect(() => {
-      fetch(`${baseURL}/business_unit`)
+      fetch(`${baseURL}/business_unit`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`  // <-- must send token
+        }
+      })
         .then((response) => response.json())
         .then((data) => {
           setBusinessUnit(data.data);

@@ -18,6 +18,17 @@ const ChamberScheduleEditForm = ({
 
   // console.log(passEditFormData);
 
+  //*********Check Authentication Start***********
+  const token = localStorage.getItem('auth_token'); //Check Authentication
+  const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+  if (!token || (expiry && Date.now() > Number(expiry))) {
+      localStorage.clear();
+      window.location.href = "/login";
+      return;
+  }
+  //*********Check Authentication End***********
+
   const [editFormData, setEditFormData] = useState({
     doctorsId: '',
     specialityName: '',
@@ -32,7 +43,6 @@ const ChamberScheduleEditForm = ({
   const [isHidden, setIsHidden] = useState([false]);
 
   const [doctorsInfo, setDoctorsInfo] = useState([]);
-  // console.log(doctorsInfo)
   const [selectedDoctorSpeciality, setSelectedDoctorSpeciality] = useState('');
   const [selectedDoctorOption, setSelectedDoctorOption] = useState(null); //For React Select
 
@@ -78,7 +88,12 @@ const ChamberScheduleEditForm = ({
     * TODO:: Optimize
    */
   useEffect(() => {
-    fetch(`${basURL}/doctors`)
+    fetch(`${basURL}/doctors`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`  // <-- must send token
+      }
+    })
       .then((response) => response.json())
       .then((data) => {
         setDoctorsInfo(data.data);
@@ -175,7 +190,8 @@ const ChamberScheduleEditForm = ({
       const result = await fetch(`${basURL}/chamber/update/${passEditFormData.id}`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(submitData)
       });

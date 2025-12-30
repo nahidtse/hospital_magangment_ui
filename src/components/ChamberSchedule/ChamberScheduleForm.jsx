@@ -11,7 +11,18 @@ const ChamberScheduleTable = () => {
 
   const location = useLocation();
   const existingChamberSchedule = location.state?.chamberSchedule || [];
-  console.log(existingChamberSchedule);
+  // console.log(existingChamberSchedule);
+
+  //*********Check Authentication Start***********
+  const token = localStorage.getItem('auth_token'); //Check Authentication
+  const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+  if (!token || (expiry && Date.now() > Number(expiry))) {
+      localStorage.clear();
+      window.location.href = "/login";
+      return;
+  }
+  //*********Check Authentication End***********
 
   const [showValidationError, setValidationErrors] = useState({
     doctor_name: '',
@@ -31,7 +42,7 @@ const ChamberScheduleTable = () => {
 
   })
 
-  console.log(addFormData)
+  // console.log(addFormData)
 
   const [doctorsInfo, setDoctorsInfo] = useState([]);
   const [selectedDoctorSpeciality, setSelectedDoctorSpeciality] = useState(''); //Speciality Update
@@ -123,7 +134,8 @@ const ChamberScheduleTable = () => {
       const result = await fetch(`${basURL}/chamber/store`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(submitData)
       });
@@ -183,7 +195,12 @@ const ChamberScheduleTable = () => {
    * TODO:: Optimize
   */
   useEffect(() => {
-    fetch(`${basURL}/doctors`)
+    fetch(`${basURL}/doctors`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`  // <-- must send token
+      }
+    })
       .then((response) => response.json())
       .then((data) => {
         setDoctorsInfo(data.data);

@@ -32,6 +32,18 @@ const BankAccountInfoForm = () => {
   const existingBankAccountInfo = location.state?.bankAccount || []; //for duplicate check
   // console.log(existingBankAccountInfo);
 
+
+  //*********Check Authentication Start***********
+  const token = localStorage.getItem('auth_token'); //Check Authentication
+  const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+  if (!token || (expiry && Date.now() > Number(expiry))) {
+      localStorage.clear();
+      window.location.href = "/login";
+      return;
+  }
+  //*********Check Authentication End***********
+
   const [showValidationError, setValidationErrors] = useState({
     ac_name: '',
     ac_number: '',
@@ -56,7 +68,7 @@ const BankAccountInfoForm = () => {
     status: 1
   })
 
-  console.log(addFormData)
+  // console.log(addFormData)
 
   const [bankInfo, setBankInfo] = useState([]);
   const [businessUnit, setBusinessUnit] = useState([]); //React Select
@@ -150,7 +162,8 @@ const BankAccountInfoForm = () => {
       const result = await fetch(`${basURL}/bank_account/create`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(submitData)
       });
@@ -195,7 +208,12 @@ const BankAccountInfoForm = () => {
   */
  //---------React Select Bank Info Start--------------
     useEffect(() => {
-      fetch(`${basURL}/bank_info`)
+      fetch(`${basURL}/bank_info`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`  // <-- must send token
+        }
+      })
         .then((response) => response.json())
         .then((data) => {
           setBankInfo(data.data);
@@ -218,7 +236,12 @@ const BankAccountInfoForm = () => {
 
   //---------React Select Business Unit Start--------------
     useEffect(() => {
-      fetch(`${basURL}/business_unit`)
+      fetch(`${basURL}/business_unit`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`  // <-- must send token
+        }
+      })
         .then((response) => response.json())
         .then((data) => {
           setBusinessUnit(data.data);

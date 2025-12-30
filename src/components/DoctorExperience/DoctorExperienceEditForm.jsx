@@ -17,6 +17,17 @@ const DoctorExperienceEditForm = ({
 
   // console.log(passEditFormData);
 
+  //*********Check Authentication Start***********
+  const token = localStorage.getItem('auth_token'); //Check Authentication
+  const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+  if (!token || (expiry && Date.now() > Number(expiry))) {
+      localStorage.clear();
+      window.location.href = "/login";
+      return;
+  }
+  //*********Check Authentication End***********
+
   const [editFormData, setEditFormData] = useState({
     doctorsId: '',
     instituteId: '',
@@ -29,7 +40,7 @@ const DoctorExperienceEditForm = ({
     serialNo: '',
   })
 
-  console.log(editFormData)
+  // console.log(editFormData)
 
   const [isHidden, setIsHidden] = useState([false]);
 
@@ -92,7 +103,12 @@ const DoctorExperienceEditForm = ({
     * TODO:: Optimize
    */
   useEffect(() => {
-    fetch(`${basURL}/doctors`)
+    fetch(`${basURL}/doctors`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`  // <-- must send token
+      }
+    })
       .then((response) => response.json())
       .then((data) => {
         setDoctorsInfo(data.data);
@@ -188,7 +204,8 @@ const DoctorExperienceEditForm = ({
       const result = await fetch(`${basURL}/experience/update/${passEditFormData.id}`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(submitData)
       });
@@ -232,7 +249,12 @@ const DoctorExperienceEditForm = ({
    //Lookup value Get By Code
   const getLookupValueDataByCode = async (code) => {
     try {
-      const response = await fetch(`${basURL}/lookupvalue/multiplefilter/${code}`)
+      const response = await fetch(`${basURL}/lookupvalue/multiplefilter/${code}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`  // <-- must send token
+        }
+      })
       const result = await response.json()
 
       if(!result?.data) return ;

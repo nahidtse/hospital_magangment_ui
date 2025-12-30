@@ -76,6 +76,17 @@ export const GlobalFilter = ({ filter, setFilter }) => {
 
 export const BasicTable = () => {
 
+ //*********Check Authentication Start***********
+    const token = localStorage.getItem('auth_token'); //Check Authentication
+    const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+    if (!token || (expiry && Date.now() > Number(expiry))) {
+        localStorage.clear();
+        window.location.href = "/login";
+        return;
+    }
+  //*********Check Authentication End***********
+
 
     const [showData, setShowData] = useState(false);
     const [lookupTypes, setLookupTypes] = useState([]);
@@ -91,11 +102,13 @@ export const BasicTable = () => {
 
     /** Delete Handler */
     const handleDeleteClick = async (lookupTypeId) => {
+
         try {
             const result = await fetch(`${basURL}/lookuptype/destroy/${lookupTypeId}`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 }
             });
 
@@ -180,9 +193,13 @@ export const BasicTable = () => {
     }
 
     /** Data Fetch */
-
     useEffect(() => {
-        fetch(`${basURL}/lookuptype`)
+        fetch(`${basURL}/lookuptype`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`  // <-- must send token
+            }
+        })
             .then((response) => response.json())
             .then((data) => {
                 // console.log(data)

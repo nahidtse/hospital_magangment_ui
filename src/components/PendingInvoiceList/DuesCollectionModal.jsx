@@ -9,7 +9,6 @@ const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 export function DuesCollectionModal({ show, onHide, due, fetchItems }) {
 
-
   // console.log(due)
   if (!due) return null;
 
@@ -20,6 +19,17 @@ export function DuesCollectionModal({ show, onHide, due, fetchItems }) {
         referenceSelectRef.current?.focus();
       }, []);
    //-------------Auto Focus End ---------------
+
+   //*********Check Authentication Start***********
+    const token = localStorage.getItem('auth_token'); //Check Authentication
+    const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+    if (!token || (expiry && Date.now() > Number(expiry))) {
+        localStorage.clear();
+        window.location.href = "/login";
+        return;
+    }
+    //*********Check Authentication End***********
 
 
     const [showValidationError, setValidationErrors] = useState({
@@ -36,7 +46,7 @@ export function DuesCollectionModal({ show, onHide, due, fetchItems }) {
         due_amount: '',
         remarks: ''
     })
-    console.log(addFormData)
+    // console.log(addFormData)
 
 
     //Modal Initial Value to Paretn State
@@ -75,7 +85,12 @@ export function DuesCollectionModal({ show, onHide, due, fetchItems }) {
         //Lookup value Get By Code
         const getLookupValueDataByCode = async (code) => {
           try {
-            const response = await fetch(`${baseURL}/lookupvalue/multiplefilter/${code}`)
+            const response = await fetch(`${baseURL}/lookupvalue/multiplefilter/${code}`, {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`  // <-- must send token
+              }
+            })
             const result = await response.json()
       
             if(!result?.data) return ;
@@ -164,7 +179,8 @@ export function DuesCollectionModal({ show, onHide, due, fetchItems }) {
       const result = await fetch(`${baseURL}/money_receipt/create`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(submitData)
       });

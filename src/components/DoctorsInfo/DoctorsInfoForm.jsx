@@ -63,7 +63,7 @@ const DoctorsInfoForm = () => {
 // console.log(addFormData)
 
   const [getSPlookupData, setSPlookupData] = useState([]);
-  console.log(getSPlookupData)
+  // console.log(getSPlookupData)
   const [getDGlookupData, setGDlookupdata] = useState([]);
 
 
@@ -131,10 +131,21 @@ const DoctorsInfoForm = () => {
       //   console.log(pair[0], pair[1]);
       // }
       // return;
+      const token = localStorage.getItem('auth_token'); //Check Authentication
+      const expiry = localStorage.getItem('auth_token_expiry'); //check Token Expiry or not
+
+      if (!token || (expiry && Date.now() > Number(expiry))) {
+        localStorage.clear();
+        window.location.href = "/login";
+        return;
+      }
 
       const result = await fetch(`${basURL}/doctors/create`,{
-       method: 'POST',
-       body: formData,
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${token}`  // <-- must send token
+        }
       });
 
       const response = await result.json();
@@ -214,7 +225,12 @@ const DoctorsInfoForm = () => {
    * TODO:: Optimize
   */
   useEffect(() => {
-    fetch(`${basURL}/lookupvalue/multiplefilter/sp`)
+    fetch(`${basURL}/lookupvalue/multiplefilter/sp`, {
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`  // <-- must send token
+      }
+    })
       .then((response) => response.json())
       .then((data) => {
         setSPlookupData(data.data);
@@ -223,7 +239,12 @@ const DoctorsInfoForm = () => {
 
 
   useEffect(() => {
-    fetch(`${basURL}/lookupvalue/multiplefilter/dg`)
+    fetch(`${basURL}/lookupvalue/multiplefilter/dg`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`  // <-- must send token
+      }
+    })
       .then((response) => response.json())
       .then((data) => {
         setGDlookupdata(data.data);

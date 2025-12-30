@@ -44,7 +44,14 @@ const LookupValueEditForm = ({
    * Load all Lookup Types (Modules)
    */
   useEffect(() => {
-    fetch(`${baseURL}/lookuptype`)
+    const token = localStorage.getItem('auth_token'); //Check Authentication
+
+    fetch(`${baseURL}/lookuptype`, {
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`  // <-- must send token
+      }
+    })
       .then((response) => response.json())
       .then((data) => {
         setModuleData(data.data);
@@ -109,11 +116,13 @@ const LookupValueEditForm = ({
 
       // console.log(submitData)
       // return;
-
+      const token = localStorage.getItem('auth_token'); //Check Authentication
+      
       const result = await fetch(`${baseURL}/lookupvalue/update/${passEditFormData.id}`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(submitData)
       });

@@ -16,6 +16,18 @@ const BankAccountInfoEditForm = () => {
   const getExistingAllData = location.state ? location.state.bankAccount : null; // For Dublicate Check
   const navigate = useNavigate();
 
+  //*********Check Authentication Start***********
+  const token = localStorage.getItem('auth_token'); //Check Authentication
+  const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+  if (!token || (expiry && Date.now() > Number(expiry))) {
+      localStorage.clear();
+      window.location.href = "/login";
+      return;
+  }
+  //*********Check Authentication End***********
+
+
   const [editFormData, setEditFormData] = useState({
     id: '',   //Dublicate Check
     ac_name: '',
@@ -77,7 +89,12 @@ const BankAccountInfoEditForm = () => {
     useEffect(() => {
         if(!id) return;
   
-        fetch(`${baseURL}/bank_account/single_data/${id}`)
+        fetch(`${baseURL}/bank_account/single_data/${id}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`  // <-- must send token
+          }
+        })
             .then((response) => response.json())
             .then((data) => {
               if(data.status === 'success') {
@@ -103,7 +120,12 @@ const BankAccountInfoEditForm = () => {
 
   //---------React Select Bank Info Start--------------
      useEffect(() => {
-       fetch(`${baseURL}/bank_info`)
+       fetch(`${baseURL}/bank_info`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`  // <-- must send token
+        }
+       })
          .then((response) => response.json())
          .then((data) => {
            setBankInfo(data.data);
@@ -126,7 +148,12 @@ const BankAccountInfoEditForm = () => {
  
    //---------React Select Business Unit Start--------------
      useEffect(() => {
-       fetch(`${baseURL}/business_unit`)
+       fetch(`${baseURL}/business_unit`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`  // <-- must send token
+        }
+       })
          .then((response) => response.json())
          .then((data) => {
            setBusinessUnit(data.data);
@@ -195,13 +222,14 @@ const BankAccountInfoEditForm = () => {
           is_active: editFormData.status,
         }
 
-      console.log(submitData)
+      // console.log(submitData)
       // return;
 
       const result = await fetch(`${baseURL}/bank_account/update/${id}`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(submitData)
       });

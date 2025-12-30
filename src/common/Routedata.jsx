@@ -56,11 +56,12 @@ import TestInfoTable from "../components/TestInfo/TestInfoTable";
 import TestInfoForm from "../components/TestInfo/TestInfoForm";
 import TestInfoSingleTable from "../components/TestInfo/TestInfoSingleTable";
 import TestInfoEditForm from "../components/TestInfo/TestInfoEditForm";
-
+import Profile from "../components/Pages/Profile";
 
 export const Routedata = [
 
-  { id: 1, path: `${import.meta.env.BASE_URL}dashboard`, element: <Dashboard /> },
+  { id: 1, path: `${import.meta.env.BASE_URL}dashboard`, element: (<Dashboard /> )},
+  { id: 5, path: `${import.meta.env.BASE_URL}profile`, element: <Profile/> },
 
   // User 
    { id: 2, path: `${import.meta.env.BASE_URL}user/dataTable`, element: <UserTable /> },

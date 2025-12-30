@@ -12,7 +12,18 @@ const EditTestSelectFormTable = ({
     customStyles,
     showValidationError
 }) => {
-  console.log("Test Com",editFormData)
+//   console.log("Test Com",editFormData)
+
+    //*********Check Authentication Start***********
+    const token = localStorage.getItem('auth_token'); //Check Authentication
+    const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+    if (!token || (expiry && Date.now() > Number(expiry))) {
+        localStorage.clear();
+        window.location.href = "/login";
+        return;
+    }
+    //*********Check Authentication End***********
 
 
   
@@ -20,7 +31,12 @@ const EditTestSelectFormTable = ({
 
     //Get all Test Info start
     useEffect(() => {
-        fetch(`${basURL}/testinfo`)
+        fetch(`${basURL}/testinfo`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`  // <-- must send token
+            }
+        })
         .then((response) => response.json())
         .then((data) => {
             console.log(data.data)
@@ -157,6 +173,7 @@ const EditTestSelectFormTable = ({
                     method: 'GET',
                     headers: {
                     "Content-Type": "application/json",
+                    'Authorization': `Bearer ${token}`
                     },
                 });
                 const data = await response.json();

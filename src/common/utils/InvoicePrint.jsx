@@ -10,7 +10,8 @@ import { ToWords } from "to-words"; //npm install to-words
 function InvoicePrint({invoiceData, onDone, actionType}) {
     // console.log("PrintAllData", invoiceData)
     const pdfRef = useRef();
-    const hasGeneratedRef = useRef(false); //for dublle click 
+    const hasGeneratedRef = useRef(false); //for dublle click
+    const preparedBy = localStorage.getItem('name') || 'N/A'; 
 
     if (!invoiceData) return null;
 
@@ -178,13 +179,13 @@ function InvoicePrint({invoiceData, onDone, actionType}) {
                                 {invoiceData?.moneyReceipt.map((item, index) => (
                                     <tr key={item.id || index}>
                                         <td className='text-center'>{item?.activity_type?.lookup_value}</td>
-                                        <td>Farhad</td>
+                                        <td>{preparedBy}</td>
                                         <td className='text-end'>{item.mr_amount || "0.00"}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-                        <p className="mt-3"><strong>Prepared By:</strong> MD. FARHAD HOSSEN</p>
+                        <p className="mt-3"><strong>Prepared By:</strong> {preparedBy}</p>
                     </div>
                     </div>
                     <div className="col-4">
@@ -238,4 +239,4 @@ function InvoicePrint({invoiceData, onDone, actionType}) {
   )
 }
 
-export default InvoicePrint
+export default InvoicePrint;

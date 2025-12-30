@@ -88,11 +88,13 @@ const LookupTypeForm = () => {
 
       // console.log(submitData);
       // return;
+      const token = localStorage.getItem('auth_token');
 
       const result = await fetch(`${basURL}/lookuptype/create`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(submitData)
       });

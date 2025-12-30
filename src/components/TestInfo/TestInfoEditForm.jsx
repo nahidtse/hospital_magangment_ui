@@ -22,6 +22,18 @@ const TestInfoEditForm = () => {
     }, []);
   //-----------Focus Input End-----------------------------------  
 
+  //*********Check Authentication Start***********
+  const token = localStorage.getItem('auth_token'); //Check Authentication
+  const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+  if (!token || (expiry && Date.now() > Number(expiry))) {
+      localStorage.clear();
+      window.location.href = "/login";
+      return;
+  }
+  //*********Check Authentication End***********
+  
+
   const location = useLocation();
   const testInfoData = location.state?.test;
   const allTests = location.state?.allTests || [];
@@ -136,7 +148,8 @@ const TestInfoEditForm = () => {
       const result = await fetch(`${baseURL}/testinfo/update/${testInfoData.id}`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(submitData)
       });

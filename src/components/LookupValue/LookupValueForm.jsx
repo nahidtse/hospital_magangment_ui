@@ -10,7 +10,18 @@ const LookupValueForm = () => {
   const location = useLocation();
   // console.log(location)
   const existingLookupValuData = location.state?.contacts || [];
-  console.log(existingLookupValuData);
+  // console.log(existingLookupValuData);
+
+  //*********Check Authentication Start***********
+  const token = localStorage.getItem('auth_token'); //Check Authentication
+  const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+  if (!token || (expiry && Date.now() > Number(expiry))) {
+      localStorage.clear();
+      window.location.href = "/login";
+      return;
+  }
+  //*********Check Authentication End***********
 
   const [showValidationError, setValidationErrors] = useState({
     lookupvalue_name: '',
@@ -97,7 +108,8 @@ const LookupValueForm = () => {
       const result = await fetch(`${basURL}/lookupvalue/create`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(submitData)
       });
@@ -148,7 +160,13 @@ const LookupValueForm = () => {
    * TODO:: Optimize
   */
   useEffect(() => {
-    fetch(`${basURL}/lookuptype`)
+    
+    fetch(`${basURL}/lookuptype`, {
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`  // <-- must send token
+      }
+    })
       .then((response) => response.json())
       .then((data) => {
         setModuleData(data.data);

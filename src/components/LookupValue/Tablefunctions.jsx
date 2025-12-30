@@ -83,11 +83,18 @@ export const BasicTable = () => {
     // console.log(contacts);
 
     //API Fetch
+    const token = localStorage.getItem('auth_token'); //Check Authentication
+
     const fetchItems = () => {
-        fetch(`${basURL}/lookupvalue`)
+        fetch(`${basURL}/lookupvalue`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`  // <-- must send token
+            }
+        })
             .then((response) => response.json())
             .then((data) => {
-            setContacts(data.data);
+                 setContacts(data.data);
             })
             .catch((error) => {
             console.log("Error Fetching the data: ", error);
@@ -107,11 +114,15 @@ export const BasicTable = () => {
 
     /** Delete Handler */
     const handleDeleteClick = async (lookupValueId) => {
+
+        const token = localStorage.getItem('auth_token'); //Check Authentication
+
         try {
             const result = await fetch(`${basURL}/lookupvalue/destroy/${lookupValueId}`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 }
             });
 
@@ -196,24 +207,7 @@ export const BasicTable = () => {
                 />
         )
     }
-
-
-    /** Data Fetch */
-
-    // useEffect(() => {
-    //     fetch('http://127.0.0.1:8000/api/lookupvalue')
-    //         .then((response) => response.json())
-    //         .then((data) => {
-    //             console.log(data)
-    //             setContacts(data)
-               
-    //         })
-    //         .catch((error) => {
-    //             console.log("Error Fetching the data: ", error)
-    //         })
-    // }, [])
-
-    
+ 
 
     const dataTable = useMemo(() => DATATABLE(contacts, {
         handleShowDataById,

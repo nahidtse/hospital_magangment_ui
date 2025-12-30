@@ -14,6 +14,17 @@ const AppointmentForm = () => {
   const existingDoctorLeave = location.state?.doctorLeave || []; //for duplicate check
   // console.log(existingDoctorLeave);
 
+  //*********Check Authentication Start***********
+  const token = localStorage.getItem('auth_token'); //Check Authentication
+  const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+  if (!token || (expiry && Date.now() > Number(expiry))) {
+      localStorage.clear();
+      window.location.href = "/login";
+      return;
+  }
+  //*********Check Authentication End***********
+
   const [showValidationError, setValidationErrors] = useState({
     doctor_name: '',
     appointment_date: '',
@@ -156,7 +167,8 @@ const AppointmentForm = () => {
       const result = await fetch(`${basURL}/appointment/create`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(submitData)
       });
@@ -222,7 +234,12 @@ const AppointmentForm = () => {
    * TODO:: Optimize
   */
   useEffect(() => {
-    fetch(`${basURL}/doctors`)
+    fetch(`${basURL}/doctors`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`  // <-- must send token
+      }
+    })
       .then((response) => response.json())
       .then((data) => {
         setDoctorsInfo(data.data);
@@ -239,7 +256,12 @@ const AppointmentForm = () => {
  //for single doctor all schedule
  const fetchDoctorSchedule = async (doctorId) => {
     try {
-      const result = await fetch(`${basURL}/chamber/getdoctorschedule/${doctorId}`);
+      const result = await fetch(`${basURL}/chamber/getdoctorschedule/${doctorId}`, {
+        headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`  // <-- must send token
+      }
+      });
       const response = await result.json();
 
       if (response.status === "success") {

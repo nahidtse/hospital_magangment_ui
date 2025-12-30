@@ -11,7 +11,18 @@ const LeaveInfoForm = () => {
 
   const location = useLocation();
   const existingDoctorLeave = location.state?.doctorLeave || []; //for duplicate check
-  console.log(existingDoctorLeave);
+  // console.log(existingDoctorLeave);
+
+  //*********Check Authentication Start***********
+  const token = localStorage.getItem('auth_token'); //Check Authentication
+  const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+  if (!token || (expiry && Date.now() > Number(expiry))) {
+      localStorage.clear();
+      window.location.href = "/login";
+      return;
+  }
+  //*********Check Authentication End***********
 
   const [showValidationError, setValidationErrors] = useState({
     doctor_name: '',
@@ -129,7 +140,8 @@ const LeaveInfoForm = () => {
       const result = await fetch(`${basURL}/leave/create`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(submitData)
       });
@@ -193,7 +205,12 @@ const LeaveInfoForm = () => {
    * TODO:: Optimize
   */
   useEffect(() => {
-    fetch(`${basURL}/doctors`)
+    fetch(`${basURL}/doctors`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`  // <-- must send token
+      }
+    })
       .then((response) => response.json())
       .then((data) => {
         console.log(data)
@@ -211,7 +228,12 @@ const LeaveInfoForm = () => {
   //Lookup value Get By Code
   const getLookupValueDataByCode = async (code) => {
     try {
-      const response = await fetch(`${basURL}/lookupvalue/multiplefilter/${code}`)
+      const response = await fetch(`${basURL}/lookupvalue/multiplefilter/${code}`, {
+        headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`  // <-- must send token
+      }
+      })
       const result = await response.json()
 
       if(!result?.data) return ;

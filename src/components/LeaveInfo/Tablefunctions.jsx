@@ -100,6 +100,17 @@ export const GlobalFilter = ({ filter, setFilter }) => {
 
 export const BasicTable = () => {
 
+    //*********Check Authentication Start***********
+    const token = localStorage.getItem('auth_token'); //Check Authentication
+    const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+    if (!token || (expiry && Date.now() > Number(expiry))) {
+        localStorage.clear();
+        window.location.href = "/login";
+        return;
+    }
+  //*********Check Authentication End***********
+
 
     const [showData, setShowData] = useState(false);
     const [doctorLeave, setDoctorLeave] = useState([]);
@@ -109,7 +120,12 @@ export const BasicTable = () => {
 
 
     const fetchItems = () => {
-        fetch(`${basURL}/leave`)
+        fetch(`${basURL}/leave`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`  // <-- must send token
+            }
+        })
             .then((response) => response.json())
             .then((data) => {
             setDoctorLeave(data.data);
@@ -137,7 +153,8 @@ export const BasicTable = () => {
             const result = await fetch(`${basURL}/leave/destroy/${leaveId}`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 }
             });
 

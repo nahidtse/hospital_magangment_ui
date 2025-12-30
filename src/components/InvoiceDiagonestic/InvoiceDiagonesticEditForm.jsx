@@ -20,7 +20,18 @@ const InvoiceDiagonesticEditForm = ({
   fetchItems  // render list Page
 }) => {
 
-  console.log("Initial", passEditFormData);
+  // console.log("Initial", passEditFormData);
+
+  //*********Check Authentication Start***********
+  const token = localStorage.getItem('auth_token'); //Check Authentication
+  const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+  if (!token || (expiry && Date.now() > Number(expiry))) {
+      localStorage.clear();
+      window.location.href = "/login";
+      return;
+  }
+  //*********Check Authentication End***********
 
   const [editFormData, setEditFormData] = useState({
     invoiceNo: '',
@@ -56,7 +67,7 @@ const InvoiceDiagonesticEditForm = ({
     grossTotal: '',
   })
 
-  console.log("Edit Form", editFormData)
+  // console.log("Edit Form", editFormData)
 
   const [isHidden, setIsHidden] = useState([false]);
 
@@ -171,7 +182,12 @@ const InvoiceDiagonesticEditForm = ({
    */
   //Get all Doctor's Start For React Select
     useEffect(() => {
-      fetch(`${basURL}/doctors`)
+      fetch(`${basURL}/doctors`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`  // <-- must send token
+        }
+      })
         .then((response) => response.json())
         .then((data) => {
           setDoctorsInfo(data.data);
@@ -196,7 +212,12 @@ const InvoiceDiagonesticEditForm = ({
   //Get all Patient start
     const fetchPatients = async() => {
       try {
-        const response = await fetch(`${basURL}/patient`);
+        const response = await fetch(`${basURL}/patient`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`  // <-- must send token
+          }
+        });
         const data = await response.json();
         setPatientInfo(data.data || []);
       }  catch (error) {
@@ -339,7 +360,8 @@ const InvoiceDiagonesticEditForm = ({
       const result = await fetch(`${basURL}/invoice_master/update/${passEditFormData.id}`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(payload)
       });

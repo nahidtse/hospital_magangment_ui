@@ -99,12 +99,28 @@ export const GlobalFilter = ({ filter, setFilter }) => {
 
 export const BasicTable = () => {
 
+    //*********Check Authentication Start***********
+    const token = localStorage.getItem('auth_token'); //Check Authentication
+    const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+    if (!token || (expiry && Date.now() > Number(expiry))) {
+        localStorage.clear();
+        window.location.href = "/login";
+        return;
+    }
+    //*********Check Authentication End***********
+
     const [bankAccount, setBankAccount] = useState([]);
 
-    console.log(bankAccount)
+
 
     const fetchItems = () => {
-        fetch(`${baseURL}/bank_account`)
+        fetch(`${baseURL}/bank_account`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`  // <-- must send token
+            }
+        })
             .then((response) => response.json())
             .then((data) => {
                 setBankAccount(data.data);
@@ -128,7 +144,8 @@ export const BasicTable = () => {
             const result = await fetch(`${baseURL}/bank_account/destroy/${accountId}`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 }
             });
 

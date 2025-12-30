@@ -10,8 +10,22 @@ const basURL = import.meta.env.VITE_API_BASE_URL;
     const [doctorData, setDoctorData] = useState('')
     // console.log(doctorData)
 
+    const token = localStorage.getItem('auth_token'); //Check Authentication
+    const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+    if (!token || (expiry && Date.now() > Number(expiry))) {
+        localStorage.clear();
+        window.location.href = "/login";
+        return;
+    }
+
     useEffect(() => {
-        fetch(`${basURL}/doctors`)
+        fetch(`${basURL}/doctors`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`  // <-- must send token
+            }
+        })
             .then((response) => response.json())
             .then((data) => {
                 setDoctorData(data.data)

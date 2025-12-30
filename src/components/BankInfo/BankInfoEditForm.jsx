@@ -12,6 +12,17 @@ const BankInfoEditForm = () => {
   const {id} = useParams()
   const navigate = useNavigate();
 
+  //*********Check Authentication Start***********
+  const token = localStorage.getItem('auth_token'); //Check Authentication
+  const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+  if (!token || (expiry && Date.now() > Number(expiry))) {
+      localStorage.clear();
+      window.location.href = "/login";
+      return;
+  }
+  //*********Check Authentication End***********
+
   const [editFormData, setEditFormData] = useState({
     bank_name: '',
     short_name: '',
@@ -25,7 +36,12 @@ const BankInfoEditForm = () => {
   useEffect(() => {
       if(!id) return;
 
-      fetch(`${baseURL}/bank_info/single_data/${id}`)
+      fetch(`${baseURL}/bank_info/single_data/${id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`  // <-- must send token
+        }
+      })
           .then((response) => response.json())
           .then((data) => {
             console.log("Fetched Data:", data);
@@ -74,7 +90,12 @@ const BankInfoEditForm = () => {
 
   //----------React Select Business unit Start--------
   useEffect(() => {
-    fetch(`${baseURL}/business_unit`)
+    fetch(`${baseURL}/business_unit`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`  // <-- must send token
+      }
+    })
       .then((response) => response.json())
       .then((data) => {
         setBusinessUnit(data.data);
@@ -138,7 +159,8 @@ const BankInfoEditForm = () => {
       const result = await fetch(`${baseURL}/bank_info/update/${id}`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(submitData)
       });

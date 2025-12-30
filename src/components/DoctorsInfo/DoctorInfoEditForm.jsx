@@ -82,8 +82,22 @@ const DoctorInfoEditForm = ({
     * Module
     * TODO:: Optimize
    */
+  const token = localStorage.getItem('auth_token'); //Check Authentication
+  const expiry = localStorage.getItem('auth_token_expiry'); //check token expiry time
+
+  if (!token || (expiry && Date.now() > Number(expiry))) {
+    localStorage.clear();
+    window.location.href = "/login";
+    return;
+  }
+
   useEffect(() => {
-    fetch(`${basURL}/lookupvalue/multiplefilter/sp`)
+    fetch(`${basURL}/lookupvalue/multiplefilter/sp`, {
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`  // <-- must send token
+      }
+    })
       .then((response) => response.json())
       .then((data) => {
         setSPlookupData(data.data);
@@ -92,7 +106,12 @@ const DoctorInfoEditForm = ({
 
 
   useEffect(() => {
-    fetch(`${basURL}/lookupvalue/multiplefilter/dg`)
+    fetch(`${basURL}/lookupvalue/multiplefilter/dg`, {
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`  // <-- must send token
+      }
+    })
       .then((response) => response.json())
       .then((data) => {
         setGDlookupData(data.data);
@@ -185,6 +204,9 @@ const DoctorInfoEditForm = ({
       const result = await fetch(`${basURL}/doctors/update/${passEditFormData.id}`, {
         method: 'POST',
         body: formData,
+        headers: {
+          'Authorization': `Bearer ${token}`  // <-- must send token
+        }
       });
 
 

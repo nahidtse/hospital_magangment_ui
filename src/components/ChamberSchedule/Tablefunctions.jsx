@@ -101,10 +101,24 @@ export const BasicTable = () => {
     const [showSingleData, setSingleData] = useState([]);
     const [passEditFormData, setPassingEditFormData] = useState(null);
 
+    
 
+    const token = localStorage.getItem('auth_token'); //Check Authentication
+    const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+    if (!token || (expiry && Date.now() > Number(expiry))) {
+        localStorage.clear();
+        window.location.href = "/login";
+        return;
+    }
 
     const fetchItems = () => {
-        fetch(`${basURL}/chamber`)
+        fetch(`${basURL}/chamber`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`  // <-- must send token
+            }
+        })
             .then((response) => response.json())
             .then((data) => {
             setChamberSchedule(data.data);

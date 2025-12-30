@@ -87,7 +87,14 @@ export const BasicTable = () => {
 
 
     const fetchItems = () => {
-        fetch(`${basURL}/doctors`)
+        const token = localStorage.getItem('auth_token'); //Check Authentication
+        
+        fetch(`${basURL}/doctors`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`  // <-- must send token
+            }
+        })
             .then((response) => response.json())
             .then((data) => {
             setDoctorData(data.data);

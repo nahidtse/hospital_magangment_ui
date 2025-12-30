@@ -21,6 +21,17 @@ const MoneyReceiptFormFunction = ({onSubmit}) => {
       }, []);
     //---------------Auto Focus End----------------
 
+    //*********Check Authentication Start***********
+    const token = localStorage.getItem('auth_token'); //Check Authentication
+    const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+    if (!token || (expiry && Date.now() > Number(expiry))) {
+        localStorage.clear();
+        window.location.href = "/login";
+        return;
+    }
+    //*********Check Authentication End***********
+
 
     const [addFormData, setFormData]= useState({
         money_receipt_date: new Date(),
@@ -66,7 +77,12 @@ const MoneyReceiptFormFunction = ({onSubmit}) => {
 
   //----------React Select Patient Start----------
       useEffect(() => {
-        fetch(`${baseURL}/patient`)
+        fetch(`${baseURL}/patient`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`  // <-- must send token
+          }
+        })
           .then((response) => response.json())
           .then((data) => {
             setPatientInfo(data.data);
@@ -94,7 +110,12 @@ const MoneyReceiptFormFunction = ({onSubmit}) => {
     //Lookup value Get By Code
     const getLookupValueDataByCode = async (code) => {
       try {
-        const response = await fetch(`${baseURL}/lookupvalue/multiplefilter/${code}`)
+        const response = await fetch(`${baseURL}/lookupvalue/multiplefilter/${code}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`  // <-- must send token
+          }
+        })
         const result = await response.json()
   
         if(!result?.data) return ;
@@ -155,7 +176,12 @@ const MoneyReceiptFormFunction = ({onSubmit}) => {
     
   //----------React Select Bank Start----------
       useEffect(() => {
-        fetch(`${baseURL}/bank_info`)
+        fetch(`${baseURL}/bank_info`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`  // <-- must send token
+          }
+        })
           .then((response) => response.json())
           .then((data) => {
             setBankInfo(data.data);

@@ -11,6 +11,7 @@ import Switcher from './Switcher';
 import { Modalsearch } from '../../common/Reuseablefunction';
 import { MENUITEMS } from '../../common/Sidemenudata';
 import { ThemeChanger } from '../../common/redux/Action';
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const Header = ({ ThemeChanger}) => {
 
@@ -388,6 +389,38 @@ const Header = ({ ThemeChanger}) => {
     setShowSwitcher(true);
   };
 
+  // ******************LogOut Function Start****************
+  const handleLogout = async() => {
+    try{
+      const token = localStorage.getItem('auth_token')
+
+      const logoutApiCall = await fetch(`${baseURL}/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+
+      const result = await logoutApiCall.json();
+
+      if(logoutApiCall.ok){
+        //LocalStorage Clear
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_token_expiry');
+        localStorage.clear(); // remove All Data
+
+        // Redirect to login
+        window.location.href = `${import.meta.env.BASE_URL}login`;
+      } else {
+        console.error(result.message || "Logout failed");
+      }
+    }catch (error) {
+      console.error("Logout error:", error);
+    }
+  }
+  // ******************LogOut Function End****************
+
   return (
     <Fragment>
 
@@ -529,12 +562,12 @@ const Header = ({ ThemeChanger}) => {
               </Dropdown.Toggle>
 
               <Dropdown.Menu as='ul' className="main-header-dropdown pt-0 overflow-hidden header-profile-dropdown" align='end'>
-                <Link to={`${import.meta.env.BASE_URL}pages/profile/`} as='li' className='dropdown-item d-flex' href="#/action-1"><i className="ti ti-user-circle fs-18 me-2 op-7"></i>Profile</Link>
+                <Link to={`${import.meta.env.BASE_URL}profile`} as='li' className='dropdown-item d-flex' href="#/action-1"><i className="ti ti-user-circle fs-18 me-2 op-7"></i>Profile</Link>
                 <Link to={`${import.meta.env.BASE_URL}pages/mailinbox/`} as='li' className='dropdown-item d-flex border-block-end' href="#/action-1"><i className="ti ti-inbox fs-18 me-2 op-7"></i>Inbox <span className="badge bg-success-transparent ms-auto">25</span></Link>
                 <Link to={`${import.meta.env.BASE_URL}apps/timeline/`} as='li' className='dropdown-item d-flex' href="#/action-1"><i className="ti ti-clipboard-check fs-18 me-2 op-7"></i>Task Manager</Link>
                 <Link to={`${import.meta.env.BASE_URL}pages/services/`} as='li' className='dropdown-item d-flex' href="#/action-1"><i className="ti ti-adjustments-horizontal fs-18 me-2 op-7"></i>Settings</Link>
                 <Link to={`${import.meta.env.BASE_URL}pages/faqs/`} as='li' className='dropdown-item d-flex' href="#/action-1"><i className="ti ti-headset fs-18 me-2 op-7"></i>Support</Link>
-                <Link to={`${import.meta.env.BASE_URL}firebase/firebasesignin/`} as='li' className='dropdown-item d-flex' href="#/action-1"><i className="ti ti-logout fs-18 me-2 op-7"></i>Log Out</Link>
+                <Link to="#" onClick={handleLogout} as='li' className='dropdown-item d-flex' href="#/action-1"><i className="ti ti-logout fs-18 me-2 op-7"></i>Log Out</Link>
               </Dropdown.Menu>
             </Dropdown>
 

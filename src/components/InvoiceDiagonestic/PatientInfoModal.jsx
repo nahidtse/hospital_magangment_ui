@@ -16,13 +16,22 @@ export function PatientInfoModal(props) {
       const timer = setTimeout(() => {
         if (referenceSelectRef.current) {
           referenceSelectRef.current.focus();
-          
-          // Focus Style Add
-          // referenceSelectRef.current.classList.add('form-select-focused');
         }
+
       }, 100);
       return () => clearTimeout(timer);
     }, []);
+
+    //*********Check Authentication Start***********
+    const token = localStorage.getItem('auth_token'); //Check Authentication
+    const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+    if (!token || (expiry && Date.now() > Number(expiry))) {
+        localStorage.clear();
+        window.location.href = "/login";
+        return;
+    }
+    //*********Check Authentication End***********
 
 
     const [showValidationError, setValidationErrors] = useState({
@@ -175,7 +184,8 @@ export function PatientInfoModal(props) {
       const result = await fetch(`${basURL}/patient/create`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(submitData)
       });

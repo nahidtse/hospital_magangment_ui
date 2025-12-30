@@ -8,9 +8,19 @@ const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const MoneyReceiptSingleTable = () => {
 
-
     const {id} = useParams();
     // console.log(id)
+
+    //*********Check Authentication Start***********
+    const token = localStorage.getItem('auth_token'); //Check Authentication
+    const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+    if (!token || (expiry && Date.now() > Number(expiry))) {
+        localStorage.clear();
+        window.location.href = "/login";
+        return;
+    }
+    //*********Check Authentication End***********
     
 
     const [moneyReceipt, setMoneyReceipt] = useState({});
@@ -19,7 +29,12 @@ const MoneyReceiptSingleTable = () => {
     useEffect(() => {
         // if(!id) return;
 
-        fetch(`${baseURL}/money_receipt/single_data/${id}`)
+        fetch(`${baseURL}/money_receipt/single_data/${id}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`  // <-- must send token
+            }
+        })
             .then((response) => response.json())
             .then((data) => {
             setMoneyReceipt(data.data);

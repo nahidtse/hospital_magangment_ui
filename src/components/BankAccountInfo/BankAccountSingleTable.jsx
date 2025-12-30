@@ -9,16 +9,32 @@ const baseURL = import.meta.env.VITE_API_BASE_URL;
 const BankAccountSingleTable = () => {
 
     const {id} = useParams();
-    console.log(id)
+    // console.log(id)
+
+    //*********Check Authentication Start***********
+    const token = localStorage.getItem('auth_token'); //Check Authentication
+    const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+    if (!token || (expiry && Date.now() > Number(expiry))) {
+        localStorage.clear();
+        window.location.href = "/login";
+        return;
+    }
+    //*********Check Authentication End***********
 
 
     const [bankAccount, setBankAccount] = useState({});
-    console.log(bankAccount)
+    // console.log(bankAccount)
 
     useEffect(() => {
         if(!id) return;
 
-        fetch(`${baseURL}/bank_account/single_data/${id}`)
+        fetch(`${baseURL}/bank_account/single_data/${id}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`  // <-- must send token
+            }
+        })
             .then((response) => response.json())
             .then((data) => {
             setBankAccount(data.data);
