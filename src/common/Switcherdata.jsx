@@ -63,7 +63,7 @@ export const HorizontalClick = (actionfunction) => {
         "datanavlayout": "horizontal",
         "datamenustyles": localStorage.zanexdarktheme ? "dark" : localStorage.darkBgRGB1 ? localStorage.zanexMenu : localStorage.zanexMenu ? localStorage.zanexMenu : "light",
         "dataverticalstyle": "",
-        "datanavstyle": localStorage.zanexnavstyles ? localStorage.zanexnavstyles : "menu-click"
+        "datanavstyle": localStorage.zanexnavstyles ? localStorage.zanexnavstyles : "menu-hover"
     };
 
     actionfunction(updatedTheme);
@@ -754,13 +754,13 @@ export const Reset = (actionfunction) => {
         ...theme,
         lang: "en",
         dir: "ltr",
-        datanavlayout: "vertical",
+        datanavlayout: "horizontal",
         datathememode: "light",
         dataheaderstyles: 'light',
         datamenustyles: 'light',
         dataverticalstyle: "default",
         toggled: "",
-        datanavstyle: "",
+        datanavstyle: "menu-hover",
         horstyle: "",
         datapagestyle: "regular",
         datawidth: "fullwidth",
@@ -801,7 +801,7 @@ export const Resetlandingswitcher = (actionfunction) => {
         dataheaderstyles: "light",
         dataverticalstyle: "overlay",
         toggled: "",
-        datanavstyle: "menu-click",
+        datanavstyle: "menu-hover",
         datamenuposition: "",
         iconoverlay: "",
         colorprimaryrgb: "",
