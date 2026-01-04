@@ -1,108 +1,71 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import DatePicker from 'react-datepicker';
 import { Button, Card, Col, Form, InputGroup, Row } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import Select from 'react-select';
+import { format } from 'date-fns';
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
-const RoleEditForm = ({ setBusinessUnitList, setContactsData, passEditFormData, setPassingEditFormData }) => {
+const UserEditForm = () => {
+
+  const location = useLocation(); //For State Data Receive
+  const passEditFormData = location.state?.editData || '' 
+
+  const navigate = useNavigate();   //For Route Change
 
   // console.log(passEditFormData);
-  const [userRoles, setUserRoles] = useState([]);
+  
+  //*********Check Authentication Start***********
+    const token = localStorage.getItem('auth_token'); //Check Authentication
+    const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
 
-  // Get Six Months From Current Day
-  const getSixMonths = (date) => {
-    const sixMonthsFromNow = date;
-    sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
-    sixMonthsFromNow.setDate(sixMonthsFromNow.getDate() - 1);
-    return sixMonthsFromNow;
-  }
+    if (!token || (expiry && Date.now() > Number(expiry))) {
+      localStorage.clear();
+      window.location.href = "/login";
+      return;
+    }
+  //*********Check Authentication End***********
+
+ 
 
   const [editFormData, setEditFormData] = useState({
-    username: '',
-    fullname: '',
-    emailaddress: '',
-    mobile: '',
-    fromdate: new Date(),
-    todate: getSixMonths(new Date()),
-    roleid: '',
+    user_name: '',
+    full_name: '',
+    email: '',
+    mobile_no: '',
+    from_date: new Date(),
+    to_date: '',
+    role_id: '',
     password: '',
-    confirmpassword: '',
-    isActive: 1
+    password_confirmation: '',
+    is_active: 1
   })
-  const [isHidden, setIsHidden] = useState([false]);
 
+  // console.log(editFormData)
 
   const [showValidationError, setValidationErrors] = useState({});
 
 
-
-  const [fromDate, setFromDate] = useState(new Date());
-  const [toDate, setToDate] = useState(getSixMonths(new Date(fromDate)));
+  const [userRoles, setUserRoles] = useState([]);
 
   /** Date Formate Change */
-  const dateFormateChange = (date) => {
-      return date.toISOString().split('T')[0];
-  }
-
-
-  /** From Date and To Date Handling Area */
-  const handleFromDateChange = (date) => {
-
-    const updatedFromDate = date;
-
-    const updatedToDate = getSixMonths(new Date(updatedFromDate));
-
-    const formattedFromDate = dateFormateChange(updatedFromDate);
-    const formattedToDate = dateFormateChange(updatedToDate);
-    // console.log(formattedFromDate+'/'+formattedToDate)
-
-    // Update states
-    setFromDate(formattedFromDate);
-    setToDate(formattedToDate);
-
-    // Update form data using updated values (not outdated state)
-    const newFormData = { ...editFormData };
-    newFormData['fromdate'] = formattedFromDate;
-    newFormData['todate'] = formattedToDate;
-
-    setEditFormData(newFormData);
-  };
-
-  const handleToDateChange = (date) => {
-
-    const formattedFromDate = dateFormateChange(new Date(fromDate));
-    const formattedToDate = dateFormateChange(date);
-    // console.log(formattedFromDate+'/'+formattedToDate)
-
-    if (formattedFromDate < formattedToDate) {
-
-      setToDate(formattedToDate);
-
-      const newFormData = { ...editFormData };
-      newFormData['todate'] = formattedToDate;
-
-      setEditFormData(newFormData);
-
-    } else {
-      toast.error("To Date cannot be before From Date");
-    }
-  };
+  
 
   useEffect(() => {
     if (passEditFormData) {
       setEditFormData({
-        username: passEditFormData.user_name,
-        fullname: passEditFormData.full_name,
-        emailaddress: passEditFormData.email_address,
-        mobile: passEditFormData.mobile,
-        password: passEditFormData.password,
-        confirmpassword: passEditFormData.password,
-        fromdate: passEditFormData.from_date,
-        todate: passEditFormData.to_date,
-        roleid: passEditFormData.role_id,
-        rolename: passEditFormData.role.role_name,
-        isActive: passEditFormData.is_active
+        user_name: passEditFormData.user_name,
+        full_name: passEditFormData.full_name,
+        email: passEditFormData.email,
+        mobile_no: passEditFormData.mobile_no,
+        from_date: passEditFormData.from_date,
+        to_date: passEditFormData.to_date,
+        role_id: passEditFormData.role_id,
+        // password: passEditFormData.password,
+        // password_confirmation: passEditFormData.password,
+        is_active: passEditFormData.is_active
       });
     }
   }, [passEditFormData]);
@@ -111,20 +74,33 @@ const RoleEditForm = ({ setBusinessUnitList, setContactsData, passEditFormData, 
   /** Admin Roles Data Fetching */
   const userId = 7; // it will be dynamic TODO::
 
-  useEffect(() => {
-    fetch(`https://cserp.store/api/role/show/${userId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        setUserRoles(data.data);
+  //----------React Select User Start--------
+    useEffect(() => {
+      fetch(`${baseURL}/role`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`  // <-- must send token
+        }
       })
-  }, [])
+        .then((response) => response.json())
+        .then((data) => {
+          setUserRoles(data.data);
+        })
+    }, [])
 
-  /** Reset Preview States */
-  const goToModuleList = () => {
-    setBusinessUnitList(false);
-    setPassingEditFormData(null);
+    const activeRoleOptions = userRoles.filter(role => role.is_active == 1).map(role => ({
+      value: role.id,
+      label: `${role.role_name}`
+    }));
 
-  };
+    // react-select  onChange handler
+    const selectChange = (selectedOption) => {
+      setEditFormData(prev => ({
+        ...prev,
+        role_id: selectedOption? selectedOption.value : null
+      }))
+    };
+  //----------React Select User End--------
 
   const handleEditFormChange = (event) => {
     event.preventDefault();
@@ -135,41 +111,41 @@ const RoleEditForm = ({ setBusinessUnitList, setContactsData, passEditFormData, 
     const newFormData = { ...editFormData };
     newFormData[fieldName] = fieldValue;
 
+    if (fieldName === "mobile_no" && fieldValue.length > 11) return;
+
     setEditFormData(newFormData);
   };
 
+
+
+  //Handle Submit Edit Data
   const handleEditFormSubmit = async (event) => {
     event.preventDefault();
 
     const errors = {};
 
-    if (!editFormData.username.trim()) {
+    if (!editFormData.user_name.trim()) {
       errors.user_name = "User Name is required.";
     }
-    if (!editFormData.fullname.trim()) {
+    if (!editFormData.full_name.trim()) {
       errors.full_name = "Full Name is required.";
     }
-    if (!editFormData.emailaddress.trim()) {
-      errors.email_address = "Email Address is required.";
-    } else if (!/^\S+@\S+\.\S+$/.test(editFormData.emailaddress)) {
-      errors.email_address = "Email Address is invalid.";
-    }
-    if (!editFormData.mobile.trim()) {
-      errors.mobile = "Mobile Number is required.";
-    } else if (!/^\d{11}$/.test(editFormData.mobile)) {
-      errors.mobile = "Mobile Number must be 11 digits.";
+    if (!editFormData.email.trim()) {
+      errors.email = "Email Address is required.";
+    } else if (!/^\S+@\S+\.\S+$/.test(editFormData.email)) {
+      errors.email = "Email Address is invalid.";
     }
 
-    if (!editFormData.roleid.trim()) {
+    if (!editFormData.role_id) {
       errors.role_id = "Role Name is required.";
     }
-    if (!editFormData.password.trim()) {
-      errors.password = "Role Name is required.";
-    }
-    if (!editFormData.confirmpassword.trim()) {
-      errors.confirm_password = "Confirm Password is required.";
-    } else if (editFormData.password != editFormData.confirmpassword) {
-      errors.confirm_password = "Password don't match!";
+
+    if (editFormData.password) {
+      if (!editFormData.password_confirmation) {
+        errors.password_confirmation = "Confirm Password is required.";
+      } else if (editFormData.password !== editFormData.password_confirmation) {
+        errors.password_confirmation = "Password don't match!";
+      }
     }
 
 
@@ -182,51 +158,57 @@ const RoleEditForm = ({ setBusinessUnitList, setContactsData, passEditFormData, 
     try {
 
       const submitData = {
-        user_name: editFormData.username,
-        full_name: editFormData.fullname,
-        email_address: editFormData.emailaddress,
-        mobile: editFormData.mobile,
-        from_date: editFormData.fromdate,
-        to_date: editFormData.todate,
-        role_id: editFormData.roleid,
-        password: editFormData.password,
-        is_active: editFormData.isActive ? 1 : 0,
-        create_by: 1,
-        updated_by: 1
-
+        user_name: editFormData.user_name,
+        full_name: editFormData.full_name,
+        email: editFormData.email,
+        mobile_no: editFormData.mobile_no,
+        from_date: editFormData.from_date ? format(editFormData.from_date, "yyyy-MM-dd") : null,
+        to_date: editFormData.to_date ? format(editFormData.to_date, "yyyy-MM-dd") : null,
+        role_id: editFormData.role_id,
+        is_active: editFormData.is_active ? 1 : 0,
       }
 
-      const result = await fetch(`https://cserp.store/api/user/update/${passEditFormData.id}`, {
+      if (editFormData.password) {
+        submitData.password = editFormData.password;
+        submitData.password_confirmation = editFormData.password_confirmation;
+      }
+
+      // console.log(submitData)
+      // return;
+
+      const result = await fetch(`${baseURL}/user/update/${passEditFormData.id}`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(submitData)
       });
 
 
       const response = await result.json();
+
       if (response.status == 'success') {
         toast.success(response.message);
+        navigate('/user/dataTable')
 
-        setContactsData((prevContacts) =>
-          prevContacts.map((contact) =>
-             contact.id === response.data.id ? { ...contact, ...response.data } : contact
-          )
-        );
+      } else if (response.status === 'fail' && response.errors) {
+        // Laravel errors → React friendly format
+         const backendErrors = {};
 
-        setBusinessUnitList(false);
-        setPassingEditFormData(null);
+         Object.keys(response.errors).forEach((field) => {
+            backendErrors[field] = response.errors[field][0]; // first message
+          });
 
-      } else {
-        if (typeof response.message === 'object') {
-          setValidationErrors(response.message);
+          setValidationErrors(backendErrors);
+
+          // optional toast
+          toast.error(response.message);
+          
         } else {
           toast.error("Internal Error! Try again later.");
           console.error(response.message);
         }
-
-      }
 
     } catch (error) {
       toast.error('Internal Error!! Try again after 5 min.')
@@ -235,21 +217,20 @@ const RoleEditForm = ({ setBusinessUnitList, setContactsData, passEditFormData, 
 
   };
 
-  const resetHandling = () => {
-    setEditFormData({
-      username: '',
-      fullname: '',
-      emailaddress: '',
-      mobile: '',
-      fromdate: new Date(),
-      todate: new Date(),
-      roleid: '',
-      password: '',
-      confirmpassword: '',
-      isActive: 1
-    })
-
-  }
+   //React select
+  const customStyles = {
+    control: (base, state) => ({
+      ...base,
+      borderColor: '#000',
+      borderRadius: '0.375rem',
+      fontSize: '0.875rem',
+      // padding: '1px',
+      minHeight: '40px',
+      // '&:hover': {
+      //   borderColor: '#000'
+      // }
+    }),
+  };
 
   return (
     <Fragment>
@@ -260,122 +241,111 @@ const RoleEditForm = ({ setBusinessUnitList, setContactsData, passEditFormData, 
               <div className='card-title'>Edit User</div>
               <div className="prism-toggle">
                 <Link to={`${import.meta.env.BASE_URL}user/dataTable`}>
-                  <button className="btn btn-sm btn-primary" onClick={goToModuleList}>List</button>
+                  <button className="btn btn-sm btn-primary">List</button>
                 </Link>
 
               </div>
             </Card.Header>
 
-            <Card.Body className={`${isHidden[0] ? 'd-none' : ''}`}>
+            <Card.Body>
 
               <Form noValidate onSubmit={handleEditFormSubmit}>
                 <Row className="mb-3">
-                  <Form.Group as={Col} md="6" controlId="validationCustom01">
+                  <Form.Group as={Col} md="3" controlId="validationCustom01">
                     <Form.Label>User Name <span className='text-danger ms-1'>*</span></Form.Label>
                     <Form.Control
                       required
                       type="text"
                       className='border-dark'
                       placeholder="Enter user name"
-                      defaultValue=""
-                      name='username'
-                      value={editFormData.username}
+                      name='user_name'
+                      value={editFormData.user_name || ''}
                       isInvalid={!!showValidationError.user_name}
                       onChange={handleEditFormChange}
 
                     />
                     <Form.Control.Feedback type='invalid'>{showValidationError.user_name}</Form.Control.Feedback>
                   </Form.Group>
-                  <Form.Group as={Col} md="6" controlId="validationCustom012">
+                  <Form.Group as={Col} md="3" controlId="validationCustom012">
                     <Form.Label>Full Name <span className='text-danger ms-1'>*</span></Form.Label>
                     <Form.Control
                       required
                       type="text"
                       className='border-dark'
                       placeholder="Enter full name"
-                      defaultValue=""
-                      name='fullname'
-                      value={editFormData.fullname}
+                      name='full_name'
+                      value={editFormData.full_name || ''}
                       isInvalid={!!showValidationError.full_name}
                       onChange={handleEditFormChange}
 
                     />
                     <Form.Control.Feedback type='invalid'>{showValidationError.full_name}</Form.Control.Feedback>
                   </Form.Group>
-                </Row>
-                <Row className="mb-3">
-                  <Form.Group as={Col} md="6" controlId="validationCustom03">
+
+                  <Form.Group as={Col} md="3" controlId="validationCustom03">
                     <Form.Label>Email <span className='text-danger ms-1'>*</span></Form.Label>
                     <Form.Control
                       required
                       type="text"
                       className='border-dark'
                       placeholder="Enter email name"
-                      defaultValue=""
-                      name='emailaddress'
-                      value={editFormData.emailaddress}
-                      isInvalid={!!showValidationError.email_address}
+                      name='email'
+                      value={editFormData.email || ''}
+                      isInvalid={!!showValidationError.email}
                       onChange={handleEditFormChange}
 
                     />
-                    <Form.Control.Feedback type='invalid'>{showValidationError.email_address}</Form.Control.Feedback>
+                    <Form.Control.Feedback type='invalid'>{showValidationError.email}</Form.Control.Feedback>
                   </Form.Group>
-                  <Form.Group as={Col} md="6" controlId="validationCustom04">
+                  
+                  <Form.Group as={Col} md="3" controlId="validationCustom04">
                     <Form.Label>Mobile No <span className='text-danger ms-1'>*</span></Form.Label>
                     <Form.Control
                       required
                       type="number"
                       className='border-dark'
-                      placeholder="Enter mobile number"
-                      defaultValue=""
-                      name='mobile'
-                      value={editFormData.mobile}
-                      isInvalid={!!showValidationError.mobile}
+                      placeholder="Enter Mobile number"
+                      name='mobile_no'
+                      value={editFormData.mobile_no || ''}
+                      isInvalid={!!showValidationError.mobile_no}
                       onChange={handleEditFormChange}
 
                     />
-                    <Form.Control.Feedback type='invalid'>{showValidationError.mobile}</Form.Control.Feedback>
+                    <Form.Control.Feedback type='invalid'>{showValidationError.mobile_no}</Form.Control.Feedback>
                   </Form.Group>
                 </Row>
 
-                <Row className="mb-3">
-                  <Form.Group as={Col} md="6" controlId="validationCustom05">
+                <Row>
+                  <Form.Group as={Col} md="3" controlId="validationCustom05">
                     <Form.Label>Password <span className='text-danger ms-1'>*</span></Form.Label>
                     <Form.Control
-                      required
                       type="password"
                       className='border-dark'
                       placeholder="Enter password"
-                      defaultValue=""
                       name='password'
-                      value={editFormData.password}
+                      value={editFormData.password || ''}
                       isInvalid={!!showValidationError.password}
                       onChange={handleEditFormChange}
 
                     />
                     <Form.Control.Feedback type='invalid'>{showValidationError.password}</Form.Control.Feedback>
                   </Form.Group>
-                  <Form.Group as={Col} md="6" controlId="validationCustom06">
+                  <Form.Group as={Col} md="3" controlId="validationCustom06">
                     <Form.Label>Confirm Password <span className='text-danger ms-1'>*</span></Form.Label>
                     <Form.Control
-                      required
                       type="password"
                       className='border-dark'
                       placeholder="Enter confirm password"
-                      defaultValue=""
-                      name='confirmpassword'
-                      value={editFormData.confirmpassword}
-                      isInvalid={!!showValidationError.confirm_password}
+                      name='password_confirmation'
+                      value={editFormData.password_confirmation || ''}
+                      isInvalid={!!showValidationError.password_confirmation}
                       onChange={handleEditFormChange}
 
                     />
-                    <Form.Control.Feedback type='invalid'>{showValidationError.confirm_password}</Form.Control.Feedback>
+                    <Form.Control.Feedback type='invalid'>{showValidationError.password_confirmation}</Form.Control.Feedback>
                   </Form.Group>
-                </Row>
 
-                <Row className="mb-3">
-
-                  <Form.Group as={Col} md="6" controlId="validationCustom08">
+                  <Form.Group as={Col} md="3" controlId="validationCustom08">
                     <Form.Label>From Date</Form.Label>
                     <InputGroup className="">
                       <InputGroup.Text id="basic-addon1" className="text-muted">
@@ -385,15 +355,17 @@ const RoleEditForm = ({ setBusinessUnitList, setContactsData, passEditFormData, 
                       <div className="form-control border-dark">
                         <DatePicker
                           className='border-0'
-                          selected={editFormData.fromdate ? new Date(editFormData.fromdate) : null}
+                          selected={editFormData.from_date ? new Date(editFormData.from_date) : null}
                           dateFormat="dd-MM-yyyy"
-                          onChange={handleFromDateChange}
+                          onChange={(date) =>
+                            setEditFormData({ ...editFormData, from_date: date })
+                          }
 
                         />
                       </div>
                     </InputGroup>
                   </Form.Group>
-                  <Form.Group as={Col} md="6" controlId="validationCustom07">
+                  <Form.Group as={Col} md="3" controlId="validationCustom07">
 
                     <Form.Label>To Date</Form.Label>
                     <InputGroup className="mb-3">
@@ -404,36 +376,35 @@ const RoleEditForm = ({ setBusinessUnitList, setContactsData, passEditFormData, 
                       <div className="form-control border-dark">
                         <DatePicker
                           className='border-0'
-                          minDate={fromDate}
-                          selected={editFormData.todate ? new Date(editFormData.todate) : null}
+                          // minDate={fromDate}
+                          selected={editFormData.to_date ? new Date(editFormData.to_date) : null}
                           dateFormat="dd-MM-yyyy"
-                          onChange={handleToDateChange}
+                          onChange={(date) =>
+                            setEditFormData({ ...editFormData, to_date: date })
+                          }
 
                         />
                       </div>
                     </InputGroup>
                   </Form.Group>
-
                 </Row>
 
 
                 <Row className="mb-3">
-                  <Form.Group as={Col} md="6" controlId="validationCustom01">
+                  <Form.Group as={Col} md="3" controlId="validationCustom01">
 
                     <Form.Label>User Role <span className='text-danger ms-1'>*</span></Form.Label>
 
-                    <Form.Select
-                      size="lg"
-                      className={`border-dark p-2 ${showValidationError.role_id ? 'is-invalid' : ''}`}
-                      name="roleid"
-                      onChange={handleEditFormChange}
-                      aria-label="Select role"
-                    >
-                      <option value={editFormData.roleid}>{editFormData.rolename}</option>
-                      {userRoles.map((role) => (
-                        <option key={role.id} value={role.id}>{role.role_name}</option>
-                      ))}
-                    </Form.Select>
+                    <Select
+                      styles={customStyles}
+                      className={"border-dark"}
+                      classNamePrefix="react-select"
+                      options={activeRoleOptions}
+                      value={activeRoleOptions.find(option => option.value === editFormData.role_id) || null}
+                      onChange={selectChange}
+                      isSearchable={true}
+                      tabIndex={9}
+                    />
 
                     {showValidationError.role_id && (
                       <Form.Control.Feedback type="invalid" className="d-block">
@@ -442,25 +413,26 @@ const RoleEditForm = ({ setBusinessUnitList, setContactsData, passEditFormData, 
                     )}
                   </Form.Group>
 
-                  <Form.Group as={Col} md="6">
+                  <Form.Group as={Col} md="3">
                     <Form.Label></Form.Label>
                     <div className="form-check form-switch mt-3">
                       <input
                         className="form-check-input"
                         type="checkbox"
                         id="flexSwitchCheckChecked"
-                        checked={editFormData.isActive == 1}
-                        onChange={(e) => setEditFormData({ ...editFormData, isActive: e.target.checked })}
+                        checked={editFormData.is_active == 1}
+                        onChange={(e) => setEditFormData({ ...editFormData, is_active: e.target.checked })}
                       />
                       <label className="form-check-label" htmlFor="flexSwitchCheckChecked">
-                        {editFormData.isActive == 1 ? 'Active' : 'Inactive'}
+                        {editFormData.is_active == 1 ? 'Active' : 'Inactive'}
                       </label>
                     </div>
                   </Form.Group>
                 </Row>
 
-                <button type="reset" id="resetBtn" className="btn btn-outline-secondary me-2" onClick={resetHandling}>Reset</button>
-                <Button type="submit">Save</Button>
+                <div className='d-flex justify-content-end'>
+                  <Button type="submit">Update</Button>
+                </div>
               </Form>
 
             </Card.Body>
@@ -472,5 +444,5 @@ const RoleEditForm = ({ setBusinessUnitList, setContactsData, passEditFormData, 
   );
 };
 
-export default RoleEditForm;
+export default UserEditForm;
 

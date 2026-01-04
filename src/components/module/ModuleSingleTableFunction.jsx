@@ -1,15 +1,13 @@
 import { Fragment } from 'react';
 
 import { Card, Col, Form, InputGroup, Row } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 
-const SingleTableFunction = ({ setBusinessUnitList, singleContactsData, setSingleData }) => {
+const ModuleSingleTableFunction = () => {
 
-    const goToModuleList = () => {
-        setSingleData(null)
-        setBusinessUnitList(false);
-    }
+    const location = useLocation();
+    const singleModuleData = location.state?.singleData || '';
 
     return (
         <Fragment>
@@ -22,7 +20,7 @@ const SingleTableFunction = ({ setBusinessUnitList, singleContactsData, setSingl
                             <div className='card-title'>View Module</div>
                             <div className="prism-toggle">
                                 <Link to={`${import.meta.env.BASE_URL}module/dataTable`}>
-                                    <button className="btn btn-sm btn-primary" onClick={goToModuleList}>List</button>
+                                    <button className="btn btn-sm btn-primary">List</button>
                                 </Link>
                             </div>
 
@@ -38,35 +36,23 @@ const SingleTableFunction = ({ setBusinessUnitList, singleContactsData, setSingl
                                             type="text"
                                             className='readableInputBgColor'
                                             readOnly
-                                            value={singleContactsData.module_name}
+                                            value={singleModuleData.module_name || ''}
 
                                         />
 
                                     </Form.Group>
-                                    <Form.Group as={Col} md="6" >
-                                        <Form.Label>Create By</Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            maxLength={20}
-                                            className='readableInputBgColor'
-                                            readOnly
-                                            value={singleContactsData.create_by}
 
-                                        />
-
-                                    </Form.Group>
-                                </Row>
-                                <Row className="mb-3">
-                                    <Form.Group as={Col} md="6">
+                                    <Form.Group as={Col} md="6" className='mt-4'>
                                         <div className="form-check form-switch">
                                             <input
                                                 className="form-check-input"
                                                 type="checkbox"
                                                 id="flexSwitchCheckChecked"
-                                                checked={singleContactsData.is_active == 1}
+                                                checked={singleModuleData.is_active == 1}
+                                                readOnly
                                             />
                                             <label className="form-check-label" htmlFor="flexSwitchCheckChecked">
-                                                {singleContactsData.is_active == 1 ? 'Active' : 'Inactive'}
+                                                {singleModuleData.is_active == 1 ? 'Active' : 'Inactive'}
                                             </label>
                                         </div>
                                     </Form.Group>
@@ -84,4 +70,4 @@ const SingleTableFunction = ({ setBusinessUnitList, singleContactsData, setSingl
 
 };
 
-export default SingleTableFunction;
+export default ModuleSingleTableFunction;

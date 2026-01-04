@@ -57,6 +57,10 @@ import TestInfoForm from "../components/TestInfo/TestInfoForm";
 import TestInfoSingleTable from "../components/TestInfo/TestInfoSingleTable";
 import TestInfoEditForm from "../components/TestInfo/TestInfoEditForm";
 import Profile from "../components/Pages/Profile";
+import ModuleEditForm from "../components/module/ModuleEditForm";
+import ModuleSingleTableFunction from "../components/module/ModuleSingleTableFunction";
+import UserEditForm from "../components/User/UserEditForm";
+import UserSingleTableFunction from "../components/User/UserSingleTableFunction";
 
 export const Routedata = [
 
@@ -65,7 +69,9 @@ export const Routedata = [
 
   // User 
    { id: 2, path: `${import.meta.env.BASE_URL}user/dataTable`, element: <UserTable /> },
+   { id: 2, path: `${import.meta.env.BASE_URL}user/singledata`, element: <UserSingleTableFunction /> },
    { id: 3, path: `${import.meta.env.BASE_URL}user/createform`, element: <UserForm /> },
+   { id: 3, path: `${import.meta.env.BASE_URL}user/edit`, element: <UserEditForm /> },
 
    
   // Assign Business Unit 
@@ -152,7 +158,7 @@ export const Routedata = [
   
   
   
-   // hr
+  // hr
   { id: 108, path: `${import.meta.env.BASE_URL}hr/leavetype/DataTables`, element: <DataTables /> },
   { id: 108, path: `${import.meta.env.BASE_URL}hr/leavetype/LeaveType`, element: <LeaveType /> },
   { id: 109, path: `${import.meta.env.BASE_URL}hr/LeaveInfo`, element: <LeaveInfo /> },
@@ -167,6 +173,8 @@ export const Routedata = [
   // Module
   { id: 115, path: `${import.meta.env.BASE_URL}module/dataTable`, element: <ModuleTable /> },
   { id: 116, path: `${import.meta.env.BASE_URL}module/createform`, element: <ModuleForm /> },
+  { id: 116, path: `${import.meta.env.BASE_URL}module/singledata`, element: <ModuleSingleTableFunction /> },
+  { id: 116, path: `${import.meta.env.BASE_URL}module/edit`, element: <ModuleEditForm /> },
 
   // Role
   { id: 117, path: `${import.meta.env.BASE_URL}role/dataTable`, element: <RoleTable /> },

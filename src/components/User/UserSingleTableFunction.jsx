@@ -1,15 +1,14 @@
 import { Fragment } from 'react';
 
 import { Card, Col, Form, InputGroup, Row } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { format, parseISO } from 'date-fns';
 
 
-const SingleTableFunction = ({ setBusinessUnitList, singleContactsData, setSingleData }) => {
-
-    const goToRoleList = () => {
-        setSingleData(null)
-        setBusinessUnitList(false);
-    }
+const UserSingleTableFunction = () => {
+    const location = useLocation();
+    const singleUser = location.state?.singleData || ''
+    // console.log(singleUser)
 
     return (
         <Fragment>
@@ -22,7 +21,7 @@ const SingleTableFunction = ({ setBusinessUnitList, singleContactsData, setSingl
                             <div className='card-title'>View User</div>
                             <div className="prism-toggle">
                                 <Link to={`${import.meta.env.BASE_URL}user/dataTable`}>
-                                    <button className="btn btn-sm btn-primary" onClick={goToRoleList}>List</button>
+                                    <button className="btn btn-sm btn-primary">List</button>
                                 </Link>
                             </div>
 
@@ -32,116 +31,112 @@ const SingleTableFunction = ({ setBusinessUnitList, singleContactsData, setSingl
 
                             <Form>
                                 <Row className="mb-3">
-                                    <Form.Group as={Col} md="6" >
+                                    <Form.Group as={Col} md="3" >
                                         <Form.Label>User Name</Form.Label>
                                         <Form.Control
                                             type="text"
                                             maxLength={20}
                                             className='readableInputBgColor border-dark'
                                             readOnly
-                                            value={singleContactsData.user_name}
-
+                                            value={singleUser.user_name || ''}
                                         />
 
                                     </Form.Group>
-                                    <Form.Group as={Col} md="6" >
+                                    <Form.Group as={Col} md="3" >
                                         <Form.Label>Full Name</Form.Label>
                                         <Form.Control
                                             type="text"
                                             className='readableInputBgColor border-dark'
                                             readOnly
-                                            value={singleContactsData.full_name}
+                                            value={singleUser.full_name || ''}
 
                                         />
 
                                     </Form.Group>
-                                </Row>
-                                <Row className="mb-3">
-                                    <Form.Group as={Col} md="6" >
+
+                                    <Form.Group as={Col} md="3" >
                                         <Form.Label>Email</Form.Label>
                                         <Form.Control
                                             type="text"
                                             className='readableInputBgColor border-dark'
                                             readOnly
-                                            value={singleContactsData.email_address}
+                                            value={singleUser.email || ''}
 
                                         />
 
                                     </Form.Group>
-                                    <Form.Group as={Col} md="6" >
+                                    <Form.Group as={Col} md="3" >
                                         <Form.Label>Mobile No</Form.Label>
                                         <Form.Control
                                             type="text"
-                                            maxLength={20}
                                             className='readableInputBgColor border-dark'
                                             readOnly
-                                            value={singleContactsData.mobile}
+                                            value={singleUser.mobile_no || ''}
 
                                         />
 
                                     </Form.Group>
                                 </Row>
+
                                 <Row className="mb-3">
-                                    <Form.Group as={Col} md="6" >
+                                    <Form.Group as={Col} md="3" >
                                         <Form.Label>From Date</Form.Label>
                                         <Form.Control
                                             type="text"
                                             className='readableInputBgColor border-dark'
                                             readOnly
-                                            value={singleContactsData.from_date}
+                                            value={singleUser.from_date ? format(parseISO(singleUser.from_date), "dd-MM-yyyy") : ""}
 
                                         />
 
                                     </Form.Group>
-                                    <Form.Group as={Col} md="6" >
+                                    <Form.Group as={Col} md="3" >
                                         <Form.Label>To Date</Form.Label>
                                         <Form.Control
                                             type="text"
                                             maxLength={20}
                                             className='readableInputBgColor border-dark'
                                             readOnly
-                                            value={singleContactsData.to_date}
+                                            value={singleUser.to_date ? format(parseISO(singleUser.to_date), "dd-MM-yyyy") : ""}
 
                                         />
 
                                     </Form.Group>
-                                </Row>
-                                <Row className="mb-3">
-                                    <Form.Group as={Col} md="6" >
+
+                                    <Form.Group as={Col} md="3" >
                                         <Form.Label>Role</Form.Label>
                                         <Form.Control
                                             type="text"
                                             className='readableInputBgColor border-dark'
                                             readOnly
-                                            value={singleContactsData.role.role_name}
+                                            value={singleUser?.role?.role_name || ''}
 
                                         />
 
                                     </Form.Group>
-                                    <Form.Group as={Col} md="6" >
+                                    {/* <Form.Group as={Col} md="3" >
                                         <Form.Label>Create By</Form.Label>
                                         <Form.Control
                                             type="text"
                                             maxLength={20}
                                             className='readableInputBgColor border-dark'
                                             readOnly
-                                            value={singleContactsData.create_by}
+                                            value={singleUser.create_by || ''}
 
                                         />
 
-                                    </Form.Group>
-                                </Row>
-                                <Row className="mb-3">
-                                    <Form.Group as={Col} md="6">
+                                    </Form.Group> */}
+
+                                    <Form.Group as={Col} md="3" className='mt-4'>
                                         <div className="form-check form-switch">
                                             <input
                                                 className="form-check-input"
                                                 type="checkbox"
                                                 id="flexSwitchCheckChecked"
-                                                checked={singleContactsData.is_active == 1}
+                                                checked={singleUser.is_active == 1}
                                             />
                                             <label className="form-check-label" htmlFor="flexSwitchCheckChecked">
-                                                {singleContactsData.is_active == 1 ? 'Active' : 'Inactive'}
+                                                {singleUser.is_active == 1 ? 'Active' : 'Inactive'}
                                             </label>
                                         </div>
                                     </Form.Group>
@@ -159,4 +154,4 @@ const SingleTableFunction = ({ setBusinessUnitList, singleContactsData, setSingl
 
 };
 
-export default SingleTableFunction;
+export default UserSingleTableFunction;

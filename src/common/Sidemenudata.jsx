@@ -39,7 +39,9 @@ export const MENUITEMS = [
             },
             {
                 title: "Module", path: `${import.meta.env.BASE_URL}module/dataTable`, type: "link", badgetxt: '', menusub: true, active: false, selected: false, dirchange: false, children: [
-                    { path: `${import.meta.env.BASE_URL}module/createform`, type: 'link', active: false, selected: false, dirchange: false }
+                    { path: `${import.meta.env.BASE_URL}module/createform`, type: 'link', active: false, selected: false, dirchange: false },
+                    { path: `${import.meta.env.BASE_URL}module/singledata`, type: 'link', active: false, selected: false, dirchange: false },
+                    { path: `${import.meta.env.BASE_URL}module/edit`, type: 'link', active: false, selected: false, dirchange: false }
                 ]
             },
             {
@@ -49,7 +51,9 @@ export const MENUITEMS = [
             },
             {
                 title: "User", path: `${import.meta.env.BASE_URL}user/dataTable`, type: "link", badgetxt: '', menusub: true, active: false, selected: false, dirchange: false, children: [
-                    { path: `${import.meta.env.BASE_URL}role/createform`, type: 'link', active: false, selected: false, dirchange: false }
+                    { path: `${import.meta.env.BASE_URL}user/createform`, type: 'link', active: false, selected: false, dirchange: false },
+                    { path: `${import.meta.env.BASE_URL}user/singledata`, type: 'link', active: false, selected: false, dirchange: false },
+                    { path: `${import.meta.env.BASE_URL}user/edit`, type: 'link', active: false, selected: false, dirchange: false },
                 ]
             },
             {
@@ -65,22 +69,6 @@ export const MENUITEMS = [
             {
                 title: "Menu Create", path: `${import.meta.env.BASE_URL}menuCreate`, type: "link", badgetxt: '', menusub: true, active: false, selected: false, dirchange: false, children: [
                     { path: `${import.meta.env.BASE_URL}assignbu/createform`, type: 'link', active: false, selected: false, dirchange: false }
-                ]
-            },
-            {
-                title: "Hospital Management", type: "sub", badgetxt: '', menusub: true, active: false, selected: false, dirchange: false, children: [
-
-                    {
-                        title: "Doctor's Lookup Type", path: `${import.meta.env.BASE_URL}lookuptype/dataTable`, type: "link", badgetxt: '', menusub: true, active: false, selected: false, dirchange: false, children: [
-                            { path: `${import.meta.env.BASE_URL}lookuptype/createform`, type: 'link', active: false, selected: false, dirchange: false }
-                        ]
-                    },
-                    {
-                        title: "Doctor's Lookup Value", path: `${import.meta.env.BASE_URL}lookupvalue/dataTable`, type: "link", badgetxt: '', menusub: true, active: false, selected: false, dirchange: false, children: [
-                            { path: `${import.meta.env.BASE_URL}lookupvalue/createform`, type: 'link', active: false, selected: false, dirchange: false }
-                        ]
-                    },
-
                 ]
             },
 

@@ -4,9 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
-import RoleEditForm from "./RoleEditForm";
-import SingleTableFunction from "./SingleTableFunction";
-const baseURL = import.meta.env.VITE_API_BASE_URL;
+import RoleEditForm from "./PermissionEditForm";
+import PermissionSingleTableFunction from "./PermissionSingleTableFunction";
+import PermissionEditForm from "./PermissionEditForm";
 
 
 // ******************************************************
@@ -16,43 +16,47 @@ const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 export const COLUMNS = [
     {
-        Header: (<div className="text-center">{"#"}</div>),
+        Header: "#",
         accessor: "id",
-        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
     {
-        Header: (<div className="text-center">{"Role Name"}</div>),
-        accessor: "rolename",
+        Header: "Permission Name",
+        accessor: "permissionname",
     },
     {
-        Header: (<div className="text-center">{"Status"}</div>),
+        Header: "Module Name",
+        accessor: "modulename",
+    },
+    {
+        Header: "Status",
         accessor: "status",
-        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
     {
-        Header: (<div className="text-center">{"Actions"}</div>),
+        Header: "Actions",
         accessor: "action",
-        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
 ];
 
 export const DATATABLE = (contacts, handlers) =>
+    
     contacts.map((contact, id) => ({
+
         id: id + 1,
-        rolename: contact.role_name,
+        permissionname: contact.permission_name || "Permission Name",
+        modulename: contact.module?.module_name || "Module Name",
         status: contact.is_active == 1 ? "Active" : "Inactive",
         action: (
             <>
 
-                <span onClick={() => handlers.handleShowDataById(contact)}><i className="bi bi-eye btn-sm bg-info"></i></span>
-                
-                <span onClick={() => handlers.handleEditDataById(contact)}><i className="bi bi-pencil btn-sm bg-primary ms-1"></i></span>
-                
-                <span onClick={() => handlers.deletePermissionAlert(contact.id)}><i className="bi bi-trash btn-sm bg-danger ms-1"></i></span>
+                <span onClick={() => handlers.handleShowDataById(contact)} className="btn-sm bg-info" style={{ cursor: "pointer" }}><i className="bi bi-eye"></i></span>
+                <span onClick={() => handlers.handleEditDataById(contact)} className="btn-sm bg-primary ms-1" style={{ cursor: "pointer" }}><i className="bi bi-pencil"></i></span>
+                <span onClick={() => handlers.deletePermissionAlert(contact.id)} className="btn-sm bg-danger ms-1" style={{ cursor: "pointer" }}><i className="bi bi-trash"></i></span>
+
             </>
         )
-    }));
 
+    }));
+ 
 export const GlobalFilter = ({ filter, setFilter }) => {
     return (
         <span className="d-flex ms-auto">
@@ -68,17 +72,6 @@ export const GlobalFilter = ({ filter, setFilter }) => {
 
 export const BasicTable = () => {
 
-    //*********Check Authentication Start***********
-    const token = localStorage.getItem('auth_token'); //Check Authentication
-    const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
-
-    if (!token || (expiry && Date.now() > Number(expiry))) {
-        localStorage.clear();
-        window.location.href = "/login";
-        return;
-    }
-    //*********Check Authentication End***********
-
 
     const [showData, setShowData] = useState(false);
     const [contacts, setContacts] = useState([]);
@@ -93,21 +86,22 @@ export const BasicTable = () => {
     }
 
     /** Delete Handler */
-    const handleDeleteClick = async (roleId) => {
+    const handleDeleteClick = async (contactId) => {
+
         try {
-            const result = await fetch(`http://127.0.0.1:8000/api/role/destroy/${roleId}`, {
+            const result = await fetch(`https://cserp.store/api/permission/destroy/${contactId}`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 }
             });
 
             const response = await result.json();
-            if (response.status == 'success') {
-                setContacts(prevContact => prevContact.filter(c => c.id !== roleId));
 
+            if (response.status == 'success') {
+                setContacts(prevContact => prevContact.filter(c => c.id !== contactId));
             }
+
             return response;
 
         } catch (error) {
@@ -150,10 +144,9 @@ export const BasicTable = () => {
 
     }
 
-
     /** Edit Handler */
     const handleEditDataById = (contact) => {
-        // const data = contacts.find((contact) => contact.id == roleId);
+        // const data = contacts.find((contact) => contact.id == contactId);
         setShowData(true);
         setSingleData(null)
         setPassingEditFormData(contact);
@@ -165,11 +158,21 @@ export const BasicTable = () => {
     let content;
     if (showSingleData) {
         content = (
-            <SingleTableFunction setBusinessUnitList={setShowData} singleContactsData={showSingleData} setSingleData={setSingleData} />
+            <PermissionSingleTableFunction
+                setShowData={setShowData}
+                singleContactsData={showSingleData}
+                setSingleData={setSingleData}
+            />
         )
     } else if (passEditFormData) {
         content = (
-            <RoleEditForm setBusinessUnitList={setShowData} setContactsData={setContacts} passEditFormData={passEditFormData} setPassingEditFormData={setPassingEditFormData} />
+            <PermissionEditForm
+                setShowData={setShowData}
+                setContactsData={setContacts}
+                passEditFormData={passEditFormData}
+                setPassingEditFormData={setPassingEditFormData}
+                existingPermissionsData={contacts}
+            />
         )
     }
 
@@ -177,16 +180,11 @@ export const BasicTable = () => {
     /** Data Fetch */
 
     useEffect(() => {
-        fetch(`${baseURL}/role`, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`  // <-- must send token
-            }
-        })
+        fetch('https://cserp.store/api/permission')
             .then((response) => response.json())
             .then((data) => {
-              
                 setContacts(data.data)
+
             })
             .catch((error) => {
                 console.log("Error Fetching the data: ", error)
@@ -240,9 +238,9 @@ export const BasicTable = () => {
                         <Col xl={12}>
                             <Card className="custom-card">
                                 <Card.Header className="justify-content-between">
-                                    <div className='card-title'>Role List</div>
+                                    <div className='card-title'>Permission List</div>
                                     <div className="prism-toggle">
-                                        <Link to={`${import.meta.env.BASE_URL}role/createform`}><button
+                                        <Link to={`${import.meta.env.BASE_URL}permission/createform`} state={{ contacts }}><button
                                             type="button"
                                             className="btn btn-sm btn-primary"> New
                                         </button>
@@ -267,8 +265,8 @@ export const BasicTable = () => {
                                         </select>
                                         <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
                                     </div>
-                                    <table {...getTableProps()} className="table table-sm table-primary table-striped table-hover mb-0 table-bordered">
-                                        <thead className="bg-primary text-center">
+                                    <table {...getTableProps()} className="table table-hover mb-0 table-bordered">
+                                        <thead>
                                             {headerGroups.map((headerGroup) => (
                                                 <tr {...headerGroup.getHeaderGroupProps()} key={Math.random()}>
                                                     {headerGroup.headers.map((column) => (
@@ -276,7 +274,7 @@ export const BasicTable = () => {
                                                             {...column.getHeaderProps(column.getSortByToggleProps())}
                                                             className={column.className} key={Math.random()}
                                                         >
-                                                            <span className="tabletitle text-white">{column.render("Header")}</span>
+                                                            <span className="tabletitle">{column.render("Header")}</span>
                                                             <span className="float-end">
                                                                 {column.isSorted ? (
                                                                     column.isSortedDesc ? (

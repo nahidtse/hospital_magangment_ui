@@ -3,8 +3,21 @@ import { Fragment, useState } from 'react';
 import { Button, Card, Col, Form, Row } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const RoleForm = () => {
+
+  //*********Check Authentication Start***********
+  const token = localStorage.getItem('auth_token'); //Check Authentication
+  const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+  if (!token || (expiry && Date.now() > Number(expiry))) {
+      localStorage.clear();
+      window.location.href = "/login";
+      return;
+  }
+  //*********Check Authentication End***********
+
 
   const [showValidationError, setValidationErrors] = useState({
     module_name: '',
@@ -48,15 +61,16 @@ const RoleForm = () => {
       const submitData = {
         role_name: addFormData.rolename,
         is_active: addFormData.isActive ? 1:0, 
-        create_by: 1,
-        updated_by: 1
+        // create_by: 1,
+        // updated_by: 1
       }
 
 
-      const result = await fetch('https://cserp.store/api/role/create', {
+      const result = await fetch(`${baseURL}/role/create`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(submitData)
       });
@@ -64,7 +78,7 @@ const RoleForm = () => {
       const response = await result.json();
 
       if (response.status == 'success') {
-        toast.success(response.message);
+       toast.success(response.message, {autoClose: 1000});
 
         // Clear form
         setFormData({
@@ -149,8 +163,19 @@ const RoleForm = () => {
                     </label>
                   </div>
                 </Form.Group>
-                <button type="reset" id="resetBtn" className="btn btn-outline-secondary me-2" onClick={resetHandling}>Reset</button>
-                <Button type="submit">Save</Button>
+               <Row className="mb-3">
+                  <Col className="text-end">
+                    <button
+                      type="reset"
+                      id="resetBtn"
+                      className="btn btn-outline-secondary me-2"
+                      onClick={resetHandling}
+                    >
+                      Reset
+                    </button>
+                    <Button type="submit">Save</Button>
+                  </Col>
+                </Row>
               </Form>
 
             </Card.Body>

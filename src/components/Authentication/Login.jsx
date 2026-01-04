@@ -70,7 +70,7 @@ function Login() {
     try {
 
       const submitData = {
-        email: insertData.identifier,
+        identifier: insertData.identifier,
         password: insertData.password,
       }
 
@@ -96,8 +96,8 @@ function Login() {
         const expiryTime = Date.now() + 60 * 60 * 5000;
 
         const token = response.data.access_token;
-        const user  = response.data.user.name;
-        // const roleId = response.user.role_id;
+        const user_name  = response.data.user.user_name;
+        const role_id = response.data.user.role_id;
         // const fullName = response.user.full_name;
         // const userName = response.user.user_name;
         // const isActive = response.user.is_active;
@@ -105,9 +105,9 @@ function Login() {
 
         localStorage.setItem('auth_token', token);
         localStorage.setItem('auth_token_expiry', expiryTime);
-        // localStorage.setItem('role', roleId);
+        localStorage.setItem('role_id', role_id);
 
-        localStorage.setItem('name', user);
+        localStorage.setItem('user_name', user_name);
         // localStorage.setItem('user_name', userName);
         // localStorage.setItem('is_active', isActive);
 
@@ -119,7 +119,7 @@ function Login() {
         });
         setValidationErrors({})
 
-        // 🔥 Redirect to dashboard
+        // Redirect to dashboard
         navigate(`${import.meta.env.BASE_URL}dashboard`);
         // window.location.href = `${import.meta.env.BASE_URL}dashboard`;
 
@@ -143,7 +143,7 @@ function Login() {
       <div className="vh-100">
         <div className="row g-0 h-100">
           {/* Left Side */}
-          <div className="col-12 col-md-6 d-flex align-items-center justify-content-center bg-danger text-white">
+          <div className="col-12 col-md-6 d-flex align-items-center justify-content-center text-white">
             <img
              src={slider1}
              className='img-fluid w-100' 
@@ -166,9 +166,9 @@ function Login() {
                 {/* Email */}
                 <div className="mb-3">
                   <input
-                    type="email"
+                    type="text"
                     className="form-control rounded-pill border border-2 border-dark px-3"
-                    placeholder="Enter your email"
+                    placeholder="Enter Email / Mobile / Username"
                     name="identifier"
                     onChange={onChangeHandler}
                     value={insertData.identifier}
