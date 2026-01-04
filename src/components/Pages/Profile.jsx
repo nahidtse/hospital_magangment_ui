@@ -14,7 +14,7 @@ import Zoom from "yet-another-react-lightbox/plugins/zoom";
 
 const Profile = () => {
 
-  const userName = localStorage.getItem('name')
+  const full_name = localStorage.getItem('full_name')
 
   const [open, setOpen] = useState(false);
   const images = Array.from({ length: 8 }, (_, i) => `media${i + 1}`);
@@ -37,7 +37,7 @@ const Profile = () => {
                           <img className="" src={ALLImages('face8')} alt="img" />
                         </div>
                         <div className="user-wrap mt-auto">
-                          <h4>{userName}</h4>
+                          <h4>{full_name}</h4>
                           <h6 className="text-muted mb-3">Member Since: November 2017</h6>
                           <Link to="#" className="btn btn-primary mt-1 mb-1 me-1"><i className="fa fa-rss"></i> Follow</Link>
                           <Link to={`${import.meta.env.BASE_URL}pages/mailcompose/`} className="btn btn-secondary mt-1 mb-1"><i className="fa fa-envelope"></i> E-mail</Link>
@@ -123,7 +123,7 @@ const Profile = () => {
                         <table className="table row table-borderless">
                           <tbody className="col-lg-12 col-xl-6 p-0">
                             <tr>
-                              <td><strong>Full Name :</strong> {userName}</td>
+                              <td><strong>Full Name :</strong> {full_name}</td>
                             </tr>
                             <tr>
                               <td><strong>Location :</strong> USA</td>

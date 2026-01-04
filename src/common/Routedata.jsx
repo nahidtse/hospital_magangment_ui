@@ -61,6 +61,8 @@ import ModuleEditForm from "../components/module/ModuleEditForm";
 import ModuleSingleTableFunction from "../components/module/ModuleSingleTableFunction";
 import UserEditForm from "../components/User/UserEditForm";
 import UserSingleTableFunction from "../components/User/UserSingleTableFunction";
+import PermissionSingleTableFunction from "../components/Permission/PermissionSingleTableFunction";
+import PermissionEditForm from "../components/Permission/PermissionEditForm";
 
 export const Routedata = [
 
@@ -81,6 +83,8 @@ export const Routedata = [
   // Permission 
    { id: 6, path: `${import.meta.env.BASE_URL}permission/dataTable`, element: <PermissionTable/> },
    { id: 7, path: `${import.meta.env.BASE_URL}permission/createform`, element: <PermissionForm /> },
+   { id: 7, path: `${import.meta.env.BASE_URL}permission/singledata`, element: <PermissionSingleTableFunction /> },
+   { id: 7, path: `${import.meta.env.BASE_URL}permission/edit`, element: <PermissionEditForm /> },
 
   // Lookup type
    { id: 8, path: `${import.meta.env.BASE_URL}lookuptype/dataTable`, element: <LookupTypeTable/> },

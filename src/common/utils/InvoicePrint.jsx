@@ -11,7 +11,7 @@ function InvoicePrint({invoiceData, onDone, actionType}) {
     // console.log("PrintAllData", invoiceData)
     const pdfRef = useRef();
     const hasGeneratedRef = useRef(false); //for dublle click
-    const preparedBy = localStorage.getItem('name') || 'N/A'; 
+    const preparedBy = localStorage.getItem('full_name') || 'N/A'; 
 
     if (!invoiceData) return null;
 

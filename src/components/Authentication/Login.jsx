@@ -98,7 +98,7 @@ function Login() {
         const token = response.data.access_token;
         const user_name  = response.data.user.user_name;
         const role_id = response.data.user.role_id;
-        // const fullName = response.user.full_name;
+        const full_name = response.data.user.full_name;
         // const userName = response.user.user_name;
         // const isActive = response.user.is_active;
 
@@ -108,7 +108,7 @@ function Login() {
         localStorage.setItem('role_id', role_id);
 
         localStorage.setItem('user_name', user_name);
-        // localStorage.setItem('user_name', userName);
+        localStorage.setItem('full_name', full_name);
         // localStorage.setItem('is_active', isActive);
 
         // Clear form
@@ -216,4 +216,4 @@ function Login() {
   )
 }
 
-export default Login
+export default Login;
