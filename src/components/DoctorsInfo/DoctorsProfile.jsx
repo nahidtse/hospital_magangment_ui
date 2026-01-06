@@ -58,7 +58,7 @@ const DoctorsProfile = ({ setBusinessUnitList, singleContactsData, setSingleData
 
                                             </Form.Group>
                                             <Form.Group as={Col} md="6" >
-                                                <Form.Label>Speciality</Form.Label>
+                                                <Form.Label>Specialty</Form.Label>
                                                 <Form.Control
                                                     type="text"
                                                     className='border-dark readableInputBgColor'

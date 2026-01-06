@@ -33,8 +33,10 @@ export const MENUITEMS = [
     {
         title: "Admin Module", icon: 'fe-lock', type: "sub", badgetxt: '', menusub: true, active: false, selected: false, dirchange: false, children: [
             {
-                path: `${import.meta.env.BASE_URL}businessunit/dataTable`, title: "Business Unit", type: "link", menusub: true, active: false, selected: false, dirchange: false, children: [
-                    { path: `${import.meta.env.BASE_URL}businessunit/createform`, type: 'link', active: false, selected: false, dirchange: false }
+                title: "User", path: `${import.meta.env.BASE_URL}user/dataTable`, type: "link", badgetxt: '', menusub: true, active: false, selected: false, dirchange: false, children: [
+                    { path: `${import.meta.env.BASE_URL}user/createform`, type: 'link', active: false, selected: false, dirchange: false },
+                    { path: `${import.meta.env.BASE_URL}user/singledata`, type: 'link', active: false, selected: false, dirchange: false },
+                    { path: `${import.meta.env.BASE_URL}user/edit`, type: 'link', active: false, selected: false, dirchange: false },
                 ]
             },
             {
@@ -45,29 +47,30 @@ export const MENUITEMS = [
                 ]
             },
             {
+                title: "Permission", path: `${import.meta.env.BASE_URL}permission/dataTable`, type: "link", badgetxt: '', menusub: true, active: false, selected: false, dirchange: false, children: [
+                    { path: `${import.meta.env.BASE_URL}permission/createform`, type: 'link', active: false, selected: false, dirchange: false },
+                    { path: `${import.meta.env.BASE_URL}permission/singledata`, type: 'link', active: false, selected: false, dirchange: false },
+                    { path: `${import.meta.env.BASE_URL}permission/edit`, type: 'link', active: false, selected: false, dirchange: false },
+                ]
+            },
+            {
                 title: "Role", path: `${import.meta.env.BASE_URL}role/dataTable`, type: "link", badgetxt: '', menusub: true, active: false, selected: false, dirchange: false, children: [
                     { path: `${import.meta.env.BASE_URL}role/createform`, type: 'link', active: false, selected: false, dirchange: false }
                 ]
-            },
+            },          
             {
-                title: "User", path: `${import.meta.env.BASE_URL}user/dataTable`, type: "link", badgetxt: '', menusub: true, active: false, selected: false, dirchange: false, children: [
-                    { path: `${import.meta.env.BASE_URL}user/createform`, type: 'link', active: false, selected: false, dirchange: false },
-                    { path: `${import.meta.env.BASE_URL}user/singledata`, type: 'link', active: false, selected: false, dirchange: false },
-                    { path: `${import.meta.env.BASE_URL}user/edit`, type: 'link', active: false, selected: false, dirchange: false },
+                title: "Menu Create", path: `${import.meta.env.BASE_URL}menu/dataTable`, type: "link", badgetxt: '', menusub: true, active: false, selected: false, dirchange: false, children: [
+                    { path: `${import.meta.env.BASE_URL}menu/createform`, type: 'link', active: false, selected: false, dirchange: false },
+                    { path: `${import.meta.env.BASE_URL}menu/singledata`, type: 'link', active: false, selected: false, dirchange: false },
                 ]
             },
             {
-                title: "Permission", path: `${import.meta.env.BASE_URL}permission/dataTable`, type: "link", badgetxt: '', menusub: true, active: false, selected: false, dirchange: false, children: [
-                    { path: `${import.meta.env.BASE_URL}permission/createform`, type: 'link', active: false, selected: false, dirchange: false }
+                path: `${import.meta.env.BASE_URL}businessunit/dataTable`, title: "Business Unit", type: "link", menusub: true, active: false, selected: false, dirchange: false, children: [
+                    { path: `${import.meta.env.BASE_URL}businessunit/createform`, type: 'link', active: false, selected: false, dirchange: false }
                 ]
             },
             {
                 title: "Assign Business Unit", path: `${import.meta.env.BASE_URL}assignbu/dataTable`, type: "link", badgetxt: '', menusub: true, active: false, selected: false, dirchange: false, children: [
-                    { path: `${import.meta.env.BASE_URL}assignbu/createform`, type: 'link', active: false, selected: false, dirchange: false }
-                ]
-            },
-            {
-                title: "Menu Create", path: `${import.meta.env.BASE_URL}menuCreate`, type: "link", badgetxt: '', menusub: true, active: false, selected: false, dirchange: false, children: [
                     { path: `${import.meta.env.BASE_URL}assignbu/createform`, type: 'link', active: false, selected: false, dirchange: false }
                 ]
             },

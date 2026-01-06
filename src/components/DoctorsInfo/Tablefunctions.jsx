@@ -24,7 +24,7 @@ export const COLUMNS = [
         accessor: "doctorename",
     },
     {
-        Header: "Speciality",
+        Header: "Specialty",
         accessor: "speciality",
     },
     {
@@ -45,7 +45,7 @@ export const DATATABLE = (doctorData, handlers) =>
     doctorData.map((doctor, id) => ({
         id: id + 1,
         doctorename: doctor.doctor_name || "Doctor Name", 
-        speciality: doctor.speciality.lookup_value || "Speciality Code",
+        speciality: doctor.speciality.lookup_value || "",
         degree: doctor.degrees && doctor.degrees.length > 0 ? doctor.degrees.map(d => d.lookup_value).join(", ") : "Degree Code",
         status: doctor.is_active == 1 ? "Active" : "Inactive",
         action: (
@@ -78,6 +78,16 @@ export const GlobalFilter = ({ filter, setFilter }) => {
 
 export const BasicTable = () => {
 
+    //*********Check Authentication Start**********
+    const token = localStorage.getItem('auth_token'); //Check Authentication
+    const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+    if (!token || (expiry && Date.now() > Number(expiry))) {
+        localStorage.clear();
+        window.location.href = "/login";
+        return;
+    }
+    //*********Check Authentication End***********
 
     const [showData, setShowData] = useState(false);
     const [doctorData, setDoctorData] = useState([]);
@@ -86,9 +96,7 @@ export const BasicTable = () => {
 
 
 
-    const fetchItems = () => {
-        const token = localStorage.getItem('auth_token'); //Check Authentication
-        
+    const fetchItems = () => {  
         fetch(`${basURL}/doctors`, {
             headers: {
                 'Content-Type': 'application/json',
@@ -120,7 +128,8 @@ export const BasicTable = () => {
             const result = await fetch(`${basURL}/doctors/destroy/${doctorId}`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 }
             });
 
@@ -209,22 +218,6 @@ export const BasicTable = () => {
     }
 
 
-    /** Data Fetch */
-
-    // useEffect(() => {
-    //     fetch('http://127.0.0.1:8000/api/doctors')
-    //         .then((response) => response.json())
-    //         .then((data) => {
-    //             setDoctorData(data.data)
-               
-    //         })
-    //         .catch((error) => {
-    //             console.log("Error Fetching the data: ", error)
-    //         })
-    // }, [])
-
-
-    
 
     const dataTable = useMemo(() => DATATABLE(doctorData, {
         handleShowDataById,

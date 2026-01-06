@@ -9,7 +9,7 @@ const basURL = import.meta.env.VITE_API_BASE_URL;
 
 
   const generateTinyDoctorId = (prefix = "DR") => {
-    
+
     const now = new Date();
     const timestamp =
       String(now.getFullYear()).slice(2) +
@@ -40,7 +40,7 @@ const DoctorsInfoForm = () => {
       return;
   }
   //*********Check Authentication End***********
-
+  
 
   const [showValidationError, setValidationErrors] = useState({
     doctors_name: '',
@@ -77,8 +77,10 @@ const DoctorsInfoForm = () => {
 // console.log(addFormData)
 
   const [getSPlookupData, setSPlookupData] = useState([]);
-  // console.log(getSPlookupData)
   const [getDGlookupData, setGDlookupdata] = useState([]);
+
+  console.log("SP",getSPlookupData)
+  console.log("DG",getDGlookupData)
 
 
 
@@ -110,7 +112,7 @@ const DoctorsInfoForm = () => {
     }
 
     if (!addFormData.specialityId) {
-      errors.speciality_id = "Doctor's Speciality is required.";
+      errors.speciality_id = "Doctor's Specialty is required.";
     }
     if (!addFormData.degreeId || addFormData.degreeId.length === 0) {
       errors.degree_id = "Doctor's Degree is required.";
@@ -227,7 +229,7 @@ const DoctorsInfoForm = () => {
   }
 
   /**  
-   * Speciality
+   * Specialty
    * TODO:: Optimize
   */
   useEffect(() => {
@@ -300,7 +302,7 @@ const DoctorsInfoForm = () => {
                   </Form.Group>
 
                   <Form.Group as={Col} md="4" controlId="validationCustom02">
-                    <Form.Label>Speciality <span className='text-danger ms-1'>*</span></Form.Label>
+                    <Form.Label>Specialty <span className='text-danger ms-1'>*</span></Form.Label>
 
                     <Form.Select  
                       size="lg"
@@ -310,7 +312,7 @@ const DoctorsInfoForm = () => {
                       value={addFormData.specialityId || ''}
                       aria-label="Select role"
                     >
-                      <option value="">Select Speciality</option>
+                      <option value="">Select Specialty</option>
                       {getSPlookupData && getSPlookupData.length > 0 ? (getSPlookupData.map((speciality) => (
                         <option key={speciality.id} value={speciality.id}>{speciality.lookup_value}</option>
                       ))) : ('')}
@@ -384,7 +386,7 @@ const DoctorsInfoForm = () => {
                   </Form.Group>
 
                   <Form.Group as={Col} md="4" controlId="validationCustom01">
-                    <Form.Label>Image <span className='text-danger ms-1'>*</span></Form.Label>
+                    <Form.Label>Image <span className='text-danger ms-1'></span></Form.Label>
                     <Form.Control
                       required
                       type="file"

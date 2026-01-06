@@ -1,95 +1,67 @@
-import React from 'react'
 import { Button, Card, Col, Row, Table } from "react-bootstrap";
 import { useTable, useSortBy, useGlobalFilter, usePagination, } from "react-table";
 import { useEffect, useMemo, useState } from "react";
 
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
-// import SingleTableFunction from '../businessunit/SingleTablefunction';
-import ModuleEditForm from '../module/ModuleEditForm';
-import MenuView from './MenuView';
-import MenuEdit from './MenuEdit';
+import SingleTableFunction from "./MenuSingleTableFunction";
+import MenuEditForm from "./MenuEditForm";
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-export const DATATABLE = (contacts, handlers) =>
-    contacts.map((contact, id) => ({
-        id: id + 1,
-        permissionname: contact.permission_name || "Permission Name",
-        menuname: contact.module?.module_name || "Menu Name",
-        modulename: contact.module?.modulename_name || "Module Name",
-        parentmenu: contact.module?.menuname_name || "Parent Menu",
-        permission: contact.permission || "Permission",
-        sortorder: contact.sort_order || "Sort Order",
-        status: contact.is_active == 1 ? "Active" : "Inactive",
-        action: (
-            <>
-                <Button
-                    variant=""
-                    className="btn btn-info me-1"
-                    type="button"
-                    onClick={() => handlers.handleShowDataById(contact)}
-                >
-                    <i className="bi bi-eye me-1"></i>
-                </Button>
-                <Button
-                    variant=""
-                    className="btn btn-primary me-1"
-                    type="button"
-                    onClick={() => handlers.handleEditDataById(contact)}
-                >
-                    <i className="bi bi-pencil"></i>
-                </Button>
-                <Button
-                    variant=""
-                    className="btn btn-danger me-1"
-                    type="button"
-                    onClick={() => handlers.deletePermissionAlert(contact.id)}
-                >
-                    <i className="bi bi-trash"></i>
-                </Button>
-            </>
-        )
-    }));
-
-
-
+// ******************************************************
+// ******************************************************
+// ******************************************************
 
 
 export const COLUMNS = [
     {
-        Header: "#",
+        Header: (<div className="text-center">{"#"}</div>),
         accessor: "id",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
     {
-        Header: "Menu Name",
+        Header: (<div className="text-center">{"Menu Name"}</div>),
         accessor: "menuname",
     },
     {
-        Header: "Module Name",
+        Header: (<div className="text-center">{"Module Name"}</div>),
         accessor: "modulename",
     },
     {
-        Header: "Parent Menu",
-        accessor: "parentmenu",
+        Header: (<div className="text-center">{"Permission"}</div>),
+        accessor: "permissionname",
     },
     {
-        Header: "Permission",
-        accessor: "permission",
-    },
-    {
-        Header: "Sort Order",
-        accessor: "sortorder",
-    },
-    {
-        Header: "Status",
+        Header: (<div className="text-center">{"Status"}</div>),
         accessor: "status",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
     {
-        Header: "Actions",
+        Header: (<div className="text-center">{"Actions"}</div>),
         accessor: "action",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
 ];
 
 
+
+export const DATATABLE = (menuInfo, handlers) =>
+
+    menuInfo.map((menu, id) => ({
+        id: id + 1,
+        menuname: menu.menu_name,
+        modulename: menu.module?.module_name || 'Module Name',
+        permissionname:  menu.permissions && menu.permissions.length > 0 ? menu.permissions.map(p => p.permission_name).join(', ') : '',
+        status: menu.is_active == 1 ? "Active" : "Inactive",
+        action: (
+            <>
+                <Link to={`${import.meta.env.BASE_URL}menu/singledata`} state={{singleData: menu}}><i className="bi bi-eye btn-sm bg-info"></i></Link>
+                <span onClick={() => handlers.handleEditDataById(menu)} className="btn-sm bg-primary ms-1" style={{ cursor: "pointer" }}><i className="bi bi-pencil"></i></span>
+                <span onClick={() => handlers.deletePermissionAlert(menu.id)} className="btn-sm bg-danger ms-1" style={{ cursor: "pointer" }}><i className="bi bi-trash"></i></span>
+
+            </>
+        )
+    }));
 
 export const GlobalFilter = ({ filter, setFilter }) => {
     return (
@@ -104,33 +76,40 @@ export const GlobalFilter = ({ filter, setFilter }) => {
     );
 };
 
+export const BasicTable = () => {
 
-export default function MenuCreate() {
+    //*********Check Authentication Start***********
+    const token = localStorage.getItem('auth_token'); //Check Authentication
+    const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+    if (!token || (expiry && Date.now() > Number(expiry))) {
+        localStorage.clear();
+        window.location.href = "/login";
+        return;
+    }
+    //*********Check Authentication End***********
+
+
     const [showData, setShowData] = useState(false);
-    const [contacts, setContacts] = useState([]);
+    const [menuInfo, setMenuInfo] = useState([]);
     const [showSingleData, setSingleData] = useState([]);
     const [passEditFormData, setPassingEditFormData] = useState(null);
 
 
-    const handleShowDataById = (contact) => {
-        setShowData(true);
-        setSingleData(contact);
-
-    }
-
     /** Delete Handler */
     const handleDeleteClick = async (contactId) => {
         try {
-            const result = await fetch(`https://cserp.store/api/module/destroy/${contactId}`, {
+            const result = await fetch(`${baseURL}/menu/destroy/${contactId}`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 }
             });
 
             const response = await result.json();
             if (response.status == 'success') {
-                setContacts(prevContact => prevContact.filter(c => c.id !== contactId));
+                setMenuInfo(prevContact => prevContact.filter(c => c.id !== contactId));
 
             }
             return response;
@@ -177,11 +156,11 @@ export default function MenuCreate() {
 
 
     /** Edit Handler */
-    const handleEditDataById = (contact) => {
-        // const data = contacts.find((contact) => contact.id == contactId);
+    const handleEditDataById = (menu) => {
+        // const data = menuInfo.find((menu) => menu.id == contactId);
         setShowData(true);
         setSingleData(null)
-        setPassingEditFormData(contact);
+        setPassingEditFormData(menu);
 
     }
 
@@ -190,11 +169,11 @@ export default function MenuCreate() {
     let content;
     if (showSingleData) {
         content = (
-            <MenuView setBusinessUnitList={setShowData} singleContactsData={showSingleData} setSingleData={setSingleData} />
+            <SingleTableFunction setShowData={setShowData} singleContactsData={showSingleData} setSingleData={setSingleData} />
         )
     } else if (passEditFormData) {
         content = (
-            <MenuEdit setBusinessUnitList={setShowData} setContactsData={setContacts} passEditFormData={passEditFormData} setPassingEditFormData={setPassingEditFormData} />
+            <MenuEditForm setShowData={setShowData} setContactsData={setMenuInfo} passEditFormData={passEditFormData} setPassingEditFormData={setPassingEditFormData} />
         )
     }
 
@@ -202,23 +181,26 @@ export default function MenuCreate() {
     /** Data Fetch */
 
     useEffect(() => {
-        fetch('https://cserp.store/api/module')
+        fetch(`${baseURL}/menu`, {
+            headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+        })
             .then((response) => response.json())
             .then((data) => {
-
-                setContacts(data.data)
+                setMenuInfo(data.data || [])
             })
             .catch((error) => {
                 console.log("Error Fetching the data: ", error)
             })
     }, [])
 
-    const dataTable = useMemo(() => DATATABLE(contacts, {
-        handleShowDataById,
+    const dataTable = useMemo(() => DATATABLE(menuInfo, {
         deletePermissionAlert,
         handleEditDataById
 
-    }), [contacts]);
+    }), [menuInfo]);
 
 
 
@@ -251,6 +233,7 @@ export default function MenuCreate() {
     } = tableInstance;
 
     const { globalFilter, pageIndex, pageSize } = state;
+
     return (
         <>
             {!showData ? (
@@ -259,9 +242,9 @@ export default function MenuCreate() {
                         <Col xl={12}>
                             <Card className="custom-card">
                                 <Card.Header className="justify-content-between">
-                                    <div className='card-title'>Menu Create</div>
+                                    <div className='card-title'>Menu List</div>
                                     <div className="prism-toggle">
-                                        <Link to={`${import.meta.env.BASE_URL}menuCreate/menuForm`}><button
+                                        <Link to={`${import.meta.env.BASE_URL}menu/createform`} state={{ menuInfo }}><button
                                             type="button"
                                             className="btn btn-sm btn-primary"> New
                                         </button>
@@ -286,8 +269,8 @@ export default function MenuCreate() {
                                         </select>
                                         <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
                                     </div>
-                                    <table {...getTableProps()} className="table table-hover mb-0 table-bordered">
-                                        <thead>
+                                    <table {...getTableProps()} className="table table-sm table-primary table-striped table-hover mb-0 table-bordered">
+                                        <thead className="bg-primary">
                                             {headerGroups.map((headerGroup) => (
                                                 <tr {...headerGroup.getHeaderGroupProps()} key={Math.random()}>
                                                     {headerGroup.headers.map((column) => (
@@ -295,7 +278,7 @@ export default function MenuCreate() {
                                                             {...column.getHeaderProps(column.getSortByToggleProps())}
                                                             className={column.className} key={Math.random()}
                                                         >
-                                                            <span className="tabletitle">{column.render("Header")}</span>
+                                                            <span className="tabletitle text-white">{column.render("Header")}</span>
                                                             <span className="float-end">
                                                                 {column.isSorted ? (
                                                                     column.isSortedDesc ? (
@@ -409,4 +392,189 @@ export default function MenuCreate() {
 
         </>
     )
-}
+
+};
+
+// ******************************************************
+
+// ******************************************************
+
+
+export const ResponsiveDataTable = () => {
+
+    const tableInstance = useTable(
+        {
+            columns: COLUMNS,
+            data: DATATABLE,
+        },
+        useGlobalFilter,
+        useSortBy,
+        usePagination
+    );
+
+    const {
+        getTableProps, // table props from react-table
+        headerGroups, // headerGroups, if your table has groupings
+        getTableBodyProps, // table body props from react-table
+        prepareRow, // Prepare the row (this function needs to be called for each row before getting the row props)
+        state,
+        setGlobalFilter,
+        page, // use, page or rows
+        nextPage,
+        previousPage,
+        canNextPage,
+        canPreviousPage,
+        // _pageOptions,
+        gotoPage,
+        pageCount,
+        // setPageSize,
+    } = tableInstance;
+
+    const { globalFilter, } = state;
+
+    return (
+        <>
+            <div className="e-table">
+                <div className="d-flex">
+                    <GlobalResFilter filter={globalFilter} setFilter={setGlobalFilter} />
+                </div>
+                <div className='table-responsive '>
+                    <Table
+                        {...getTableProps()}
+                        className=" table-bordered text-nowrap mb-0"
+                    >
+                        <thead>
+                            {headerGroups.map(headerGroup => (
+                                <tr {...headerGroup.getHeaderGroupProps()} key={Math.random()}>
+                                    {headerGroup.headers.map(column => (
+                                        <th
+                                            {...column.getHeaderProps(column.getSortByToggleProps())}
+                                            key={Math.random()}
+                                            className={column.className}
+                                        >
+                                            <span className="tabletitle">{column.render("Header")}</span>
+                                            <span className="float-end">
+                                                {column.isSorted ? (
+                                                    column.isSortedDesc ? (
+                                                        <i className="fa fa-angle-down"></i>
+                                                    ) : (
+                                                        <i className="fa fa-angle-up"></i>
+                                                    )
+                                                ) : (
+                                                    ""
+                                                )}
+                                            </span>
+                                        </th>
+                                    ))}
+                                </tr>
+                            ))}
+                        </thead>
+                        <tbody {...getTableBodyProps()}>
+                            {page.map((row) => {
+                                prepareRow(row);
+                                return (
+                                    <tr className="" {...row.getRowProps()} key={Math.random()}>
+                                        {row.cells.map((cell) => {
+                                            return (
+                                                <td {...cell.getCellProps()} key={Math.random()}>{cell.render("Cell")}</td>
+                                            );
+                                        })}
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </Table>
+                </div>
+                <div className="d-block d-sm-flex mt-4 ">
+                    {/* <span className="">
+                        Showing 41 to 50 of 50 entries{" "}
+                    </span> */}
+                    <span className="ms-sm-auto ">
+                        <Button
+                            variant=""
+                            className="btn-outline-light tablebutton me-2 my-2 d-sm-inline d-block"
+                            onClick={() => gotoPage(0)}
+                            disabled={!canNextPage}
+                        >
+                            {" Previous "}
+                        </Button>
+                        <Button
+                            variant="primary"
+                            className="tablebutton me-2 my-2"
+                            onClick={() => {
+                                previousPage();
+                            }}
+                            disabled={!canPreviousPage}
+                        >
+                            {" 1 "}
+                        </Button>
+                        <Button
+                            variant=""
+                            className="btn-outline-light tablebutton me-2 my-2"
+                            onClick={() => {
+                                nextPage();
+                            }}
+                            disabled={!canNextPage}
+                        >
+                            {" 2 "}
+                        </Button>
+                        <Button
+                            variant=""
+                            className="btn-outline-light tablebutton me-2 my-2"
+                            onClick={() => {
+                                nextPage();
+                            }}
+                            disabled={!canNextPage}
+                        >
+                            {" 3 "}
+                        </Button>
+                        <Button
+                            variant=""
+                            className="btn-outline-light tablebutton me-2 my-2"
+                            onClick={() => {
+                                nextPage();
+                            }}
+                            disabled={!canNextPage}
+                        >
+                            {" 4"}
+                        </Button>
+                        <Button
+                            variant=""
+                            className="btn-outline-light tablebutton me-2 my-2"
+                            onClick={() => {
+                                nextPage();
+                            }}
+                            disabled={!canNextPage}
+                        >
+                            {" 5 "}
+                        </Button>
+                        <Button
+                            variant=""
+                            className="btn-outline-light tablebutton me-2 my-2"
+                            onClick={() => gotoPage(pageCount - 1)}
+                            disabled={!canNextPage}
+                        >
+                            {" Next "}
+                        </Button>
+                    </span>
+                </div>
+            </div>
+
+        </>
+    );
+};
+
+const GlobalResFilter = ({ filter, setFilter }) => {
+    return (
+        <span className="d-flex ms-auto">
+            <input
+                value={filter || ""}
+                onChange={(e) => setFilter(e.target.value)}
+                className="form-control mb-4"
+                placeholder="Search..."
+            />
+        </span>
+    );
+};
+
+

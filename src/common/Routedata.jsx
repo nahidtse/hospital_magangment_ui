@@ -22,7 +22,8 @@ import LookupTypeTable from "../components/LookupType/LookupTypeTable";
 import LookupTypeForm from "../components/LookupType/LookupTypeForm";
 import LookupValueTable from "../components/LookupValue/LookupValueTable";
 import PermissionForm from "../components/Permission/PermissionForm";
-import MenuCreate from "../components/MenuCreate/MenuCreate";
+import MenuSingleTableFunction from "../components/MenuCreate/MenuSingleTableFunction";
+import MenuTable from "../components/MenuCreate/MenuTable";
 import MenuForm from "../components/MenuCreate/MenuForm";
 import LookupValueForm from "../components/LookupValue/LookupValueForm";
 import DoctorsInfoTable from "../components/DoctorsInfo/DoctorsInfoTable";
@@ -183,8 +184,10 @@ export const Routedata = [
   // Role
   { id: 117, path: `${import.meta.env.BASE_URL}role/dataTable`, element: <RoleTable /> },
   { id: 118, path: `${import.meta.env.BASE_URL}role/createform`, element: <RoleForm /> },
+  
   // Menu create
-  { id: 119, path: `${import.meta.env.BASE_URL}menuCreate`, element: <MenuCreate /> },
-  { id: 120, path: `${import.meta.env.BASE_URL}menuCreate/menuForm`, element: <MenuForm /> },
+  { id: 119, path: `${import.meta.env.BASE_URL}menu/dataTable`, element: <MenuTable /> },
+  { id: 120, path: `${import.meta.env.BASE_URL}menu/createform`, element: <MenuForm /> },
+  { id: 120, path: `${import.meta.env.BASE_URL}menu/singledata`, element: <MenuSingleTableFunction /> },
 
 ]

@@ -280,7 +280,7 @@ const DoctorInfoEditForm = ({
                     <Form.Control.Feedback type='invalid'>{showValidationError.doctor_name}</Form.Control.Feedback>
                   </Form.Group>
                   <Form.Group as={Col} md="4" controlId="validationCustom02">
-                    <Form.Label>Speciality <span className='text-danger ms-1'>*</span></Form.Label>
+                    <Form.Label>Specialty <span className='text-danger ms-1'>*</span></Form.Label>
 
                     <Form.Select
                       size="lg"
@@ -290,7 +290,7 @@ const DoctorInfoEditForm = ({
                       aria-label="Select role"
                       value={editFormData.specialityId}
                     >
-                      {/* <option value="">Select Speciality</option> */}
+                      {/* <option value="">Select Specialty</option> */}
                       {getSPlookupData.map((module) => (
                         <option key={module.id} value={module.id}>{module.lookup_value}</option>
                       ))}

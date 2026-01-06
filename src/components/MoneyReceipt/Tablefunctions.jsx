@@ -16,7 +16,7 @@ const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 export const COLUMNS = [
     {
-        Header: (<div className="text-center">{"Id"}</div>),
+        Header: (<div className="text-center">{"#"}</div>),
         accessor: "id",
     },
     {
