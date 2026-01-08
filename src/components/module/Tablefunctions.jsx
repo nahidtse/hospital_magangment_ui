@@ -174,6 +174,7 @@ export const BasicTable = () => {
         {
             columns: COLUMNS,
             data: dataTable,
+            initialState: { pageSize: 50 },
         },
         useGlobalFilter,
         useSortBy,
@@ -227,7 +228,7 @@ export const BasicTable = () => {
                                     value={pageSize}
                                     onChange={(e) => setPageSize((e.target.value))}
                                 >
-                                    {[10, 25, 50,100].map((pageSize) => (
+                                    {[50, 100, 150,200].map((pageSize) => (
                                         <option key={pageSize} value={pageSize}>
                                             Show {pageSize}
                                         </option>
@@ -279,9 +280,16 @@ export const BasicTable = () => {
                                 </tbody>
                             </table>
                             <div className="d-block d-sm-flex mt-4 ">
-                                <span className="">
-                                    Showing 1 to 10 of 57 entries{" "}
-
+                                <span>
+                                    {dataTable.length > 0 ? (
+                                        <>
+                                        Showing {pageIndex * pageSize + 1} to{" "}
+                                        {Math.min((pageIndex + 1) * pageSize, dataTable.length)} of{" "}
+                                        {dataTable.length} entries
+                                        </>
+                                    ) : (
+                                        "Showing 0 entries"
+                                    )}
                                 </span>
                                 <span className="ms-sm-auto ">
                                     <Button

@@ -25,6 +25,7 @@ const MenuForm = () => {
   //*********Check Authentication Start***********
     const token = localStorage.getItem('auth_token'); //Check Authentication
     const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+    const user_id = localStorage.getItem('user_id'); //For create_by
 
     if (!token || (expiry && Date.now() > Number(expiry))) {
       localStorage.clear();
@@ -51,14 +52,15 @@ const MenuForm = () => {
     top_menu: '',
     is_active: true,
 
-
   })
 
-  console.log(addFormData)
+  // console.log(addFormData)
 
-  const [permissionData, setPermissionData] = useState([]);
-  const [parentMenuData, setParentMenuData] = useState([])
+  const [permissionData, setPermissionData] = useState([]); //React Permission Module
+  const [parentMenuData, setParentMenuData] = useState([]) //React ParentMenu Module
   const [moduleData, setModuleData] = useState([]);//React Select Module
+
+  // console.log(permissionData)
 
 
   const onChangeHandler = (e) => {
@@ -106,6 +108,7 @@ const MenuForm = () => {
         sort_order: addFormData.sort_order,
         is_top_menu: addFormData.top_menu ? 1 : 0,
         is_active: addFormData.is_active ? 1 : 0,
+        create_by: user_id  //Add current user ID
       }
 
       console.log(submitData);
@@ -114,7 +117,8 @@ const MenuForm = () => {
       const result = await fetch(`${baseURL}/menu/create`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(submitData)
       });
@@ -238,15 +242,25 @@ const MenuForm = () => {
 
 
   //----------React Select Permission Start---------
-    const getUsedPermissionIds = () => {
-      if (!addFormData.parent_menu_id) return [];
+    // const getUsedPermissionIds = () => {
+    //   if (!addFormData.parent_menu_id) return [];
 
+    //   return parentMenuData
+    //     .filter(
+    //       menu =>
+    //         menu.parent_menu_id === addFormData.parent_menu_id &&
+    //         Array.isArray(menu.permission_id)
+    //     )
+    //     .flatMap(menu => menu.permission_id);
+    // };
+
+    const getUsedPermissionIds = () => {
+      // if parentMenuData Emty
+      if (!parentMenuData || parentMenuData.length === 0) return [];
+
+      // all Parent Menu used permission IDs find
       return parentMenuData
-        .filter(
-          menu =>
-            menu.parent_menu_id === addFormData.parent_menu_id &&
-            Array.isArray(menu.permission_id)
-        )
+        .filter(menu => Array.isArray(menu.permission_id))
         .flatMap(menu => menu.permission_id);
     };
 
@@ -390,11 +404,11 @@ const MenuForm = () => {
                   </Form.Group>
                 </Row>
 
-                {!addFormData.is_parent && ( 
+                
                   <Row className="mb-2">
 
                     <Form.Group as={Col} md="4" controlId="validationCustom01">
-                      <Form.Label>Parent Menu <span className='text-danger'> *</span> </Form.Label>
+                      <Form.Label>Parent Menu <span className='text-danger'></span> </Form.Label>
 
                       <Select
                         styles={customStyles}
@@ -440,7 +454,6 @@ const MenuForm = () => {
                       </Form.Control.Feedback>
                     )}
                   </Row>
-                 )}
                   
               
 
@@ -450,7 +463,7 @@ const MenuForm = () => {
                     <Form.Label>Sort Order</Form.Label>
                     <Form.Control
                       required
-                      type="number"
+                      type="text"
                       className='border-dark'
                       placeholder="Enter Sort Order"
                       name='sort_order'
@@ -479,13 +492,11 @@ const MenuForm = () => {
                   </Form.Group>
 
                   <Form.Group as={Col} md="4" controlId="validationCustom01">
-                    <Form.Label></Form.Label>
                     <div className="form-check mt-3">
                       <input
                         className="form-check-input border-dark"
                         name='top_menu'
                         type="checkbox"
-                        value=""
                         id="flexCheckChecked"
                         onChange={(e) => setFormData({ ...addFormData, top_menu: e.target.checked })}
                       />

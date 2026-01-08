@@ -62,6 +62,7 @@ export const MENUITEMS = [
                 title: "Menu Create", path: `${import.meta.env.BASE_URL}menu/dataTable`, type: "link", badgetxt: '', menusub: true, active: false, selected: false, dirchange: false, children: [
                     { path: `${import.meta.env.BASE_URL}menu/createform`, type: 'link', active: false, selected: false, dirchange: false },
                     { path: `${import.meta.env.BASE_URL}menu/singledata`, type: 'link', active: false, selected: false, dirchange: false },
+                    { path: `${import.meta.env.BASE_URL}menu/edit`, type: 'link', active: false, selected: false, dirchange: false },
                 ]
             },
             {
@@ -157,7 +158,6 @@ export const MENUITEMS = [
 
         ]
     },
-
 
 
 

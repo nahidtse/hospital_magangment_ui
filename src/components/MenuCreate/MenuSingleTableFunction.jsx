@@ -9,7 +9,7 @@ const MenuSingleTableFunction = () => {
     const location = useLocation();
     const singleMenuData = location.state?.singleData || '';
 
-    console.log(singleMenuData)
+    // console.log(singleMenuData)
     
     return (
         <Fragment>
@@ -74,6 +74,18 @@ const MenuSingleTableFunction = () => {
 
                                 <Row className="mb-3">
                                     <Form.Group as={Col} md="4" >
+                                        <Form.Label>Menu Name</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            className='readableInputBgColor border-dark'
+                                            readOnly
+                                            value={singleMenuData.parent_menu?.menu_name || ''}
+
+                                        />
+
+                                    </Form.Group>
+
+                                    <Form.Group as={Col} md="4" >
                                         <Form.Label>Permission</Form.Label>
                                         <Form.Control
                                             type="text"
@@ -86,8 +98,11 @@ const MenuSingleTableFunction = () => {
                                             }
 
                                         />
-
                                     </Form.Group>
+
+                                </Row>
+
+                                <Row className="mb-3">
                                     <Form.Group as={Col} md="4" >
                                         <Form.Label>Sort Order</Form.Label>
                                         <Form.Control
@@ -97,8 +112,8 @@ const MenuSingleTableFunction = () => {
                                             value={singleMenuData.sort_order || ''}
 
                                         />
-
                                     </Form.Group>
+
                                     <Form.Group as={Col} md="4">
                                         <Form.Label></Form.Label>
                                         <div className="form-check form-switch mt-3">
@@ -114,6 +129,32 @@ const MenuSingleTableFunction = () => {
                                         </div>
                                     </Form.Group>
 
+                                    <Form.Group as={Col} md="4">
+                                        <Form.Label></Form.Label>
+                                        <div className="form-check form-switch mt-3">
+                                            <input
+                                                className="form-check-input"
+                                                type="checkbox"
+                                                checked={singleMenuData.is_top_menu == 1}
+                                                readOnly
+                                            />
+                                            <label className="form-check-label" htmlFor="flexSwitchCheckChecked">
+                                            Is Top Menu?
+                                            </label>
+                                        </div>
+                                    </Form.Group>
+                                </Row>
+                                
+                                <Row className="mb-3">
+                                    <Form.Group as={Col} md="4" >
+                                        <Form.Label>Create By</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            className='readableInputBgColor border-dark'
+                                            readOnly
+                                            value={singleMenuData.create_by || ''}
+                                        />
+                                    </Form.Group>
                                 </Row>
 
                                 <Row className="mb-3">

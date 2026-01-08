@@ -99,7 +99,7 @@ function Login() {
         const user_name  = response.data.user.user_name;
         const role_id = response.data.user.role_id;
         const full_name = response.data.user.full_name;
-        // const userName = response.user.user_name;
+        const user_id = response.data.user.id;
         // const isActive = response.user.is_active;
 
 
@@ -109,6 +109,7 @@ function Login() {
 
         localStorage.setItem('user_name', user_name);
         localStorage.setItem('full_name', full_name);
+        localStorage.setItem('user_id', user_id);
         // localStorage.setItem('is_active', isActive);
 
         // Clear form
@@ -216,4 +217,4 @@ function Login() {
   )
 }
 
-export default Login;
+export default Login

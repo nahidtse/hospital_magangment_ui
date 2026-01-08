@@ -64,6 +64,7 @@ import UserEditForm from "../components/User/UserEditForm";
 import UserSingleTableFunction from "../components/User/UserSingleTableFunction";
 import PermissionSingleTableFunction from "../components/Permission/PermissionSingleTableFunction";
 import PermissionEditForm from "../components/Permission/PermissionEditForm";
+import MenuEditForm from "../components/MenuCreate/MenuEditForm";
 
 export const Routedata = [
 
@@ -189,5 +190,6 @@ export const Routedata = [
   { id: 119, path: `${import.meta.env.BASE_URL}menu/dataTable`, element: <MenuTable /> },
   { id: 120, path: `${import.meta.env.BASE_URL}menu/createform`, element: <MenuForm /> },
   { id: 120, path: `${import.meta.env.BASE_URL}menu/singledata`, element: <MenuSingleTableFunction /> },
+  { id: 120, path: `${import.meta.env.BASE_URL}menu/edit`, element: <MenuEditForm /> },
 
 ]
