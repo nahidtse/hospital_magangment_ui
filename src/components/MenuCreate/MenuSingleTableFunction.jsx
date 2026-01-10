@@ -152,7 +152,7 @@ const MenuSingleTableFunction = () => {
                                             type="text"
                                             className='readableInputBgColor border-dark'
                                             readOnly
-                                            value={singleMenuData.create_by || ''}
+                                            value={singleMenuData.created_by || ''}
                                         />
                                     </Form.Group>
                                 </Row>

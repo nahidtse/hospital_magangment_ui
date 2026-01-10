@@ -1,231 +1,83 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import Pageheader from '../../layouts/layoutcomponents/Pageheader';
 import { Button, Card, Col, Form, InputGroup, Row } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Select from 'react-select';
 import Swal from 'sweetalert2';
-const baseUrl = import.meta.env.VITE_BASE_URL;
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
 
-const RoleEditForm = ({ setShowData, setContactsData, passEditFormData, setPassingEditFormData }) => {
+const RoleEditForm = () => {
+
+  const location = useLocation();
+  const passEditFormData = location.state?.editData || '' ;
+  // console.log(passEditFormData)
+
+   //-----------Focus Input Start--------------------------------
+    const referenceSelectRef = useRef(null);  //For auto fucus
+    useEffect(() => {
+      // small timeout for render then focus
+      const timer = setTimeout(() => {
+        if (referenceSelectRef.current) {
+          referenceSelectRef.current.focus();
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }, []);
+  //-----------Focus Input End-----------------------------------  
+
+  //*********Check Authentication Start***********
+    const token = localStorage.getItem('auth_token'); //Check Authentication
+    const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+    const created_by = localStorage.getItem('user_id')                
+
+    if (!token || (expiry && Date.now() > Number(expiry))) {
+      localStorage.clear();
+      window.location.href = "/login";
+      return;
+    }
+  //*********Check Authentication End***********
 
 
-
-  const [showValidationError, setValidationErrors] = useState({});
+  const [showValidationError, setValidationErrors] = useState({
+    role_id: '',
+    module_id: '',
+    menu_id: '',
+    permission_id: ''
+  });
 
   const [editFormData, setEditFormData] = useState({
-    rolename: '',
-    isActive: ''
+    role_name: passEditFormData.role_name,
+    role_id: passEditFormData.id,
+    is_active: passEditFormData.is_active,
+    module_id: '',
+    menu_id: '',
+    permission_id: [],
   })
 
-  const firstInputRef = useRef(null);
+  // console.log(editFormData)
 
-  const [addPermission, setAddPermission] = useState([]);
-
-  const [selectPermission, setSelectPermission] = useState({
-    moduleId: '',
-    menuId: '',
-    permissionId: []
-  });
 
 
   const [moduleData, setModuleData] = useState([]);
   const [menuData, setMenuData] = useState([]);
-  const [permissionsData, setPermissionsData] = useState([]);
   const [permissionData, setPermissionData] = useState([]);
   const [roleMenuData, setRoleMenuData] = useState([]);
 
-
-  useEffect(() => {
-    if (passEditFormData) {
-      setEditFormData({
-        rolename: passEditFormData.role_name,
-
-        isActive: passEditFormData.is_active
-      });
-    }
-  }, [passEditFormData]);
-
-  useEffect(() => {
-    firstInputRef.current?.focus();
-  }, []);
-
-  const goToModuleList = () => {
-    setShowData(false);
-    setPassingEditFormData(null);
-
-  };
+  // console.log(roleMenuData)
 
 
-  const autoFillUpHandlerForMenu = (event) => {
-    event.preventDefault();
-
-    const moduleId = event.target.value;
-    const selectedModule = moduleData.find(m => m.id == moduleId);
-
-    if (selectedModule) {
-      setMenuData(selectedModule.menu_data);
-    }
 
 
-    setSelectPermission({ ...selectPermission, moduleId: moduleId });
-  };
-
-  const autoFillUpHandlerForPermissions = (event) => {
-    event.preventDefault();
-
-    const menuId = event.target.value;
-    const selectedMenu = menuData.find(m => m.id == menuId);
-
-    if (selectedMenu) {
-      setPermissionData(selectedMenu.permissions);
-    }
 
 
-    setSelectPermission({ ...selectPermission, menuId: menuId });
-  };
-
-  const fetchRoleMenuData = (id) => {
-
-    fetch(`${baseUrl}/rolemenu/show/${id}`)
-      .then((response) => response.json())
-      .then((data) => {
-        // console.log(data.data)
-        setRoleMenuData(data.data || []);
-      })
-      .catch((error) => {
-        console.log("Error Fetching the data: ", error)
-      })
-  }
-
-  const onChangePermission = (event) => {
-    event.preventDefault();
-
-    const fieldName = event.target.getAttribute("name");
-    const fieldValue = event.target.value;
-
-    const newFormData = { ...selectPermission };
-    newFormData[fieldName] = fieldValue;
-
-    setSelectPermission(newFormData);
-
-  }
-
-  const addSelectPermission = async (event) => {
-    event.preventDefault();
-
-    const errors = {};
-
-    if (!selectPermission.moduleId) {
-      errors.module_id = "Module is required.";
-    }
-    if (!selectPermission.menuId) {
-      errors.menu_id = "Menu is required.";
-    }
-
-    // Check if any errors
-    if (Object.keys(errors).length > 0) {
-      setValidationErrors(errors);
-      return;
-    }
-    const moduleId = Number(selectPermission.moduleId);
-    const menuId = Number(selectPermission.menuId);
-    const permissionIds = selectPermission.permissionId;
-
-    const module = moduleData.find(item => item.id === moduleId);
-    const menu = module.menu_data.find(item => item.id === menuId);
-    const permissionList = module.permission_data.filter(item =>
-      permissionIds.includes(item.id))
-    console.log(permissionList);
-
-    // setAddPermission(prev => [...prev, {
-    //   id: Date.now(),
-    //   moduleId: moduleId,
-    //   moduleName: module.module_name,
-    //   menuId: menuId,
-    //   menuName: menu.menu_name || "menu name",
-    //   permissionId: permissionIds,
-    //   permissionNames: permissionList
-    // }]);
-
-    try {
-
-      const isExisting = roleMenuData.find(item => item.menu_id === menuId);
-
-      let submitData = {};
-
-      if (isExisting) {
-        submitData = {
-          id: isExisting.id,
-          role_id: passEditFormData.id,
-          module_id: moduleId,
-          menu_id: menuId,
-          permission_id: [
-            ...isExisting.permission_id,  // old permissions
-            ...permissionIds              // new permissions
-          ]
-        };
-      } else {
-        submitData = {
-          role_id: passEditFormData.id,
-          module_id: moduleId,
-          menu_id: menuId,
-          permission_id: permissionIds   // new only
-        };
-      }
-
-      // console.log(submitData);
-      // return;
-
-      const result = await fetch(`${baseUrl}/rolemenu/create`, {
-        method: 'POST',
-        headers: {
-          "Content-type": "application/json"
-        },
-        body: JSON.stringify(submitData)
-      });
-
-
-      const response = await result.json();
-      if (response.status == 'success') {
-
-        toast.success(response.message, { autoClose: 1000 });
-
-        fetchRoleMenuData(passEditFormData.id);
-
-      } else {
-        if (typeof response.message === 'object') {
-          setValidationErrors(response.message);
-        } else {
-          toast.error("Internal Error! Try again later.");
-          console.error(response.message);
-        }
-
-      }
-
-    } catch (error) {
-
-    }
-
-
-    setSelectPermission({
-      moduleId: '',
-      menuId: '',
-      permissionId: []
-    })
-
-  }
-
-  const deleteRow = (id) => {
-    setAddPermission(prev => prev.filter(r => r.id !== id));
-  };
 
   /** Delete Handler */
   const handleDeleteClick = async (Id) => {
     try {
-      const result = await fetch(`${baseUrl}/rolemenu/destroy/${Id}`, {
+      const result = await fetch(`${baseURL}/role_details/destroy/${Id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -279,25 +131,24 @@ const RoleEditForm = ({ setShowData, setContactsData, passEditFormData, setPassi
 
   }
 
-  const handleEditFormChange = (event) => {
-    event.preventDefault();
 
-    const fieldName = event.target.getAttribute("name");
-    const fieldValue = event.target.value;
-
-    const newFormData = { ...editFormData };
-    newFormData[fieldName] = fieldValue;
-
-    setEditFormData(newFormData);
-  };
 
   const handleEditFormSubmit = async (event) => {
     event.preventDefault();
 
     const errors = {};
 
-    if (!editFormData.rolename.trim()) {
-      errors.role_name = "Role name is required.";
+    if (!editFormData.role_id) {
+      errors.role_id = "Role name is required.";
+    }
+    if (!editFormData.module_id) {
+      errors.module_id = "Module name is required.";
+    }
+    if (!editFormData.menu_id) {
+      errors.menu_id = "Module name is required.";
+    }
+    if (!editFormData.permission_id) {
+      errors.permission_id = "Permission name is required.";
     }
 
     // Check if any errors
@@ -309,56 +160,72 @@ const RoleEditForm = ({ setShowData, setContactsData, passEditFormData, setPassi
     try {
 
       const submitData = {
-        role_name: editFormData.rolename,
-        is_active: Number(editFormData.isActive) ? 1 : 0
-      }
-      const roleMenu = {
-        role_id: passEditFormData.id,
-        module_id: addPermission.moduleId,
-        menu_id: addPermission.menuId,
-        permission_id: addPermission.permissionId
-
+        role_id: editFormData.role_id,
+        // is_active: Number(editFormData.is_active) ? 1 : 0,
+        module_id: editFormData.module_id,
+        menu_id: editFormData.menu_id,
+        permission_id: editFormData.permission_id,
+        created_by: created_by
       }
 
-      const payload = {
-        role: submitData,
-        roleMenu: addPermission,
-      }
+      // const roleMenu = {
+      //   role_id: editFormData.id,
+      //   module_id: editFormData.module_id,
+      //   menu_id: editFormData.menu_id,
+      //   permission_id: editFormData.permission_id
+      // }
 
-      // console.log(payload)
+      // const payload = {
+      //   role: submitData,
+      //   roleMenu: editFormData,
+      // }
+
+      // console.log(submitData)
       // return;
 
-      const result = await fetch(`${baseUrl}/role/update/${passEditFormData.id}`, {
+      const result = await fetch(`${baseURL}/role_details/create`, {
         method: 'POST',
         headers: {
-          "Content-type": "application/json"
+          "Content-type": "application/json",
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(submitData)
       });
 
 
       const response = await result.json();
+
       if (response.status == 'success') {
         toast.success(response.message, { autoClose: 1000 });
 
-        setContactsData((prevContacts) =>
-          prevContacts.map((contact) =>
-            contact.id === response.data.id ? response.data : contact
-          )
-        );
+        fetchItems();
+        fetchPermission();
 
-        setShowData(false);
-        setPassingEditFormData(null);
+        setEditFormData(prev => ({
+          ...prev,        
+          module_id: '',
+          permission_id: [],
+          menu_id: ''
+        }));
+        setValidationErrors({})
 
-      } else {
-        if (typeof response.message === 'object') {
-          setValidationErrors(response.message);
+      } else if (response.status === 'fail' && response.errors) {
+        // Laravel errors → React friendly format
+         const backendErrors = {};
+
+         Object.keys(response.errors).forEach((field) => {
+            backendErrors[field] = response.errors[field][0]; // first message
+          });
+
+          setValidationErrors(backendErrors);
+
+          // optional toast
+          toast.error(response.message);
+          
         } else {
           toast.error("Internal Error! Try again later.");
           console.error(response.message);
         }
-
-      }
 
     } catch (error) {
       toast.error('Internal Error!! Try again after 5 min.')
@@ -367,80 +234,154 @@ const RoleEditForm = ({ setShowData, setContactsData, passEditFormData, setPassi
 
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [moduleRes, permissionRes, menuRes, roleMenuRes] = await Promise.all([
-          fetch(`${baseUrl}/module`),
-          fetch(`${baseUrl}/permission`),
-          fetch(`${baseUrl}/menu`),
-          fetch(`${baseUrl}/rolemenu/show/${passEditFormData.id}`),
 
-        ]);
 
-        const [moduleData, permissionData, menuData, roleMenuData] = await Promise.all([
-          moduleRes.json(),
-          permissionRes.json(),
-          menuRes.json(),
-          roleMenuRes.json(),
-        ]);
+  //----------React Select Module Start--------
+      useEffect(() => {
+        fetch(`${baseURL}/module/used_module`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`  // <-- must send token
+          }
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            setModuleData(data.data);
+          })
+      }, [])
+  
+      const activeModuleOptions = moduleData
+      .filter(module => module.is_active == 1)
+        .map(module => ({
+        value: module.id,
+        label: `${module.module_name}`
+        }));
+  
+      // react-select  onChange handler
+      const selectModuleChange = (selectedOption) => {
+        const selectedId = selectedOption? selectedOption.value : null;
 
-        setModuleData(moduleData.data || []);
-        setPermissionsData(permissionData.data || []);
-        // setMenuData(menuData.data || []);
-        setRoleMenuData(roleMenuData.data || []);
-      } catch (error) {
-        console.error('Failed to fetch data:', error);
-        // Optionally set error state here
+        setEditFormData(prev => ({
+          ...prev,
+          module_id: selectedId,
+          menu_id: null,
+        }));
+        fetchMenu(selectedId)
+      };
+  //----------React Select Module End--------
+
+
+  //----------React Select Menu Start--------
+      const fetchMenu = (selectedId) => {
+
+        if (!selectedId) {
+          setMenuData([]); // if not id, reset menu_id
+          return;
+        }
+
+        fetch(`${baseURL}/menu/by_module/${selectedId}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`  // <-- must send token
+          }
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            setMenuData(data.data);
+          })
       }
-    };
+  
+      const activeMenuOptions = menuData
+        .filter(menu => menu.is_active == 1 && !menu.is_parent)
+        .map(menu => ({
+        value: menu.id,
+        label: `${menu.menu_name}`
+        }));
+  
+      // react-select  onChange handler
+      const selectMenuChange = (selectedOption) => {
+        setEditFormData(prev => ({
+          ...prev,
+          menu_id: selectedOption? selectedOption.value : null
+        }))
+      };
+  //----------React Select Menu End----------
 
-    fetchData();
-  }, []);
+  //----------React Select Permission Start---------
+   const fetchPermission = () => {
+        fetch(`${baseURL}/permission/un_used`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`  // <-- must send token
+          }
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            setPermissionData(data.data);
+          })
+      }
+    useEffect(() => {
+      fetchPermission()
+    }, []) 
 
-  //   const permissionIds = [36,
-  // 37,
-  // 38,
-  // 39
-  // ];
-  //   const selectedPermission = permissionIds.flatMap(item => item.permission_id);
-  //   const usedPermissionIds = roleMenuData.flatMap(item => item.permission_id);
-
-  //   const filterPermissionData  = permissionsData.filter(item=> item.id === selectedPermission)
-
-  //   /** Multi selection  */
-  //   const multiSelectPermissionsData = filterPermissionData
-  //     .filter(item => !usedPermissionIds.includes(item.id))
-  //     .map(item => ({
-  //       value: item.id,
-  //       label: item.permission_name
-  //     }));
-
-
-
-  // 1. Selected allowed permissions
-  const selectedPermissionIds = permissionData;
-
-  // 2. Already used permissions (flatten array)
-
-  const usedPermissionIds = roleMenuData
-    .filter(r => r.menu_id === selectedPermissionIds.menu_id)
-    .map(r => r.permission_id);
-
-  // 3. Filter original permissionData
-  const filteredPermissions = permissionsData
-    // must be in allowed list
-    .filter(item => selectedPermissionIds.includes(item.id))
-    // must NOT be already used
-    .filter(item => !usedPermissionIds.includes(item.id))
-    // final dropdown format
-    .map(item => ({
-      value: item.id,
-      label: item.permission_name
+    const activePermissionOptions = permissionData
+      .filter(permission => permission.is_active == 1)
+      .map(permission => ({
+      value: permission.id,
+      label: `${permission.permission_name}`
     }));
 
-  // final output
-  const multiSelectPermissionsData = filteredPermissions;
+    // react-select  onChange handler
+    const selectPermissionChange = (selectedOption) => {
+
+       const selectedIds = selectedOption ? selectedOption.map(option => option.value) : [];
+
+      setEditFormData(prev => ({
+        ...prev,
+        permission_id: selectedIds
+      }))
+    };
+  //----------React Select Permission End-----------
+
+
+
+  //Fetch Role Details
+  const fetchItems = () => {
+        fetch(`${baseURL}/role_details/single_data/${passEditFormData.id}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`  // <-- must send token
+            }
+        })
+            .then((response) => response.json())
+            .then((data) => {
+            setRoleMenuData(data.data);
+            })
+            .catch((error) => {
+            console.log("Error Fetching the data: ", error);
+            });
+        };
+
+    useEffect(() => {
+        fetchItems();
+    }, []);
+
+
+
+  //React select
+  const customStyles = {
+    control: (base, state) => ({
+      ...base,
+      borderColor: '#000',
+      borderRadius: '0.375rem',
+      fontSize: '0.875rem',
+      // padding: '1px',
+      minHeight: '40px',
+      // '&:hover': {
+      //   borderColor: '#000'
+      // }
+    }),
+  };
 
 
 
@@ -453,14 +394,14 @@ const RoleEditForm = ({ setShowData, setContactsData, passEditFormData, setPassi
               <div className='card-title'>Edit Role</div>
               <div className="prism-toggle">
                 <Link to={`${import.meta.env.BASE_URL}role/dataTable`}>
-                  <button className="btn btn-sm btn-primary" onClick={goToModuleList}>List</button>
+                  <button className="btn btn-sm btn-primary">List</button>
                 </Link>
               </div>
             </Card.Header>
 
             <Card.Body>
 
-              <Form>
+              <Form onSubmit={handleEditFormSubmit}>
                 <Row className="mb-5">
                   <Form.Group as={Col} md="4">
                     <Form.Label>Role Name <span className='text-danger ms-1'>*</span></Form.Label>
@@ -469,13 +410,12 @@ const RoleEditForm = ({ setShowData, setContactsData, passEditFormData, setPassi
                       type="text"
                       className='readableInputBgColor border-dark'
                       placeholder="Enter role name"
-                      name='rolename'
-                      value={editFormData.rolename}
-                      onChange={handleEditFormChange}
-                      isInvalid={!!showValidationError.role_name}
-
+                      name='role_name'
+                      value={editFormData.role_name || ''}
+                      isInvalid={!!showValidationError.role_id}
+                
                     />
-                    <Form.Control.Feedback type='invalid'>{showValidationError.role_name}</Form.Control.Feedback>
+                    <Form.Control.Feedback type='invalid'>{showValidationError.role_id}</Form.Control.Feedback>
                   </Form.Group>
 
                   <Form.Group as={Col} md="3" className="mt-3">
@@ -485,13 +425,14 @@ const RoleEditForm = ({ setShowData, setContactsData, passEditFormData, setPassi
                         className="form-check-input"
                         type="checkbox"
                         id="flexSwitchCheckChecked"
-                        checked={editFormData.isActive == 1}
-                        onChange={(e) =>
-                          setEditFormData({ ...editFormData, isActive: e.target.checked })
-                        }
+                        checked={editFormData.is_active == 1}
+                        // onChange={(e) =>
+                        //   setEditFormData({ ...editFormData, is_active: e.target.checked })
+                        // }
+                        readOnly
                       />
                       <label className="form-check-label" htmlFor="flexSwitchCheckChecked">
-                        {editFormData.isActive == 1 ? 'Active' : 'Inactive'}
+                        {editFormData.is_active == 1 ? 'Active' : 'Inactive'}
                       </label>
                     </div>
                   </Form.Group>
@@ -505,21 +446,18 @@ const RoleEditForm = ({ setShowData, setContactsData, passEditFormData, setPassi
                   <Form.Group as={Col} md="3" >
                     <Form.Label>Module Name<span className='text-danger ms-1'>*</span></Form.Label>
 
-                    <Form.Select
-                      // ref={firstInputRef}
-                      size="lg"
-                      className={`border-dark p-2 ${showValidationError.module_id ? 'is-invalid' : ''}`}
-                      name="moduleId"
-                      onChange={autoFillUpHandlerForMenu}
-                      value={selectPermission.moduleId}
-                      aria-label="Select role"
-                    >
-                      <option value="">Select Module</option>
-                      {moduleData.map((data) => (
-                        <option key={data.id} value={data.id}>{data.module_name}</option>
-                      ))}
-
-                    </Form.Select>
+                    <Select
+                      ref={referenceSelectRef}
+                      styles={customStyles}
+                      className={"border-dark"}
+                      classNamePrefix="react-select"
+                      options={activeModuleOptions || ''}
+                      value={activeModuleOptions.find(option => option.value === editFormData.module_id) || null}
+                      onChange={selectModuleChange}
+                      isSearchable={true}
+                      isClearable={true}
+                      tabIndex={1}
+                    />
 
                     {showValidationError.module_id && (
                       <Form.Control.Feedback type="invalid" className="d-block">
@@ -531,95 +469,40 @@ const RoleEditForm = ({ setShowData, setContactsData, passEditFormData, setPassi
 
                   <Form.Group as={Col} md="3" >
                     <Form.Label>Menu Name<span className='text-danger ms-1'>*</span></Form.Label>
-                    <Form.Select
-                      size="lg"
-                      className={`border-dark p-2 ${showValidationError.menu_id ? 'is-invalid' : ''}`}
-                      name="menuId"
-                      value={selectPermission.menuId}
-                      onChange={autoFillUpHandlerForPermissions}
-                      aria-label="Select role"
-                    >
-
-
-                      <option value="">Select Menu</option>
-                      {menuData
-                        .filter(menu => {
-
-                          const perms = menu.permissions || [];
-                          const isMenuUsed = roleMenuData.some(r => r.menu_id === menu.id);
-
-                          // Collect all used permission IDs for this menu
-                          const usedPermissionIds = roleMenuData
-                            .filter(r => r.menu_id === menu.id)
-                            .flatMap(r => r.permission_id || []);
-
-
-                          // CASE 1: menu don't use → SHOW
-                          if (!isMenuUsed) {
-                            return true;
-                          }
-
-                          // CASE 2: menu used
-
-                          // CASE 2.1: is parent → HIDE
-                          if (menu.is_parent == 1) {
-                            return false;
-                          }
-
-                          // CASE 2.2: permission menu → SHOW if still have unused permissions
-                          const stillHasUnused = perms.some(p => !usedPermissionIds.includes(p));
-                          return stillHasUnused;
-
-                        })
-                        .map(menu => (
-                          <option key={menu.id} value={menu.id}>
-                            {menu.menu_name}
-                          </option>
-                        ))
-                      }
-
-
-
-
-
-
-                    </Form.Select>
+                    <Select
+                      styles={customStyles}
+                      className={"border-dark"}
+                      classNamePrefix="react-select"
+                      options={activeMenuOptions || ''}
+                      value={activeMenuOptions.find(option => option.value === editFormData.menu_id) || null}
+                      onChange={selectMenuChange}
+                      isSearchable={true}
+                      isClearable={true}
+                      tabIndex={2}
+                    />
 
                     {showValidationError.menu_id && (
                       <Form.Control.Feedback type="invalid" className="d-block">
                         {showValidationError.menu_id}
                       </Form.Control.Feedback>
                     )}
-
                   </Form.Group>
 
                   <Form.Group as={Col} md="4" controlId="validationCustom02">
                     <Form.Label>Permission Name </Form.Label>
 
                     <Select
+                      styles={customStyles}
                       isMulti
                       name="permissionId"
                       classNamePrefix="react-select"
-                      options={multiSelectPermissionsData}
-                      // defaultValue={permissionsData}
-                      value={multiSelectPermissionsData.filter(option =>
-                        (selectPermission.permissionId || []).includes(option.value)
-                      )}   // ← SELECT ALL BY DEFAULT
-                      onChange={(selectedOptions) => {
-                        const selectedIds = selectedOptions.map(option => option.value);
-                        setSelectPermission(prev => ({
-                          ...prev,
-                          permissionId: selectedIds
-                        }));
-                      }}
+                      options={activePermissionOptions}
+                      value={activePermissionOptions.filter(option =>
+                        editFormData.permission_id.includes(option.value)
+                      )}
+                      onChange={selectPermissionChange}
+                      tabIndex={3}
                     />
-
-
-                    {showValidationError.feed_type_id && (
-                      <Form.Control.Feedback type="invalid" className="d-block">
-                        {showValidationError.feed_type_id}
-                      </Form.Control.Feedback>
-                    )}
                   </Form.Group>
 
                   <Form.Group
@@ -629,23 +512,26 @@ const RoleEditForm = ({ setShowData, setContactsData, passEditFormData, setPassi
                     className="d-flex align-items-center mt-4"
                   >
                     <Button
-                      type="button"
-                      onClick={addSelectPermission}
+                      tabIndex={4}
+                      type="submit"
                     >
                       <i className="ri-add-line fs-16"></i>
                     </Button>
                   </Form.Group>
 
                 </Row>
+              </Form>
 
-                <Row className='mb-3'>
+
+              
+              <Row className='mb-3'>
 
                   <div className="mt-3">
                     <div className="fw-bold mb-2">Permission List</div>
 
                     <div className="table-responsive">
-                      <table className="table text-nowrap table-bordered border-dark">
-                        <thead className="text-white table-dark">
+                      <table className="table table-sm table-primary table-striped table-hover text-nowrap table-bordered border-dark">
+                        <thead className="bg-primary text-center">
                           <tr>
                             <th className="text-center border border-dark">Module Name</th>
                             <th className="text-center border border-dark">Menu Name</th>
@@ -656,24 +542,11 @@ const RoleEditForm = ({ setShowData, setContactsData, passEditFormData, setPassi
 
                         <tbody>
 
-                          {/* SAMPLE ROW DATA */}
-                          {/* {addPermission.map((data, index) => (
-                            <tr key={data.id}>
-                              <td className="border border-dark">{data.moduleName}</td>
-                              <td className="border border-dark">{data.menuName}</td>
-                              <td className="border border-dark">{data.permissionNames.map(c => c.permission_name).join(', ') || "permission name"}</td>
-
-                              <td className="border border-dark text-center">
-                                <button className="btn btn-sm btn-outline-danger" onClick={() => deleteRow(data.id)}>X</button>
-                              </td>
-                            </tr>
-                          ))} */}
-
                           {roleMenuData.map((data, index) => (
                             <tr key={data.id}>
-                              <td className="border border-dark">{data.module?.module_name}</td>
-                              <td className="border border-dark">{data.menu?.menu_name}</td>
-                              <td className="border border-dark">{data.permissionData.map(c => c.permission_name).join(', ') || "No Permission"}</td>
+                              <td className="border border-dark">{data.module?.module_name || ''}</td>
+                              <td className="border border-dark">{data.menu?.menu_name || ''}</td>
+                              <td className="border border-dark">{data?.permissions?.map(c => c.permission_name).join(', ') || "No Permission"}</td>
 
                               <td className="border border-dark text-center">
                                 <span onClick={() => deletePermissionAlert(data.id)} className="btn-sm bg-danger ms-1" style={{ cursor: "pointer" }}><i className="bi bi-trash"></i></span>
@@ -686,8 +559,7 @@ const RoleEditForm = ({ setShowData, setContactsData, passEditFormData, setPassi
                     </div>
                   </div>
 
-                </Row>
-              </Form>
+              </Row>
 
             </Card.Body>
 

@@ -55,7 +55,9 @@ export const MENUITEMS = [
             },
             {
                 title: "Role", path: `${import.meta.env.BASE_URL}role/dataTable`, type: "link", badgetxt: '', menusub: true, active: false, selected: false, dirchange: false, children: [
-                    { path: `${import.meta.env.BASE_URL}role/createform`, type: 'link', active: false, selected: false, dirchange: false }
+                    { path: `${import.meta.env.BASE_URL}role/createform`, type: 'link', active: false, selected: false, dirchange: false },
+                    { path: `${import.meta.env.BASE_URL}role/singledata`, type: 'link', active: false, selected: false, dirchange: false },
+                    { path: `${import.meta.env.BASE_URL}role/edit`, type: 'link', active: false, selected: false, dirchange: false }
                 ]
             },          
             {

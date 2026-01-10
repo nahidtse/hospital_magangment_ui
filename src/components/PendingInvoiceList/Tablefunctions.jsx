@@ -166,9 +166,9 @@ export const BasicTable = () => {
             });
         };
 
-        useEffect(() => {
-         fetchItems();
-        }, []);
+    useEffect(() => {
+        fetchItems();
+    }, []);
 
         //-----Advance & all collection Calculate Start-------------
         const totalDuesAmountCollection = (allCollection) => {

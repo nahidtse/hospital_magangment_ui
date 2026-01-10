@@ -10,6 +10,7 @@ const RoleForm = () => {
   //*********Check Authentication Start***********
   const token = localStorage.getItem('auth_token'); //Check Authentication
   const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+  const user_id = localStorage.getItem('user_id')  // for created_by
 
   if (!token || (expiry && Date.now() > Number(expiry))) {
       localStorage.clear();
@@ -61,9 +62,11 @@ const RoleForm = () => {
       const submitData = {
         role_name: addFormData.rolename,
         is_active: addFormData.isActive ? 1:0, 
-        // create_by: 1,
-        // updated_by: 1
+        created_by: user_id,
       }
+
+      // console.log(submitData)
+      // return
 
 
       const result = await fetch(`${baseURL}/role/create`, {

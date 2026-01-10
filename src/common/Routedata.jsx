@@ -65,6 +65,8 @@ import UserSingleTableFunction from "../components/User/UserSingleTableFunction"
 import PermissionSingleTableFunction from "../components/Permission/PermissionSingleTableFunction";
 import PermissionEditForm from "../components/Permission/PermissionEditForm";
 import MenuEditForm from "../components/MenuCreate/MenuEditForm";
+import RoleEditForm from "../components/Role/RoleEditForm";
+import RoleSingleTableFunction from "../components/Role/RoleSingleTableFunction";
 
 export const Routedata = [
 
@@ -185,6 +187,8 @@ export const Routedata = [
   // Role
   { id: 117, path: `${import.meta.env.BASE_URL}role/dataTable`, element: <RoleTable /> },
   { id: 118, path: `${import.meta.env.BASE_URL}role/createform`, element: <RoleForm /> },
+  { id: 118, path: `${import.meta.env.BASE_URL}role/singledata`, element: <RoleSingleTableFunction /> },
+  { id: 118, path: `${import.meta.env.BASE_URL}role/edit`, element: <RoleEditForm /> },
   
   // Menu create
   { id: 119, path: `${import.meta.env.BASE_URL}menu/dataTable`, element: <MenuTable /> },

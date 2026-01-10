@@ -121,7 +121,7 @@ const UserSingleTableFunction = () => {
                                             maxLength={20}
                                             className='readableInputBgColor border-dark'
                                             readOnly
-                                            value={singleUser.create_by || ''}
+                                            value={singleUser.created_by || ''}
 
                                         />
 

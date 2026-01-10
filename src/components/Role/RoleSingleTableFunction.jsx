@@ -1,15 +1,14 @@
 import { Fragment } from 'react';
 
 import { Card, Col, Form, InputGroup, Row } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 
-const SingleTableFunction = ({ setBusinessUnitList, singleContactsData, setSingleData }) => {
+const RoleSingleTableFunction = () => {
 
-    const goToRoleList = () => {
-        setSingleData(null)
-        setBusinessUnitList(false);
-    }
+    const location = useLocation();
+    const singleRoleData = location.state?.singleData || '';
+    // console.log(singleRoleData)
 
     return (
         <Fragment>
@@ -22,7 +21,7 @@ const SingleTableFunction = ({ setBusinessUnitList, singleContactsData, setSingl
                             <div className='card-title'>View Role</div>
                             <div className="prism-toggle">
                                 <Link to={`${import.meta.env.BASE_URL}role/dataTable`}>
-                                    <button className="btn btn-sm btn-primary" onClick={goToRoleList}>List</button>
+                                    <button className="btn btn-sm btn-primary">List</button>
                                 </Link>
                             </div>
 
@@ -38,7 +37,7 @@ const SingleTableFunction = ({ setBusinessUnitList, singleContactsData, setSingl
                                             type="text"
                                             className='readableInputBgColor'
                                             readOnly
-                                            value={singleContactsData.role_name}
+                                            value={singleRoleData?.role_name || ''}
 
                                         />
 
@@ -50,7 +49,7 @@ const SingleTableFunction = ({ setBusinessUnitList, singleContactsData, setSingl
                                             maxLength={20}
                                             className='readableInputBgColor'
                                             readOnly
-                                            value={singleContactsData.create_by}
+                                            value={singleRoleData?.created_by?.full_name || ''}
 
                                         />
 
@@ -63,10 +62,11 @@ const SingleTableFunction = ({ setBusinessUnitList, singleContactsData, setSingl
                                                 className="form-check-input"
                                                 type="checkbox"
                                                 id="flexSwitchCheckChecked"
-                                                checked={singleContactsData.is_active == 1}
+                                                checked={singleRoleData.is_active == 1}
+                                                readOnly
                                             />
                                             <label className="form-check-label" htmlFor="flexSwitchCheckChecked">
-                                                {singleContactsData.is_active == 1 ? 'Active' : 'Inactive'}
+                                                {singleRoleData.is_active == 1 ? 'Active' : 'Inactive'}
                                             </label>
                                         </div>
                                     </Form.Group>
@@ -84,4 +84,4 @@ const SingleTableFunction = ({ setBusinessUnitList, singleContactsData, setSingl
 
 };
 
-export default SingleTableFunction;
+export default RoleSingleTableFunction;

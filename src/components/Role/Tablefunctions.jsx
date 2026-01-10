@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import RoleEditForm from "./RoleEditForm";
-import SingleTableFunction from "./SingleTableFunction";
+import SingleTableFunction from "./RoleSingleTableFunction";
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
@@ -36,19 +36,18 @@ export const COLUMNS = [
     },
 ];
 
-export const DATATABLE = (contacts, handlers) =>
-    contacts.map((contact, id) => ({
+export const DATATABLE = (roleInfo, handlers) =>
+    roleInfo.map((role, id) => ({
         id: id + 1,
-        rolename: contact.role_name,
-        status: contact.is_active == 1 ? "Active" : "Inactive",
+        rolename: role.role_name,
+        status: role.is_active == 1 ? "Active" : "Inactive",
         action: (
             <>
-
-                <span onClick={() => handlers.handleShowDataById(contact)}><i className="bi bi-eye btn-sm bg-info"></i></span>
+                <Link to={`${import.meta.env.BASE_URL}role/singledata`} state={{singleData: role}}><i className="bi bi-eye btn-sm bg-info"></i></Link>
                 
-                <span onClick={() => handlers.handleEditDataById(contact)}><i className="bi bi-pencil btn-sm bg-primary ms-1"></i></span>
+                <Link to={`${import.meta.env.BASE_URL}role/edit`} state={{editData: role}}><i className="bi bi-pencil btn-sm bg-primary ms-1"></i></Link>
                 
-                <span onClick={() => handlers.deletePermissionAlert(contact.id)}><i className="bi bi-trash btn-sm bg-danger ms-1"></i></span>
+                <span onClick={() => handlers.deletePermissionAlert(role.id)}><i className="bi bi-trash btn-sm bg-danger ms-1"></i></span>
             </>
         )
     }));
@@ -80,17 +79,9 @@ export const BasicTable = () => {
     //*********Check Authentication End***********
 
 
-    const [showData, setShowData] = useState(false);
-    const [contacts, setContacts] = useState([]);
-    const [showSingleData, setSingleData] = useState([]);
-    const [passEditFormData, setPassingEditFormData] = useState(null);
 
+    const [roleInfo, setRoleInfo] = useState([]);
 
-    const handleShowDataById = (contact) => {
-        setShowData(true);
-        setSingleData(contact);
-
-    }
 
     /** Delete Handler */
     const handleDeleteClick = async (roleId) => {
@@ -105,7 +96,7 @@ export const BasicTable = () => {
 
             const response = await result.json();
             if (response.status == 'success') {
-                setContacts(prevContact => prevContact.filter(c => c.id !== roleId));
+                setRoleInfo(prevContact => prevContact.filter(c => c.id !== roleId));
 
             }
             return response;
@@ -151,28 +142,6 @@ export const BasicTable = () => {
     }
 
 
-    /** Edit Handler */
-    const handleEditDataById = (contact) => {
-        // const data = contacts.find((contact) => contact.id == roleId);
-        setShowData(true);
-        setSingleData(null)
-        setPassingEditFormData(contact);
-
-    }
-
-
-    /** Show Component */
-    let content;
-    if (showSingleData) {
-        content = (
-            <SingleTableFunction setBusinessUnitList={setShowData} singleContactsData={showSingleData} setSingleData={setSingleData} />
-        )
-    } else if (passEditFormData) {
-        content = (
-            <RoleEditForm setBusinessUnitList={setShowData} setContactsData={setContacts} passEditFormData={passEditFormData} setPassingEditFormData={setPassingEditFormData} />
-        )
-    }
-
 
     /** Data Fetch */
 
@@ -186,19 +155,17 @@ export const BasicTable = () => {
             .then((response) => response.json())
             .then((data) => {
               
-                setContacts(data.data)
+                setRoleInfo(data.data)
             })
             .catch((error) => {
                 console.log("Error Fetching the data: ", error)
             })
     }, [])
 
-    const dataTable = useMemo(() => DATATABLE(contacts, {
-        handleShowDataById,
+    const dataTable = useMemo(() => DATATABLE(roleInfo, {
         deletePermissionAlert,
-        handleEditDataById
 
-    }), [contacts]);
+    }), [roleInfo]);
 
 
 
@@ -234,167 +201,158 @@ export const BasicTable = () => {
     const { globalFilter, pageIndex, pageSize } = state;
 
     return (
+        
         <>
-            {!showData ? (
-                <>
-                    <Row className="row-sm">
-                        <Col xl={12}>
-                            <Card className="custom-card">
-                                <Card.Header className="justify-content-between">
-                                    <div className='card-title'>Role List</div>
-                                    <div className="prism-toggle">
-                                        <Link to={`${import.meta.env.BASE_URL}role/createform`}><button
-                                            type="button"
-                                            className="btn btn-sm btn-primary"> New
-                                        </button>
-                                        </Link>
-                                    </div>
+            <Row className="row-sm">
+                <Col xl={12}>
+                    <Card className="custom-card">
+                        <Card.Header className="justify-content-between">
+                            <div className='card-title'>Role List</div>
+                            <div className="prism-toggle">
+                                <Link to={`${import.meta.env.BASE_URL}role/createform`}><button
+                                    type="button"
+                                    className="btn btn-sm btn-primary"> New
+                                </button>
+                                </Link>
+                            </div>
 
-                                </Card.Header>
+                        </Card.Header>
 
-                                <Card.Body>
+                        <Card.Body>
 
-                                    <div className="d-flex">
-                                        <select
-                                            className=" mb-4 selectpage border me-1"
-                                            value={pageSize}
-                                            onChange={(e) => setPageSize((e.target.value))}
-                                        >
-                                            {[50, 100, 150, 200].map((pageSize) => (
-                                                <option key={pageSize} value={pageSize}>
-                                                    Show {pageSize}
-                                                </option>
+                            <div className="d-flex">
+                                <select
+                                    className=" mb-4 selectpage border me-1"
+                                    value={pageSize}
+                                    onChange={(e) => setPageSize((e.target.value))}
+                                >
+                                    {[50, 100, 150, 200].map((pageSize) => (
+                                        <option key={pageSize} value={pageSize}>
+                                            Show {pageSize}
+                                        </option>
+                                    ))}
+                                </select>
+                                <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
+                            </div>
+                            <table {...getTableProps()} className="table table-sm table-primary table-striped table-hover mb-0 table-bordered">
+                                <thead className="bg-primary text-center">
+                                    {headerGroups.map((headerGroup) => (
+                                        <tr {...headerGroup.getHeaderGroupProps()} key={Math.random()}>
+                                            {headerGroup.headers.map((column) => (
+                                                <th
+                                                    {...column.getHeaderProps(column.getSortByToggleProps())}
+                                                    className={column.className} key={Math.random()}
+                                                >
+                                                    <span className="tabletitle text-white">{column.render("Header")}</span>
+                                                    <span className="float-end">
+                                                        {column.isSorted ? (
+                                                            column.isSortedDesc ? (
+                                                                <i className="fa fa-angle-down"></i>
+                                                            ) : (
+                                                                <i className="fa fa-angle-up"></i>
+                                                            )
+                                                        ) : (
+                                                            ""
+                                                        )}
+                                                    </span>
+                                                </th>
                                             ))}
-                                        </select>
-                                        <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
-                                    </div>
-                                    <table {...getTableProps()} className="table table-sm table-primary table-striped table-hover mb-0 table-bordered">
-                                        <thead className="bg-primary text-center">
-                                            {headerGroups.map((headerGroup) => (
-                                                <tr {...headerGroup.getHeaderGroupProps()} key={Math.random()}>
-                                                    {headerGroup.headers.map((column) => (
-                                                        <th
-                                                            {...column.getHeaderProps(column.getSortByToggleProps())}
-                                                            className={column.className} key={Math.random()}
-                                                        >
-                                                            <span className="tabletitle text-white">{column.render("Header")}</span>
-                                                            <span className="float-end">
-                                                                {column.isSorted ? (
-                                                                    column.isSortedDesc ? (
-                                                                        <i className="fa fa-angle-down"></i>
-                                                                    ) : (
-                                                                        <i className="fa fa-angle-up"></i>
-                                                                    )
-                                                                ) : (
-                                                                    ""
-                                                                )}
-                                                            </span>
-                                                        </th>
-                                                    ))}
-                                                </tr>
-                                            ))}
-                                        </thead>
-                                        <tbody {...getTableBodyProps()}>
-                                            {page.map((row) => {
-                                                prepareRow(row);
-                                                return (
-                                                    <tr {...row.getRowProps()} key={Math.random()}>
-                                                        {row.cells.map((cell) => {
-                                                            return (
-                                                                <td className="borderrigth" {...cell.getCellProps()} key={Math.random()}>
-                                                                    {cell.render("Cell")}
-                                                                </td>
-                                                            );
-                                                        })}
-                                                    </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
-                                    <div className="d-block d-sm-flex mt-4 ">
-                                        <span>
-                                            {dataTable.length > 0 ? (
-                                                <>
-                                                Showing {pageIndex * pageSize + 1} to{" "}
-                                                {Math.min((pageIndex + 1) * pageSize, dataTable.length)} of{" "}
-                                                {dataTable.length} entries
-                                                </>
-                                            ) : (
-                                                "Showing 0 entries"
-                                            )}
-                                        </span>
-                                        <span className="ms-sm-auto ">
-                                            <Button
-                                                variant=""
-                                                className="btn-outline-light tablebutton me-2 d-sm-inline d-block my-1"
-                                                onClick={() => gotoPage(0)}
-                                                disabled={!canPreviousPage}
-                                            >
-                                                {" Previous "}
-                                            </Button>
-                                            <Button
-                                                variant=""
-                                                className="btn-outline-light tablebutton me-2 my-1"
-                                                onClick={() => {
-                                                    previousPage();
-                                                }}
-                                                disabled={!canPreviousPage}
-                                            >
-                                                {" << "}
-                                            </Button>
-                                            <Button
-                                                variant=""
-                                                className="btn-outline-light tablebutton me-2 my-1"
-                                                onClick={() => {
-                                                    previousPage();
-                                                }}
-                                                disabled={!canPreviousPage}
-                                            >
-                                                {" < "}
-                                            </Button>
-                                            <Button
-                                                variant=""
-                                                className="btn-outline-light tablebutton me-2 my-1"
-                                                onClick={() => {
-                                                    nextPage();
-                                                }}
-                                                disabled={!canNextPage}
-                                            >
-                                                {" > "}
-                                            </Button>
-                                            <Button
-                                                variant=""
-                                                className="btn-outline-light tablebutton me-2 my-1"
-                                                onClick={() => {
-                                                    nextPage();
-                                                }}
-                                                disabled={!canNextPage}
-                                            >
-                                                {" >> "}
-                                            </Button>
-                                            <Button
-                                                variant=""
-                                                className="btn-outline-light tablebutton me-2 d-sm-inline d-block my-1"
-                                                onClick={() => gotoPage(pageCount - 1)}
-                                                disabled={!canNextPage}
-                                            >
-                                                {" Next "}
-                                            </Button>
-                                        </span>
-                                    </div>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                    </Row>
+                                        </tr>
+                                    ))}
+                                </thead>
+                                <tbody {...getTableBodyProps()}>
+                                    {page.map((row) => {
+                                        prepareRow(row);
+                                        return (
+                                            <tr {...row.getRowProps()} key={Math.random()}>
+                                                {row.cells.map((cell) => {
+                                                    return (
+                                                        <td className="borderrigth" {...cell.getCellProps()} key={Math.random()}>
+                                                            {cell.render("Cell")}
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                            <div className="d-block d-sm-flex mt-4 ">
+                                <span>
+                                    {dataTable.length > 0 ? (
+                                        <>
+                                        Showing {pageIndex * pageSize + 1} to{" "}
+                                        {Math.min((pageIndex + 1) * pageSize, dataTable.length)} of{" "}
+                                        {dataTable.length} entries
+                                        </>
+                                    ) : (
+                                        "Showing 0 entries"
+                                    )}
+                                </span>
+                                <span className="ms-sm-auto ">
+                                    <Button
+                                        variant=""
+                                        className="btn-outline-light tablebutton me-2 d-sm-inline d-block my-1"
+                                        onClick={() => gotoPage(0)}
+                                        disabled={!canPreviousPage}
+                                    >
+                                        {" Previous "}
+                                    </Button>
+                                    <Button
+                                        variant=""
+                                        className="btn-outline-light tablebutton me-2 my-1"
+                                        onClick={() => {
+                                            previousPage();
+                                        }}
+                                        disabled={!canPreviousPage}
+                                    >
+                                        {" << "}
+                                    </Button>
+                                    <Button
+                                        variant=""
+                                        className="btn-outline-light tablebutton me-2 my-1"
+                                        onClick={() => {
+                                            previousPage();
+                                        }}
+                                        disabled={!canPreviousPage}
+                                    >
+                                        {" < "}
+                                    </Button>
+                                    <Button
+                                        variant=""
+                                        className="btn-outline-light tablebutton me-2 my-1"
+                                        onClick={() => {
+                                            nextPage();
+                                        }}
+                                        disabled={!canNextPage}
+                                    >
+                                        {" > "}
+                                    </Button>
+                                    <Button
+                                        variant=""
+                                        className="btn-outline-light tablebutton me-2 my-1"
+                                        onClick={() => {
+                                            nextPage();
+                                        }}
+                                        disabled={!canNextPage}
+                                    >
+                                        {" >> "}
+                                    </Button>
+                                    <Button
+                                        variant=""
+                                        className="btn-outline-light tablebutton me-2 d-sm-inline d-block my-1"
+                                        onClick={() => gotoPage(pageCount - 1)}
+                                        disabled={!canNextPage}
+                                    >
+                                        {" Next "}
+                                    </Button>
+                                </span>
+                            </div>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
 
-
-                </>
-            ) : (
-                <div>
-                    {content}
-                </div>
-
-            )}
 
         </>
     )

@@ -83,7 +83,7 @@ const LookupTypeForm = () => {
         lookup_type: addFormData.lookuptypename,
         lookup_code: addFormData.lookupcodename,
         is_active: addFormData.isActive,
-        // create_by: 7     // TODO:: Id will be  dynamic
+        // created_by: 7     // TODO:: Id will be  dynamic
       }
 
       // console.log(submitData);

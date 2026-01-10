@@ -99,7 +99,7 @@ const LookupValueForm = () => {
         doc_lookup_type_id: addFormData.lookupTypeId,
         lookup_code: addFormData.lookupCode,
         is_active: addFormData.isActive ? 1 : 0,
-        // create_by: 7      // TODO:: Id will be  dynamic
+        // created_by: 7      // TODO:: Id will be  dynamic
       }
 
       console.log(submitData);

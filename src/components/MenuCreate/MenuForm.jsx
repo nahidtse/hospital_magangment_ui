@@ -25,7 +25,7 @@ const MenuForm = () => {
   //*********Check Authentication Start***********
     const token = localStorage.getItem('auth_token'); //Check Authentication
     const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
-    const user_id = localStorage.getItem('user_id'); //For create_by
+    const user_id = localStorage.getItem('user_id'); //For created_by
 
     if (!token || (expiry && Date.now() > Number(expiry))) {
       localStorage.clear();
@@ -108,7 +108,7 @@ const MenuForm = () => {
         sort_order: addFormData.sort_order,
         is_top_menu: addFormData.top_menu ? 1 : 0,
         is_active: addFormData.is_active ? 1 : 0,
-        create_by: user_id  //Add current user ID
+        created_by: user_id  //Add current user ID
       }
 
       console.log(submitData);
@@ -242,17 +242,6 @@ const MenuForm = () => {
 
 
   //----------React Select Permission Start---------
-    // const getUsedPermissionIds = () => {
-    //   if (!addFormData.parent_menu_id) return [];
-
-    //   return parentMenuData
-    //     .filter(
-    //       menu =>
-    //         menu.parent_menu_id === addFormData.parent_menu_id &&
-    //         Array.isArray(menu.permission_id)
-    //     )
-    //     .flatMap(menu => menu.permission_id);
-    // };
 
     const getUsedPermissionIds = () => {
       // if parentMenuData Emty
