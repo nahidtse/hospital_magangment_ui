@@ -3,12 +3,12 @@ export class DynamicMenuBuilder {
         try {
             if (!Array.isArray(backendData) || backendData.length === 0) return [];
 
-            // ১. শুধু টপ লেভেল (Root) মেনুগুলো ফিল্টার করা
+            // 1. Only Top Lavel (Root) Menus Filter
             const rootMenus = backendData.filter(item => 
                 item.is_top_menu === 1 && item.parent_menu_id === null
             ).sort(this.sortByOrder);
 
-            // ২. রুট মেনু থেকে চাইল্ড মেনু তৈরি শুরু করা
+            // ২. Root Menu To Child MEnu Create 
             return rootMenus.map(root => this.buildMenuNode(root, backendData));
         } catch (error) {
             console.error('Menu building failed:', error);
@@ -17,21 +17,22 @@ export class DynamicMenuBuilder {
     }
 
     static buildMenuNode(currentMenu, allMenus) {
-        // চাইল্ড মেনু খুঁজে বের করা
+        // Find Child Menu
         const directChildren = allMenus
             .filter(item => item.parent_menu_id === currentMenu.id)
             .sort(this.sortByOrder);
 
         const hasChildren = directChildren.length > 0 || currentMenu.is_parent === 1;
 
-        // ফ্রন্টএন্ডের জন্য অবজেক্ট তৈরি
+        // Object Create for Frontend
         const frontendItem = {
             title: currentMenu.menu_name,
             icon: this.getIcon(currentMenu),
             type: hasChildren ? "sub" : "link",
             menusub: hasChildren,
             module_id: currentMenu.module_id,
-            // অন্য সব প্রপার্টি...
+            // Other Property..
+            dirchange: false,
             active: false,
             selected: false,
         };
@@ -39,7 +40,7 @@ export class DynamicMenuBuilder {
         if (!hasChildren) {
             frontendItem.path = this.generatePath(currentMenu);
         } else {
-            // যদি চাইল্ড থাকে তবে আবার একই ফাংশন কল করা (Recursion)
+            // if child stile then call again (Recursion)
             frontendItem.children = directChildren.map(child => 
                 this.buildMenuNode(child, allMenus)
             );
@@ -49,21 +50,21 @@ export class DynamicMenuBuilder {
     }
 
     static sortByOrder(a, b) {
-        // যদি sort_order না থাকে তবে তাকে শেষে পাঠাতে '999' সেট করা
+        // If sort_order not find then '999' set and show last
         const orderA = String(a.sort_order || '999');
         const orderB = String(b.sort_order || '999');
 
-        // ডট দিয়ে ভাগ করে অ্যারে তৈরি করা (যেমন: "1.1.10" -> ["1", "1", "10"])
+        // Creaet Array use (.)dot(Exp: "1.1.10" -> ["1", "1", "10"])
         const partsA = orderA.split('.').map(Number);
         const partsB = orderB.split('.').map(Number);
 
-        // প্রতিটি পার্ট তুলনা করা
+        // All item check
         for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
-            const numA = partsA[i] || 0; // যদি পার্ট না থাকে তবে ০ ধরবে
+            const numA = partsA[i] || 0; // if not part. catch 0
             const numB = partsB[i] || 0;
 
             if (numA !== numB) {
-                return numA - numB; // সংখ্যা হিসেবে ছোট-বড় তুলনা
+                return numA - numB; // small to big (1-100)
             }
         }
         return 0;
