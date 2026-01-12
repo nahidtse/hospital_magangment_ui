@@ -87,7 +87,7 @@ export const loadMenu = async (forceRefresh = false) => {
             const token = localStorage.getItem('auth_token');
             const role_id = localStorage.getItem('role_id')
 
-            const response = await fetch(`${baseURL}/menu`, {
+            const response = await fetch(`${baseURL}/role_details/single_data/${role_id}`, {
                 method: 'GET',
                 headers: {
                     "Content-Type": "application/json",
