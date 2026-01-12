@@ -66,7 +66,7 @@ const RoleEditForm = () => {
   const [permissionData, setPermissionData] = useState([]);
   const [roleMenuData, setRoleMenuData] = useState([]);
 
-  // console.log(roleMenuData)
+  // console.log(menuData)
 
 
 
@@ -80,7 +80,8 @@ const RoleEditForm = () => {
       const result = await fetch(`${baseURL}/role_details/destroy/${Id}`, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         }
       });
 

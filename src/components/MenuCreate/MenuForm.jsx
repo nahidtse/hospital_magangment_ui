@@ -103,7 +103,7 @@ const MenuForm = () => {
         menu_name: addFormData.menu_name,
         module_id: addFormData.module_id,
         is_parent: addFormData.is_parent ? 1 : 0,
-        parent_menu_id: addFormData.is_parent ? '#' : addFormData.parent_menu_id,
+        parent_menu_id: addFormData.parent_menu_id,
         permission_id: addFormData.permission_id,
         sort_order: addFormData.sort_order,
         is_top_menu: addFormData.top_menu ? 1 : 0,
@@ -382,7 +382,6 @@ const MenuForm = () => {
                           setFormData(prev => ({
                             ...prev,
                             is_parent: isChecked,
-                            parent_menu_id: isChecked ? '#' : null, // # for parent menu
                             permission_id: isChecked ? [] : prev.permission_id
                           }));
                         }}
