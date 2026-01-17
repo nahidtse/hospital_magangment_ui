@@ -1,11 +1,13 @@
 import { isAction } from '@reduxjs/toolkit';
 import { Fragment, useState } from 'react';
 import { Button, Card, Col, Form, Row } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const RoleForm = () => {
+
+  const navigate = useNavigate();
 
   //*********Check Authentication Start***********
   const token = localStorage.getItem('auth_token'); //Check Authentication
@@ -83,6 +85,7 @@ const RoleForm = () => {
       if (response.status == 'success') {
        toast.success(response.message, {autoClose: 1000});
 
+       navigate("/role/dataTable")
         // Clear form
         setFormData({
           rolename: '',

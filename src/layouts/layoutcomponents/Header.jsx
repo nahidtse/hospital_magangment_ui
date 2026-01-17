@@ -11,6 +11,7 @@ import Switcher from './Switcher';
 import { Modalsearch } from '../../common/Reuseablefunction';
 import { MENUITEMS } from '../../common/Sidemenudata';
 import { ThemeChanger } from '../../common/redux/Action';
+import profile from '../../assets/images/profile/profile-01.png'
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const Header = ({ ThemeChanger}) => {
@@ -556,7 +557,7 @@ const Header = ({ ThemeChanger}) => {
               <Dropdown.Toggle variant="" className='leading-none d-flex px-1' id="dropdown-basic">
                 <div className="d-flex align-items-center">
                   <div className="">
-                    <img src={ALLImages('face9')} alt="img" className="rounded-circle avatar  profile-user brround cover-image" />
+                    <img src={profile} alt="img" className="rounded-circle avatar  profile-user brround cover-image" />
                   </div>
                 </div>
               </Dropdown.Toggle>

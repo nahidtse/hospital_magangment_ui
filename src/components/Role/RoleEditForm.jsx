@@ -162,24 +162,11 @@ const RoleEditForm = () => {
 
       const submitData = {
         role_id: editFormData.role_id,
-        // is_active: Number(editFormData.is_active) ? 1 : 0,
         module_id: editFormData.module_id,
         menu_id: editFormData.menu_id,
         permission_id: editFormData.permission_id,
         created_by: created_by
       }
-
-      // const roleMenu = {
-      //   role_id: editFormData.id,
-      //   module_id: editFormData.module_id,
-      //   menu_id: editFormData.menu_id,
-      //   permission_id: editFormData.permission_id
-      // }
-
-      // const payload = {
-      //   role: submitData,
-      //   roleMenu: editFormData,
-      // }
 
       // console.log(submitData)
       // return;
@@ -200,7 +187,6 @@ const RoleEditForm = () => {
         toast.success(response.message, { autoClose: 1000 });
 
         fetchItems();
-        fetchPermission();
 
         setEditFormData(prev => ({
           ...prev,        
@@ -266,6 +252,7 @@ const RoleEditForm = () => {
           ...prev,
           module_id: selectedId,
           menu_id: null,
+          permission_id: []
         }));
         fetchMenu(selectedId)
       };
@@ -301,16 +288,21 @@ const RoleEditForm = () => {
   
       // react-select  onChange handler
       const selectMenuChange = (selectedOption) => {
+
+        const selectedMenuId = selectedOption? selectedOption.value : null;
+
         setEditFormData(prev => ({
           ...prev,
-          menu_id: selectedOption? selectedOption.value : null
+          menu_id: selectedMenuId,
+          permission_id: []
         }))
+        fetcheMenuPermisssion(selectedMenuId)
       };
   //----------React Select Menu End----------
 
   //----------React Select Permission Start---------
-   const fetchPermission = () => {
-        fetch(`${baseURL}/permission/un_used`, {
+   const fetcheMenuPermisssion = (selectedMenuId) => {
+        fetch(`${baseURL}/menu/permission/${selectedMenuId}`, {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`  // <-- must send token
@@ -321,9 +313,6 @@ const RoleEditForm = () => {
             setPermissionData(data.data);
           })
       }
-    useEffect(() => {
-      fetchPermission()
-    }, []) 
 
     const activePermissionOptions = permissionData
       .filter(permission => permission.is_active == 1)

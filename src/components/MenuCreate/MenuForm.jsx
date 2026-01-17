@@ -39,7 +39,7 @@ const MenuForm = () => {
     module_name: '',
     permission_id: '',
     parent_menu_id: '',
-
+    route_name: '',
   });
 
   const [addFormData, setFormData] = useState({
@@ -49,8 +49,9 @@ const MenuForm = () => {
     parent_menu_id: null,
     permission_id: [],
     sort_order: '',
-    top_menu: '',
+    is_top_menu: false,
     is_active: true,
+    route_name: ''
 
   })
 
@@ -88,6 +89,9 @@ const MenuForm = () => {
     if (!addFormData.module_id) {
       errors.module_name = "Module name is required.";
     }
+    if (!addFormData.sort_order) {
+      errors.sort_order = "Sort Order is Required.";
+    }
 
 
     
@@ -106,8 +110,9 @@ const MenuForm = () => {
         parent_menu_id: addFormData.parent_menu_id,
         permission_id: addFormData.permission_id,
         sort_order: addFormData.sort_order,
-        is_top_menu: addFormData.top_menu ? 1 : 0,
+        is_top_menu: addFormData.is_top_menu ? 1 : 0,
         is_active: addFormData.is_active ? 1 : 0,
+        route_name: addFormData.route_name,
         created_by: user_id  //Add current user ID
       }
 
@@ -130,11 +135,6 @@ const MenuForm = () => {
        toast.success(response.message, {autoClose: 1000});
 
         fetchModules();
-        //Auto Focus
-        // setTimeout(() => {
-        //   if (referenceSelectRef.current) referenceSelectRef.current.focus();
-        // }, 100);
-
         // Clear form
         setFormData({
           menu_name: '',
@@ -143,9 +143,9 @@ const MenuForm = () => {
           parent_menu_id: '',
           permission_id: [],
           sort_order: '',
-          top_menu: '',
-          is_active: 1,
-
+          is_top_menu: false,
+          is_active: true,
+          route_name: '',
         });
         setValidationErrors({})
 
@@ -177,9 +177,9 @@ const MenuForm = () => {
       parent_menu_id: '',
       permission_id: [],
       sort_order: '',
-      top_menu: '',
+      is_top_menu: false,
       is_active: true,
-
+      route_name: ''
     })
   }
 
@@ -330,7 +330,20 @@ const MenuForm = () => {
 
             <Card.Body>
 
-              <Form noValidate onSubmit={handleSubmit}>
+              <Form 
+                noValidate 
+                onSubmit={handleSubmit}
+                onKeyDown={(e) => {
+                    const activeEl = document.activeElement; // active element define
+                    if (e.key === "Enter" && e.target.tagName !== 'TEXTAREA') {
+                      if (activeEl && activeEl.type === "submit") {
+                        return; 
+                      } else {
+                        e.preventDefault();
+                      }
+                    }
+                  }}
+              >
                 <Row className="mb-2">
                   <Form.Group as={Col} md="4" controlId="validationCustom01">
                     <Form.Label>Menu Name <span className='text-danger ms-1'>*</span></Form.Label>
@@ -417,38 +430,42 @@ const MenuForm = () => {
                       )}
                     </Form.Group>
 
-                    <Form.Group as={Col} md="5" controlId="validationCustom01">
-                      <Form.Label>Permission <span className='text-danger'> *</span> </Form.Label>
+                    {!addFormData.is_parent && (
+                    <>
+                      <Form.Group as={Col} md="5" controlId="validationCustom01">
+                        <Form.Label>Permission <span className='text-danger'> *</span> </Form.Label>
 
-                      <Select
-                        styles={customStyles}
-                        isMulti={true} // Enable multiple selection
-                        name="permission_id"
-                        className={`border-dark ${showValidationError.permission_id ? 'is-invalid' : ''}`}
-                        classNamePrefix="react-select"
-                        options={activePermissionOptions}
-                        value={activePermissionOptions.filter(option =>
-                          addFormData.permission_id.includes(option.value)
-                        )}
-                        onChange={selectPermissionChange}
-                        tabIndex={4}
-                      />
+                        <Select
+                          styles={customStyles}
+                          isMulti={true} // Enable multiple selection
+                          name="permission_id"
+                          className={`border-dark ${showValidationError.permission_id ? 'is-invalid' : ''}`}
+                          classNamePrefix="react-select"
+                          options={activePermissionOptions}
+                          value={activePermissionOptions.filter(option =>
+                            addFormData.permission_id.includes(option.value)
+                          )}
+                          onChange={selectPermissionChange}
+                          tabIndex={4}
+                        />
 
-                    </Form.Group>
+                      </Form.Group>
 
                     {showValidationError.permission_id && (
                       <Form.Control.Feedback type="invalid" className="d-block">
                         {showValidationError.permission_id}
                       </Form.Control.Feedback>
                     )}
+                    </>
+                    )}
                   </Row>
                   
               
 
 
-                <Row className="mb-4">
+                <Row className="mb-2">
                   <Form.Group as={Col} md="4" controlId="validationCustom01">
-                    <Form.Label>Sort Order</Form.Label>
+                    <Form.Label>Sort Order <span className='text-danger'> *</span></Form.Label>
                     <Form.Control
                       required
                       type="text"
@@ -483,10 +500,11 @@ const MenuForm = () => {
                     <div className="form-check mt-3">
                       <input
                         className="form-check-input border-dark"
-                        name='top_menu'
+                        name='is_top_menu'
                         type="checkbox"
                         id="flexCheckChecked"
-                        onChange={(e) => setFormData({ ...addFormData, top_menu: e.target.checked })}
+                        checked={addFormData.is_top_menu}
+                        onChange={(e) => setFormData({ ...addFormData, is_top_menu: e.target.checked })}
                       />
                       <Form.Label>Top Menu?</Form.Label>
                     </div>
@@ -494,10 +512,29 @@ const MenuForm = () => {
                   </Form.Group>
                 </Row>
 
+                <Row className='mb-4'>
+                  <Form.Group as={Col} md="4" controlId="validationCustom01">
+                    <Form.Label>Route Name<span className='text-danger ms-1'>*</span></Form.Label>
+                    <Form.Control
+                      ref={referenceSelectRef}
+                      required
+                      type="text"
+                      className='border-dark'
+                      placeholder="Enter Route Name"
+                      name='route_name'
+                      value={addFormData.route_name}
+                      isInvalid={!!showValidationError.route_name}
+                      onChange={onChangeHandler}
+                      tabIndex={5}
+                    />
+                    <Form.Control.Feedback type='invalid'>{showValidationError.route_name}</Form.Control.Feedback>
+                  </Form.Group>
+                </Row>
+
                 <Row className="mb-3">
                   <Col className="text-end">
                     <button type="reset" id="resetBtn" className="btn btn-outline-secondary me-2" onClick={resetHandling}>Reset</button>
-                    <Button tabIndex={5} type="submit">Save</Button>
+                    <Button tabIndex={6} type="submit">Save</Button>
                   </Col>
                 </Row>
               </Form>

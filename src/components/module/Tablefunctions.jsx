@@ -48,7 +48,7 @@ export const DATATABLE = (moduleInfo, handlers) =>
                 
                 <Link to={`${import.meta.env.BASE_URL}module/edit`} state={{ editData: module }}><i className="bi bi-pencil btn-sm bg-primary ms-1"></i></Link>
                 
-                <span onClick={() => handlers.deletePermissionAlert(module.id)}><i className="bi bi-trash btn-sm bg-danger ms-1"></i></span>
+                <span onClick={() => handlers.deletePermissionAlert(module.id)} style={{cursor: 'pointer'}}><i className="bi bi-trash btn-sm bg-danger ms-1"></i></span>
             </>
         )
     }));
@@ -85,9 +85,9 @@ export const BasicTable = () => {
 
 
     /** Delete Handler */
-    const handleDeleteClick = async (contactId) => {
+    const handleDeleteClick = async (moduleId) => {
         try {
-            const result = await fetch(`${baseURL}module/destroy/${contactId}`, {
+            const result = await fetch(`${baseURL}/module/destroy/${moduleId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -97,7 +97,7 @@ export const BasicTable = () => {
 
             const response = await result.json();
             if (response.status == 'success') {
-                setModuleInfo(prevContact => prevContact.filter(c => c.id !== contactId));
+                setModuleInfo(prevContact => prevContact.filter(c => c.id !== moduleId));
 
             }
             return response;

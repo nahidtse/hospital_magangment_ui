@@ -28,6 +28,7 @@ const PermissionForm = () => {
   //*********Check Authentication Start***********
     const token = localStorage.getItem('auth_token'); //Check Authentication
     const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+    const user_id = localStorage.getItem('user_id') //for Created_by
 
     if (!token || (expiry && Date.now() > Number(expiry))) {
       localStorage.clear();
@@ -88,6 +89,7 @@ const PermissionForm = () => {
         permission_name: addFormData.permission_name,
         module_id: addFormData.module_id,
         is_active: addFormData.is_active ? 1 : 0,
+        created_by: user_id
       }
 
       // console.log(submitData);

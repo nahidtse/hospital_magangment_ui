@@ -4,8 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
-import RoleEditForm from "./RoleEditForm";
-import SingleTableFunction from "./RoleSingleTableFunction";
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
@@ -47,7 +45,7 @@ export const DATATABLE = (roleInfo, handlers) =>
                 
                 <Link to={`${import.meta.env.BASE_URL}role/edit`} state={{editData: role}}><i className="bi bi-pencil btn-sm bg-primary ms-1"></i></Link>
                 
-                <span onClick={() => handlers.deletePermissionAlert(role.id)}><i className="bi bi-trash btn-sm bg-danger ms-1"></i></span>
+                <span onClick={() => handlers.deletePermissionAlert(role.id)} style={{cursor: 'pointer'}}><i className="bi bi-trash btn-sm bg-danger ms-1"></i></span>
             </>
         )
     }));
@@ -86,7 +84,7 @@ export const BasicTable = () => {
     /** Delete Handler */
     const handleDeleteClick = async (roleId) => {
         try {
-            const result = await fetch(`http://127.0.0.1:8000/api/role/destroy/${roleId}`, {
+            const result = await fetch(`${baseURL}/role/destroy/${roleId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

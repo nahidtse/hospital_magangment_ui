@@ -16,6 +16,7 @@ const PermissionEditForm = () => {
   //*********Check Authentication Start***********
     const token = localStorage.getItem('auth_token'); //Check Authentication
     const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+    const user_id = localStorage.getItem('user_id') //for updated_by
 
     if (!token || (expiry && Date.now() > Number(expiry))) {
       localStorage.clear();
@@ -114,7 +115,8 @@ const PermissionEditForm = () => {
       const submitData = {
         permission_name: editFormData.permission_name,
         module_id: editFormData.module_id,
-        is_active: Number(editFormData.is_active)? 1 : 0
+        is_active: Number(editFormData.is_active)? 1 : 0,
+        updated_by: user_id
       }
 
       // console.log(submitData);

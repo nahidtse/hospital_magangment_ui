@@ -25,6 +25,7 @@ const ModuleForm = () => {
   //*********Check Authentication Start***********
     const token = localStorage.getItem('auth_token'); //Check Authentication
     const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+    const user_id = localStorage.getItem('user_id') //for created_by
 
     if (!token || (expiry && Date.now() > Number(expiry))) {
         localStorage.clear();
@@ -41,8 +42,8 @@ const ModuleForm = () => {
   });
 
   const [addFormData, setFormData] = useState({
-    modulename: '',
-    isActive: true
+    module_name: '',
+    is_active: true
 
   })
 
@@ -63,7 +64,7 @@ const ModuleForm = () => {
 
     const errors = {};
 
-    if (!addFormData.modulename.trim()) {
+    if (!addFormData.module_name.trim()) {
       errors.module_name = "Module Name is required.";
     }
 
@@ -78,8 +79,9 @@ const ModuleForm = () => {
     try {
 
       const submitData = {
-        module_name: addFormData.modulename,
-        is_active: addFormData.isActive ? 1 : 0,
+        module_name: addFormData.module_name,
+        is_active: addFormData.is_active ? 1 : 0,
+        created_by: user_id
       }
 
       const result = await fetch(`${baseURL}/module/create`, {
@@ -99,8 +101,8 @@ const ModuleForm = () => {
 
         // Clear form
         setFormData({
-          modulename: '',
-          isActive: 1
+          module_name: '',
+          is_active: 1
 
         });
         setValidationErrors({})
@@ -135,8 +137,8 @@ const ModuleForm = () => {
 
   const resetHandling = () => {
     setFormData({
-      modulename: '',
-      isActive: 1
+      module_name: '',
+      is_active: 1
 
     })
   }
@@ -170,8 +172,8 @@ const ModuleForm = () => {
                       type="text"
                       className='border-dark'
                       placeholder="Enter module name"
-                      name='modulename'
-                      value={addFormData.modulename}
+                      name='module_name'
+                      value={addFormData.module_name || ''}
                       isInvalid={!!showValidationError.module_name}
                       onChange={onChangeHandler}
                       tabIndex={1}
@@ -184,11 +186,11 @@ const ModuleForm = () => {
                       <input
                         className="form-check-input"
                         type="checkbox"
-                        checked={addFormData.isActive}
-                        onChange={(e) => setFormData({ ...addFormData, isActive: e.target.checked })}
+                        checked={addFormData.is_active}
+                        onChange={(e) => setFormData({ ...addFormData, is_active: e.target.checked })}
                       />
                       <label className="form-check-label" htmlFor="flexSwitchCheckChecked">
-                        {addFormData.isActive == 1 ? 'Active' : 'Inactive'}
+                        {addFormData.is_active == 1 ? 'Active' : 'Inactive'}
                       </label>
                     </div>
                   </Form.Group>

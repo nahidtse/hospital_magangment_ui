@@ -35,8 +35,9 @@ const MenuEditForm = () => {
     parent_menu_id: passEditFormData?.parent_menu_id ?? null,
     permission_id: Array.isArray(passEditFormData.permission_id) ? passEditFormData.permission_id : [],
     sort_order: passEditFormData.sort_order,
-    top_menu: passEditFormData?.is_top_menu === 1,
+    is_top_menu: passEditFormData?.is_top_menu === 1,
     is_active: passEditFormData?.is_active === 1,
+    route_name: passEditFormData?.route_name || '',
   })
 
   const [showValidationError, setValidationErrors] = useState({
@@ -221,9 +222,10 @@ const MenuEditForm = () => {
         is_parent: editFormData.is_parent,
         permission_id: editFormData.permission_id,
         sort_order: editFormData.sort_order,
-        is_top_menu: editFormData.top_menu,
+        is_top_menu: editFormData.is_top_menu,
+        route_name: editFormData.route_name,
         is_active: Number(editFormData.is_active) ? 1 : 0,
-        update_by: user_id 
+        updated_by: user_id 
       }
 
       // console.log("Submited Data",submitData);
@@ -237,12 +239,15 @@ const MenuEditForm = () => {
         body: JSON.stringify(submitData)
       });
 
-
       const response = await result.json();
+      
       if (response.status == 'success') {
         toast.success(response.message, { autoClose: 1000 });
 
-        navigate("/menu/dataTable"); // navigate to List page
+        setTimeout(() => {
+          navigate("/menu/dataTable");
+        }, 1000);
+
       } else {
         if (typeof response.message === 'object') {
           setValidationErrors(response.message);
@@ -404,17 +409,17 @@ const MenuEditForm = () => {
                 </Row>
 
 
-                <Row className="mb-4">
+                <Row className="mb-2">
                   <Form.Group as={Col} md="4" controlId="validationCustom01">
                     <Form.Label>Sort Order</Form.Label>
                     <Form.Control
                       required
-                      type="number"
+                      type="text"
                       className='border-dark'
                       placeholder="Enter Sort Order"
                       name='sort_order'
-                      value={editFormData.sort_order}
-                      // isInvalid={!!showValidationError.module_name}
+                      value={editFormData.sort_order || ''}
+                      isInvalid={!!showValidationError.sort_order}
                       onChange={handleEditFormChange}
 
                     />
@@ -442,14 +447,32 @@ const MenuEditForm = () => {
                     <div className="form-check mt-3">
                       <input
                         className="form-check-input border-dark"
-                        name='top_menu'
+                        name='is_top_menu'
                         type="checkbox"
-                        id="flexCheckChecked"
-                        onChange={(e) => setEditFormData({ ...editFormData, top_menu: e.target.checked })}
+                        checked= {editFormData.is_top_menu}
+                        onChange={(e) => setEditFormData({ ...editFormData, is_top_menu: e.target.checked })}
                       />
                       <Form.Label>Top Menu?</Form.Label>
                     </div>
 
+                  </Form.Group>
+                </Row>
+
+                <Row className="mb-4">
+                  <Form.Group as={Col} md="4" controlId="validationCustom01">
+                    <Form.Label>Route Name <span className='text-danger ms-1'></span></Form.Label>
+                    <Form.Control
+                      required
+                      type="text"
+                      className='border-dark'
+                      placeholder="Enter menu name"
+                      name='route_name'
+                      value={editFormData.route_name}
+                      onChange={handleEditFormChange}
+                      isInvalid={!!showValidationError.route_name}
+
+                    />
+                    <Form.Control.Feedback type='invalid'>{showValidationError.route_name}</Form.Control.Feedback>
                   </Form.Group>
                 </Row>
 

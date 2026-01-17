@@ -79,8 +79,8 @@ const DoctorsInfoForm = () => {
   const [getSPlookupData, setSPlookupData] = useState([]);
   const [getDGlookupData, setGDlookupdata] = useState([]);
 
-  console.log("SP",getSPlookupData)
-  console.log("DG",getDGlookupData)
+  // console.log("SP",getSPlookupData)
+  // console.log("DG",getDGlookupData)
 
 
 

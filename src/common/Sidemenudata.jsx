@@ -221,8 +221,117 @@ export default getMenu;
 
 
 
+const getRequiredPermissionFromPath = (path) => {
+  if (path.includes('create')) return 'create';
+  if (path.includes('edit')) return 'edit';
+  if (path.includes('single') || path.includes('dataTable')) return 'view';
+  return 'view';
+};
 
 
+/**
+ * Checks whether the user has permission to access the current URL.
+ */
+export const hasRoutePermission = async (currentPath) => {
+    // 1. Menu Data Load (async)
+    let menuItems;
+    try {
+        menuItems = await getMenuAsync(); // await use
+    } catch (error) {
+        console.error('Menu load failed in permission check:', error);
+        return false;
+    }
+
+    // 2. Get Base URL and Clean
+    const baseURL = String(import.meta.env.BASE_URL || '/').replace(/\/$/, "");
+    const basePath = baseURL === '/' ? '' : baseURL;
+    
+    // 3. Clean Curent Path
+    let cleanCurrentPath = currentPath;
+
+    console.log(cleanCurrentPath)
+    
+    // Base URL ***Remove***
+    if (baseURL !== '/' && cleanCurrentPath.startsWith(baseURL)) {
+        cleanCurrentPath = cleanCurrentPath.slice(baseURL.length) || '/';
+    }
+    
+    // End /Slash remove
+    cleanCurrentPath = cleanCurrentPath.replace(/\/$/, "") || '/';
+
+    // 4. Commn path for all user
+    const allowedPaths = [
+        '/dashboard',
+        '/profile',
+        '/login',
+        '/',
+        '/logout',
+        '/404',
+        '/unauthorized',
+        '/role'
+    ];
+
+    if (allowedPaths.includes(cleanCurrentPath)) {
+        return true;
+    }
+    
+
+    // ৫. Exect Path Clean (API Load with menu)
+    const checkRecursive = (items) => {
+        for (let item of items) {
+            if (item.path) {
+                // Item Path clean
+                let itemPath = item.path;
+                
+                // Base URL Remove
+                if (baseURL !== '/' && itemPath.startsWith(baseURL)) {
+                    itemPath = itemPath.slice(baseURL.length) || '/';
+                }
+                
+                // Exect metch (dataTable With)
+                if (cleanCurrentPath === itemPath) {
+                    return true;
+                }
+                
+                // Module base access check
+                // Exm: /user/createform, /user/edit/5 etc
+                const moduleBasePath = itemPath.replace(/\/dataTable$/, "");
+                const requiredPermission = getRequiredPermissionFromPath(cleanCurrentPath);
+                    if (cleanCurrentPath.startsWith(moduleBasePath) && item.permissions?.includes(requiredPermission)) {
+                        return true;
+                    }
+                console.log(moduleBasePath)
+                console.log(requiredPermission)
+                console.log({itemPermissions: item.permissions})
+            }
+            
+            // Sub-menu Check
+            if (item.children && Array.isArray(item.children)) {
+                if (checkRecursive(item.children)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    
+
+    // STATIC_PARTS Only menu Item felter
+    const menuItemsWithoutTitles = menuItems.filter(item => !item.menutitle);
+    
+
+    return checkRecursive(menuItemsWithoutTitles);
+};
+
+
+
+// console.log({
+//   path: cleanCurrentPath,
+//   module: moduleBasePath,
+//   requiredPermission,
+//   itemPermissions: item.permissions
+// });
 
 
 
