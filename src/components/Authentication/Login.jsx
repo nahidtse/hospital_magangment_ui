@@ -86,7 +86,7 @@ function Login() {
       });
 
       const response = await result.json();
-      console.log(response);
+      // console.log(response);
       // return;
 
       if (response.status == 'success') {

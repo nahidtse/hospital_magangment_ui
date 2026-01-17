@@ -1,26 +1,3 @@
-// import React from 'react';
-// import { Navigate } from 'react-router-dom';
-
-// const PrivateRoute = ({ children }) => {
-    
-//   const token = localStorage.getItem('auth_token');
-//   const expiry = localStorage.getItem('auth_token_expiry');
-  
-//   // if !token → login page redirect
-//   if (!token || (expiry && Date.now() > expiry)) {
-//   localStorage.clear(); // remove expired token
-//   return <Navigate to="/login" replace />;
-//   }
-
-//   return children;
-// };
-
-// export default PrivateRoute;
-
-
-
-
-
 import { Navigate, useLocation } from 'react-router-dom';
 import { hasRoutePermission } from '../../common/Sidemenudata';
 import { useEffect, useState } from 'react';
@@ -30,47 +7,62 @@ const PrivateRoute = ({ children }) => {
     const [hasAccess, setHasAccess] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const token = localStorage.getItem('auth_token');
+    const expiry = localStorage.getItem('auth_token_expiry');
+    const baseURL = import.meta.env.BASE_URL;
+
     useEffect(() => {
-        checkAccess();
-    }, [location.pathname]);
+        const checkAccess = async () => {
+            setLoading(true);
+            
+            // 1. First Check Token
+            if (!token || (expiry && Date.now() > Number(expiry))) {
+                localStorage.clear();
+                setHasAccess('LOGIN'); // go back login page
+                setLoading(false);
+                return;
+            }
 
-    const checkAccess = async () => {
-        setLoading(true);
-        
-        //Auth Token check
-        const token = localStorage.getItem('auth_token');
-        const expiry = localStorage.getItem('auth_token_expiry');
+            // 2. if current path dashboard, without permission show dashboard
+            const cleanPath = location.pathname.replace(/\/$/, "");
+            const dashboardPath = `${baseURL}dashboard`.replace(/\/+$/, "");
 
-        if (!token || (expiry && Date.now() > Number(expiry))) {
-            localStorage.clear();
-            setHasAccess(false);
+            if (cleanPath === dashboardPath || cleanPath === baseURL.replace(/\/$/, "")) {
+                setHasAccess(true);
+                setLoading(false);
+                return;
+            }
+
+            // 3. Dynamic Permission Check for user route
+            try {
+                const hasPermission = await hasRoutePermission(location.pathname);
+                setHasAccess(hasPermission);
+            } catch (error) {
+                console.error('Permission check error:', error);
+                setHasAccess(false);
+            }
+            
             setLoading(false);
-            return;
-        }
+        };
 
-        //Role-based route access check
-        try {
-            const hasPermission = await hasRoutePermission(location.pathname);
-            setHasAccess(hasPermission);
-        } catch (error) {
-            console.error('Permission check error:', error);
-            setHasAccess(false);
-        }
-        
-        setLoading(false);
-    };
+        checkAccess();
+    }, [location.pathname]); // Only path change then run
 
     if (loading) {
-        return <div>Loading...to Protected Route</div>; // loading component
+        return <div className="text-center mt-5">Checking Permissions... Private Route</div>;
     }
 
-    if (!hasAccess) {
-        // no access go to dashboard
-        return <Navigate to="/dashboard" replace state={{ from: location.pathname }} />;
+    // If Not Login
+    if (hasAccess === 'LOGIN' || !token) {
+        return <Navigate to="/login" replace />;
+    }
+
+    // If Not Permited
+    if (hasAccess === false) {
+        return <Navigate to={`${baseURL}dashboard`} replace />;
     }
 
     return children;
 };
 
 export default PrivateRoute;
-
