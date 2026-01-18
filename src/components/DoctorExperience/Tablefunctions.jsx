@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import RoleEditForm from "./DoctorExperienceEditForm";
 import SingleTableFunction from "./SingleTableFunction";
 import DoctorExperienceEditForm from "./DoctorExperienceEditForm";
+import { hasButtonPermission } from '../../common/utils/hasButtonPermission';
 const basURL = import.meta.env.VITE_API_BASE_URL;
 
 
@@ -58,7 +59,7 @@ export const COLUMNS = [
     },
 ];
 
-export const DATATABLE = (doctorExperience, handlers) =>
+export const DATATABLE = (doctorExperience, handlers, permissions) =>
     doctorExperience.map((experience, id) => ({
         id: id + 1,
         doctorename: experience.doctor.doctor_name || "Doctor Name",
@@ -73,15 +74,21 @@ export const DATATABLE = (doctorExperience, handlers) =>
         status: experience.is_active == 1 ? "Active" : "Inactive",
         action: (
             <>
-                <span onClick={() => handlers.handleShowDataById(experience)}  className="btn-sm bg-info" style={{ cursor: "pointer" }}>
-                <i className="bi bi-eye"></i>
-                </span>
-                <span onClick={() => handlers.handleEditDataById(experience)} className="btn-sm bg-primary ms-2" style={{ cursor: "pointer" }}>
-                    <i className="bi bi-pencil"></i>
-                </span>
-                <span onClick={() => handlers.deletePermissionAlert(experience.id)} className="btn-sm bg-danger ms-2" style={{ cursor: "pointer" }}>
-                    <i className="bi bi-trash"></i>
-                </span>
+                {permissions.canView && (
+                    <span onClick={() => handlers.handleShowDataById(experience)}  className="btn-sm bg-info" style={{ cursor: "pointer" }}>
+                        <i className="bi bi-eye"></i>
+                    </span>
+                )}
+                {permissions.canEdit && (
+                    <span onClick={() => handlers.handleEditDataById(experience)} className="btn-sm bg-primary ms-2" style={{ cursor: "pointer" }}>
+                        <i className="bi bi-pencil"></i>
+                    </span>
+                )}
+                {permissions.canDelete && (
+                    <span onClick={() => handlers.deletePermissionAlert(experience.id)} className="btn-sm bg-danger ms-2" style={{ cursor: "pointer" }}>
+                        <i className="bi bi-trash"></i>
+                    </span>
+                )}
             </>
         )
     }));
@@ -111,6 +118,20 @@ export const BasicTable = () => {
         return;
     }
   //*********Check Authentication End***********
+
+    //**********Permission Base Button Hide & Show Start************/
+        const [canCreate, setCanCreate] = useState(false);
+        const [canView, setCanView] = useState(false);
+        const [canEdit, setCanEdit] = useState(false);
+        const [canDelete, setCanDelete] = useState(false);
+
+        useEffect(() => {
+            hasButtonPermission('doctorexperience', 'view').then(setCanView);
+            hasButtonPermission('doctorexperience', 'edit').then(setCanEdit);
+            hasButtonPermission('doctorexperience', 'delete').then(setCanDelete);
+            hasButtonPermission('doctorexperience', 'create').then(setCanCreate);
+        }, []);
+    //**********Permission Base Button Hide & Show End************/
 
 
     const [showData, setShowData] = useState(false);
@@ -249,12 +270,18 @@ export const BasicTable = () => {
 
     
 
-    const dataTable = useMemo(() => DATATABLE(doctorExperience, {
-        handleShowDataById,
-        deletePermissionAlert,
-        handleEditDataById
-
-    }), [doctorExperience]);
+    const dataTable = useMemo(() => DATATABLE(doctorExperience, 
+        {
+            handleShowDataById,
+            deletePermissionAlert,
+            handleEditDataById
+        },
+        {
+            canView,
+            canEdit,
+            canDelete
+        }
+    ), [doctorExperience, canView, canEdit, canDelete]);
 
 
 
@@ -298,11 +325,15 @@ export const BasicTable = () => {
                                 <Card.Header className="justify-content-between">
                                     <div className='card-title'>List</div>
                                     <div className="prism-toggle">
-                                        <Link to={`${import.meta.env.BASE_URL}doctorexperience/createform`} state={{doctorExperience}}><button
-                                            type="button"
-                                            className="btn btn-sm btn-primary"> New
-                                        </button>
+                                        {
+                                            canCreate && (
+                                                <Link to={`${import.meta.env.BASE_URL}doctorexperience/createform`} state={{doctorExperience}}><button
+                                                type="button"
+                                                className="btn btn-sm btn-primary"> Create
+                                            </button>
                                         </Link>
+                                            )
+                                        }
                                     </div>
 
                                 </Card.Header>
