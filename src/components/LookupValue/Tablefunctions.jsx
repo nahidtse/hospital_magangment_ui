@@ -1,4 +1,4 @@
-import { Button, Card, Col, Row, Table } from "react-bootstrap";
+import { Button, Card, Col, OverlayTrigger, Row, Table, Tooltip } from "react-bootstrap";
 import { useTable, useSortBy, useGlobalFilter, usePagination, } from "react-table";
 import { useEffect, useMemo, useState } from "react";
 
@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import RoleEditForm from "./LookupValueEditForm";
 import SingleTableFunction from "./SingleTableFunction";
 import PermissionEditForm from "./LookupValueEditForm";
+import { hasButtonPermission } from "../../common/utils/hasButtonPermission";
 const basURL = import.meta.env.VITE_API_BASE_URL;
 
 
@@ -38,7 +39,7 @@ export const COLUMNS = [
     },
 ];
 
-export const DATATABLE = (contacts = [], handlers) =>
+export const DATATABLE = (contacts = [], handlers, permission) =>
     contacts.length > 0 ? contacts.map((contact, id) => ({
         id: id + 1,
         lookupvalue: contact.lookup_value || "Lookup Value Name", 
@@ -47,15 +48,27 @@ export const DATATABLE = (contacts = [], handlers) =>
         status: contact.is_active == 1 ? "Active" : "Inactive",
         action: (
             <>
-            <span onClick={() => handlers.handleShowDataById(contact)}  className="btn-sm bg-info" style={{ cursor: "pointer" }}>
-                <i className="bi bi-eye"></i>
-            </span>
-            <span onClick={() => handlers.handleEditDataById(contact)} className="btn-sm bg-primary ms-2" style={{ cursor: "pointer" }}>
-                <i className="bi bi-pencil"></i>
-            </span>
-            <span onClick={() => handlers.deletePermissionAlert(contact.id)} className="btn-sm bg-danger ms-2" style={{ cursor: "pointer" }}>
-                <i className="bi bi-trash"></i>
-            </span>
+                {permission.canView && 
+                    <OverlayTrigger placement="top" overlay={<Tooltip>View</Tooltip>}>
+                        <span onClick={() => handlers.handleShowDataById(contact)}  className="btn-sm bg-info" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-eye"></i>
+                        </span>
+                    </OverlayTrigger>
+                }
+                { permission.canEdit && 
+                    <OverlayTrigger placement="top" overlay={<Tooltip>Edit</Tooltip>}>
+                        <span onClick={() => handlers.handleEditDataById(contact)} className="btn-sm bg-primary ms-2" style={{ cursor: "pointer" }}>
+                        <i className="bi bi-pencil"></i>
+                    </span>
+                    </OverlayTrigger>
+                }
+                { permission.canDelete && 
+                    <OverlayTrigger placement="top" overlay={<Tooltip>Delete</Tooltip>}>
+                        <span onClick={() => handlers.deletePermissionAlert(contact.id)} className="btn-sm bg-danger ms-2" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-trash"></i>
+                        </span>
+                    </OverlayTrigger>
+                }
             </>
         )
     })) : [];
@@ -75,6 +88,31 @@ export const GlobalFilter = ({ filter, setFilter }) => {
 
 export const BasicTable = () => {
 
+  //*********Check Authentication Start***********
+    const token = localStorage.getItem('auth_token'); //Check Authentication
+    const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+    if (!token || (expiry && Date.now() > Number(expiry))) {
+        localStorage.clear();
+        window.location.href = "/login";
+        return;
+    }
+  //*********Check Authentication End***********
+
+  //**********Permission Base Button Hide & Show Start************/
+    const [canCreate, setCanCreate] = useState(false);
+    const [canView, setCanView] = useState(false);
+    const [canEdit, setCanEdit] = useState(false);
+    const [canDelete, setCanDelete] = useState(false);
+
+    useEffect(() => {
+        hasButtonPermission('lookupvalue', 'view').then(setCanView);
+        hasButtonPermission('lookupvalue', 'edit').then(setCanEdit);
+        hasButtonPermission('lookupvalue', 'delete').then(setCanDelete);
+        hasButtonPermission('lookupvalue', 'create').then(setCanCreate);
+    }, []);
+  //**********Permission Base Button Hide & Show End************/
+
 
     const [showData, setShowData] = useState(false);
     const [contacts, setContacts] = useState([]);
@@ -82,8 +120,6 @@ export const BasicTable = () => {
     const [passEditFormData, setPassingEditFormData] = useState(null);
     // console.log(contacts);
 
-    //API Fetch
-    const token = localStorage.getItem('auth_token'); //Check Authentication
 
     const fetchItems = () => {
         fetch(`${basURL}/lookupvalue`, {
@@ -114,8 +150,6 @@ export const BasicTable = () => {
 
     /** Delete Handler */
     const handleDeleteClick = async (lookupValueId) => {
-
-        const token = localStorage.getItem('auth_token'); //Check Authentication
 
         try {
             const result = await fetch(`${basURL}/lookupvalue/destroy/${lookupValueId}`, {
@@ -209,12 +243,18 @@ export const BasicTable = () => {
     }
  
 
-    const dataTable = useMemo(() => DATATABLE(contacts, {
-        handleShowDataById,
-        deletePermissionAlert,
-        handleEditDataById
-
-    }), [contacts]);
+    const dataTable = useMemo(() => DATATABLE(contacts, 
+        {
+            handleShowDataById,
+            deletePermissionAlert,
+            handleEditDataById
+        },
+        {
+            canView,
+            canEdit,
+            canDelete
+        }
+    ), [contacts, canView, canEdit, canDelete]);
 
 
 
@@ -258,11 +298,16 @@ export const BasicTable = () => {
                                 <Card.Header className="justify-content-between">
                                     <div className='card-title'>List</div>
                                     <div className="prism-toggle">
-                                        <Link to={`${import.meta.env.BASE_URL}lookupvalue/createform`} state={{contacts}}><button
-                                            type="button"
-                                            className="btn btn-sm btn-primary"> New
-                                        </button>
-                                        </Link>
+                                        {canCreate && (
+                                            <Link to={`${import.meta.env.BASE_URL}lookupvalue/createform`} state={{contacts}}>
+                                                <OverlayTrigger placement="top" overlay={<Tooltip>Create</Tooltip>}> 
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-sm btn-primary"> New
+                                                    </button>
+                                                </OverlayTrigger>
+                                            </Link>
+                                        )}
                                     </div>
 
                                 </Card.Header>

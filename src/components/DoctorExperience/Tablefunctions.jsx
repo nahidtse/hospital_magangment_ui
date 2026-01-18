@@ -1,4 +1,4 @@
-import { Button, Card, Col, Row, Table } from "react-bootstrap";
+import { Button, Card, Col, OverlayTrigger, Row, Table, Tooltip } from "react-bootstrap";
 import { useTable, useSortBy, useGlobalFilter, usePagination, } from "react-table";
 import { useEffect, useMemo, useState } from "react";
 
@@ -75,19 +75,25 @@ export const DATATABLE = (doctorExperience, handlers, permissions) =>
         action: (
             <>
                 {permissions.canView && (
-                    <span onClick={() => handlers.handleShowDataById(experience)}  className="btn-sm bg-info" style={{ cursor: "pointer" }}>
-                        <i className="bi bi-eye"></i>
-                    </span>
+                    <OverlayTrigger placement="top" overlay={<Tooltip>View</Tooltip>}> 
+                        <span onClick={() => handlers.handleShowDataById(experience)}  className="btn-sm bg-info" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-eye"></i>
+                        </span>
+                    </OverlayTrigger> 
                 )}
                 {permissions.canEdit && (
-                    <span onClick={() => handlers.handleEditDataById(experience)} className="btn-sm bg-primary ms-2" style={{ cursor: "pointer" }}>
-                        <i className="bi bi-pencil"></i>
-                    </span>
+                    <OverlayTrigger placement="top" overlay={<Tooltip>Edit</Tooltip>}> 
+                        <span onClick={() => handlers.handleEditDataById(experience)} className="btn-sm bg-primary ms-2" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-pencil"></i>
+                        </span>
+                    </OverlayTrigger> 
                 )}
                 {permissions.canDelete && (
-                    <span onClick={() => handlers.deletePermissionAlert(experience.id)} className="btn-sm bg-danger ms-2" style={{ cursor: "pointer" }}>
-                        <i className="bi bi-trash"></i>
-                    </span>
+                    <OverlayTrigger placement="top" overlay={<Tooltip>Delete</Tooltip>}> 
+                        <span onClick={() => handlers.deletePermissionAlert(experience.id)} className="btn-sm bg-danger ms-2" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-trash"></i>
+                        </span>
+                    </OverlayTrigger> 
                 )}
             </>
         )
@@ -119,19 +125,19 @@ export const BasicTable = () => {
     }
   //*********Check Authentication End***********
 
-    //**********Permission Base Button Hide & Show Start************/
-        const [canCreate, setCanCreate] = useState(false);
-        const [canView, setCanView] = useState(false);
-        const [canEdit, setCanEdit] = useState(false);
-        const [canDelete, setCanDelete] = useState(false);
+  //**********Permission Base Button Hide & Show Start************/
+    const [canCreate, setCanCreate] = useState(false);
+    const [canView, setCanView] = useState(false);
+    const [canEdit, setCanEdit] = useState(false);
+    const [canDelete, setCanDelete] = useState(false);
 
-        useEffect(() => {
-            hasButtonPermission('doctorexperience', 'view').then(setCanView);
-            hasButtonPermission('doctorexperience', 'edit').then(setCanEdit);
-            hasButtonPermission('doctorexperience', 'delete').then(setCanDelete);
-            hasButtonPermission('doctorexperience', 'create').then(setCanCreate);
-        }, []);
-    //**********Permission Base Button Hide & Show End************/
+    useEffect(() => {
+        hasButtonPermission('doctorexperience', 'view').then(setCanView);
+        hasButtonPermission('doctorexperience', 'edit').then(setCanEdit);
+        hasButtonPermission('doctorexperience', 'delete').then(setCanDelete);
+        hasButtonPermission('doctorexperience', 'create').then(setCanCreate);
+    }, []);
+  //**********Permission Base Button Hide & Show End************/
 
 
     const [showData, setShowData] = useState(false);
@@ -327,11 +333,14 @@ export const BasicTable = () => {
                                     <div className="prism-toggle">
                                         {
                                             canCreate && (
-                                                <Link to={`${import.meta.env.BASE_URL}doctorexperience/createform`} state={{doctorExperience}}><button
-                                                type="button"
-                                                className="btn btn-sm btn-primary"> Create
-                                            </button>
-                                        </Link>
+                                                <Link to={`${import.meta.env.BASE_URL}doctorexperience/createform`} state={{doctorExperience}}>
+                                                    <OverlayTrigger placement="top" overlay={<Tooltip>Create</Tooltip>}> 
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-sm btn-primary"> New
+                                                        </button>
+                                                    </OverlayTrigger>
+                                                </Link>
                                             )
                                         }
                                     </div>

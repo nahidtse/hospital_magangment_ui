@@ -1,4 +1,4 @@
-import { Button, Card, Col, Row, Table } from "react-bootstrap";
+import { Button, Card, Col, OverlayTrigger, Row, Table, Tooltip } from "react-bootstrap";
 import { useTable, useSortBy, useGlobalFilter, usePagination, } from "react-table";
 import { useEffect, useMemo, useState } from "react";
 
@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import RoleEditForm from "./AppointmentEditForm";
 import SingleTableFunction from "./SingleTableFunction";
 import AppointmentEditForm from "./AppointmentEditForm";
+import { hasButtonPermission } from "../../common/utils/hasButtonPermission";
 const basURL = import.meta.env.VITE_API_BASE_URL;
 
 
@@ -54,7 +55,7 @@ export const COLUMNS = [
     },
 ];
 
-export const DATATABLE = (doctorAppointment, handlers) =>
+export const DATATABLE = (doctorAppointment, handlers, permission) =>
     doctorAppointment.map((appointment, id) => ({
         id: id + 1,
         doctorename: appointment.doctor.doctor_name || "Doctor Name",
@@ -66,15 +67,27 @@ export const DATATABLE = (doctorAppointment, handlers) =>
         mobile: appointment.mobile_no || "Mobile No",
         action: (
             <>
-                <span onClick={() => handlers.handleShowDataById(appointment)}  className="btn-sm bg-info" style={{ cursor: "pointer" }}>
-                <i className="bi bi-eye"></i>
-                </span>
-                <span onClick={() => handlers.handleEditDataById(appointment)} className="btn-sm bg-primary ms-2" style={{ cursor: "pointer" }}>
-                    <i className="bi bi-pencil"></i>
-                </span>
-                <span onClick={() => handlers.deletePermissionAlert(appointment.id)} className="btn-sm bg-danger ms-2" style={{ cursor: "pointer" }}>
-                    <i className="bi bi-trash"></i>
-                </span>
+                {permission.canView && 
+                    <OverlayTrigger placement="top" overlay={<Tooltip>View</Tooltip>}> 
+                        <span onClick={() => handlers.handleShowDataById(appointment)}  className="btn-sm bg-info" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-eye"></i>
+                        </span>
+                    </OverlayTrigger> 
+                }
+                {permission.canEdit && 
+                    <OverlayTrigger placement="top" overlay={<Tooltip>Edit</Tooltip>}> 
+                        <span onClick={() => handlers.handleEditDataById(appointment)} className="btn-sm bg-primary ms-2" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-pencil"></i>
+                        </span>
+                    </OverlayTrigger> 
+                }
+                { permission.canDelete && 
+                    <OverlayTrigger placement="top" overlay={<Tooltip>Delete</Tooltip>}> 
+                        <span onClick={() => handlers.deletePermissionAlert(appointment.id)} className="btn-sm bg-danger ms-2" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-trash"></i>
+                        </span>
+                    </OverlayTrigger> 
+                }
             </>
         )
     }));
@@ -104,6 +117,20 @@ export const BasicTable = () => {
         return;
     }
     //*********Check Authentication End***********
+
+    //**********Permission Base Button Hide & Show Start************/
+        const [canCreate, setCanCreate] = useState(false);
+        const [canView, setCanView] = useState(false);
+        const [canEdit, setCanEdit] = useState(false);
+        const [canDelete, setCanDelete] = useState(false);
+
+        useEffect(() => {
+            hasButtonPermission('appointment', 'view').then(setCanView);
+            hasButtonPermission('appointment', 'edit').then(setCanEdit);
+            hasButtonPermission('appointment', 'delete').then(setCanDelete);
+            hasButtonPermission('appointment', 'create').then(setCanCreate);
+        }, []);
+    //**********Permission Base Button Hide & Show End************/
 
 
     const [showData, setShowData] = useState(false);
@@ -242,12 +269,18 @@ export const BasicTable = () => {
 
     
 
-    const dataTable = useMemo(() => DATATABLE(doctorAppointment, {
-        handleShowDataById,
-        deletePermissionAlert,
-        handleEditDataById
-
-    }), [doctorAppointment]);
+    const dataTable = useMemo(() => DATATABLE(doctorAppointment, 
+        {
+            handleShowDataById,
+            deletePermissionAlert,
+            handleEditDataById
+        },
+        {
+            canView,
+            canEdit,
+            canDelete
+        }
+    ), [doctorAppointment, canView, canEdit, canDelete]);
 
 
 
@@ -291,11 +324,16 @@ export const BasicTable = () => {
                                 <Card.Header className="justify-content-between">
                                     <div className='card-title'>List</div>
                                     <div className="prism-toggle">
-                                        <Link to={`${import.meta.env.BASE_URL}appointment/createform`} state={{doctorAppointment}}><button
-                                            type="button"
-                                            className="btn btn-sm btn-primary"> New
-                                        </button>
-                                        </Link>
+                                        {canCreate && (
+                                            <Link to={`${import.meta.env.BASE_URL}appointment/createform`} state={{doctorAppointment}}>
+                                                <OverlayTrigger placement="top" overlay={<Tooltip>Create</Tooltip>}> 
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-sm btn-primary"> New
+                                                    </button>
+                                                </OverlayTrigger>
+                                            </Link>
+                                        )}
                                     </div>
 
                                 </Card.Header>

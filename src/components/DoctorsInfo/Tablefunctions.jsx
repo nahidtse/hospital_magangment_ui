@@ -1,4 +1,4 @@
-import { Button, Card, Col, Row, Table } from "react-bootstrap";
+import { Button, Card, Col, OverlayTrigger, Row, Table, Tooltip } from "react-bootstrap";
 import { useTable, useSortBy, useGlobalFilter, usePagination, } from "react-table";
 import { useEffect, useMemo, useState } from "react";
 
@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import SingleTableFunction from "./DoctorsProfile";
 import DoctorsInfoEditForm from "./DoctorInfoEditForm";
+import { hasButtonPermission } from "../../common/utils/hasButtonPermission";
 const basURL = import.meta.env.VITE_API_BASE_URL;
 
 
@@ -41,7 +42,7 @@ export const COLUMNS = [
     },
 ];
 
-export const DATATABLE = (doctorData, handlers) =>
+export const DATATABLE = (doctorData, handlers, permission) =>
     doctorData.map((doctor, id) => ({
         id: id + 1,
         doctorename: doctor.doctor_name || "Doctor Name", 
@@ -50,15 +51,27 @@ export const DATATABLE = (doctorData, handlers) =>
         status: doctor.is_active == 1 ? "Active" : "Inactive",
         action: (
             <>
-                <span onClick={() => handlers.handleShowDataById(doctor)}  className="btn-sm bg-info" style={{ cursor: "pointer" }}>
-                <i className="bi bi-eye"></i>
-                </span>
-                <span onClick={() => handlers.handleEditDataById(doctor)} className="btn-sm bg-primary ms-2" style={{ cursor: "pointer" }}>
-                    <i className="bi bi-pencil"></i>
-                </span>
-                <span onClick={() => handlers.deletePermissionAlert(doctor.id)} className="btn-sm bg-danger ms-2" style={{ cursor: "pointer" }}>
-                    <i className="bi bi-trash"></i>
-                </span>
+                { permission.canView &&
+                    <OverlayTrigger placement="top" overlay={<Tooltip>View</Tooltip>}> 
+                        <span onClick={() => handlers.handleShowDataById(doctor)}  className="btn-sm bg-info" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-eye"></i>
+                        </span>
+                    </OverlayTrigger> 
+                }
+                { permission.canEdit &&
+                    <OverlayTrigger placement="top" overlay={<Tooltip>Edit</Tooltip>}> 
+                        <span onClick={() => handlers.handleEditDataById(doctor)} className="btn-sm bg-primary ms-2" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-pencil"></i>
+                        </span>
+                    </OverlayTrigger> 
+                }
+                { permission.canDelete &&
+                    <OverlayTrigger placement="top" overlay={<Tooltip>Delete</Tooltip>}> 
+                        <span onClick={() => handlers.deletePermissionAlert(doctor.id)} className="btn-sm bg-danger ms-2" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-trash"></i>
+                        </span>
+                    </OverlayTrigger> 
+                }
             </>
         )
     }));
@@ -88,6 +101,21 @@ export const BasicTable = () => {
         return;
     }
     //*********Check Authentication End***********
+
+    //**********Permission Base Button Hide & Show Start************/
+        const [canCreate, setCanCreate] = useState(false);
+        const [canView, setCanView] = useState(false);
+        const [canEdit, setCanEdit] = useState(false);
+        const [canDelete, setCanDelete] = useState(false);
+    
+        useEffect(() => {
+            hasButtonPermission('doctorsinfo', 'view').then(setCanView);
+            hasButtonPermission('doctorsinfo', 'edit').then(setCanEdit);
+            hasButtonPermission('doctorsinfo', 'delete').then(setCanDelete);
+            hasButtonPermission('doctorsinfo', 'create').then(setCanCreate);
+        }, []);
+    //**********Permission Base Button Hide & Show End************/
+
 
     const [showData, setShowData] = useState(false);
     const [doctorData, setDoctorData] = useState([]);
@@ -219,12 +247,18 @@ export const BasicTable = () => {
 
 
 
-    const dataTable = useMemo(() => DATATABLE(doctorData, {
-        handleShowDataById,
-        deletePermissionAlert,
-        handleEditDataById
-
-    }), [doctorData]);
+    const dataTable = useMemo(() => DATATABLE(doctorData, 
+        {
+            handleShowDataById,
+            deletePermissionAlert,
+            handleEditDataById
+        },
+        {
+            canView,
+            canEdit,
+            canDelete
+        }
+    ), [doctorData, canView, canEdit, canDelete]);
 
 
 
@@ -268,11 +302,16 @@ export const BasicTable = () => {
                                 <Card.Header className="justify-content-between">
                                     <div className='card-title'>List</div>
                                     <div className="prism-toggle">
-                                        <Link to={`${import.meta.env.BASE_URL}doctorsinfo/createform`} state={{doctorData}}><button
-                                            type="button"
-                                            className="btn btn-sm btn-primary"> New
-                                        </button>
-                                        </Link>
+                                        { canCreate && (
+                                            <Link to={`${import.meta.env.BASE_URL}doctorsinfo/createform`} state={{doctorData}}>
+                                                <OverlayTrigger placement="top" overlay={<Tooltip>Create</Tooltip>}> 
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-sm btn-primary"> New
+                                                    </button>
+                                                </OverlayTrigger>
+                                            </Link>
+                                        )}
                                     </div>
 
                                 </Card.Header>

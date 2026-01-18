@@ -1,4 +1,4 @@
-import { Button, Card, Col, Row, Table } from "react-bootstrap";
+import { Button, Card, Col, OverlayTrigger, Row, Table, Tooltip } from "react-bootstrap";
 import { useTable, useSortBy, useGlobalFilter, usePagination, } from "react-table";
 import { useEffect, useMemo, useState } from "react";
 
@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import RoleEditForm from "./LeaveInfoEditForm";
 import SingleTableFunction from "./SingleTableFunction";
 import DoctorExperienceEditForm from "./LeaveInfoEditForm";
+import { hasButtonPermission } from "../../common/utils/hasButtonPermission";
 const basURL = import.meta.env.VITE_API_BASE_URL;
 
 
@@ -58,7 +59,7 @@ export const COLUMNS = [
     },
 ];
 
-export const DATATABLE = (doctorLeave, handlers) =>
+export const DATATABLE = (doctorLeave, handlers, permission) =>
     doctorLeave.map((leave, id) => ({
         id: id + 1,
         doctorename: leave.doctor.doctor_name || "Doctor Name",
@@ -72,15 +73,27 @@ export const DATATABLE = (doctorLeave, handlers) =>
         status: leave.is_active == 1 ? "Active" : "Inactive",
         action: (
             <>
-                <span onClick={() => handlers.handleShowDataById(leave)}  className="btn-sm bg-info" style={{ cursor: "pointer" }}>
-                <i className="bi bi-eye"></i>
-                </span>
-                <span onClick={() => handlers.handleEditDataById(leave)} className="btn-sm bg-primary ms-2" style={{ cursor: "pointer" }}>
-                    <i className="bi bi-pencil"></i>
-                </span>
-                <span onClick={() => handlers.deletePermissionAlert(leave.id)} className="btn-sm bg-danger ms-2" style={{ cursor: "pointer" }}>
-                    <i className="bi bi-trash"></i>
-                </span>
+                {permission.canView &&
+                    <OverlayTrigger placement="top" overlay={<Tooltip>View</Tooltip>}> 
+                        <span onClick={() => handlers.handleShowDataById(leave)}  className="btn-sm bg-info" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-eye"></i>
+                        </span>
+                    </OverlayTrigger>  
+                }
+                { permission.canEdit && 
+                    <OverlayTrigger placement="top" overlay={<Tooltip>Edit</Tooltip>}> 
+                        <span onClick={() => handlers.handleEditDataById(leave)} className="btn-sm bg-primary ms-2" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-pencil"></i>
+                        </span>
+                    </OverlayTrigger> 
+                }
+                { permission.canDelete && 
+                    <OverlayTrigger placement="top" overlay={<Tooltip>Delete</Tooltip>}> 
+                        <span onClick={() => handlers.deletePermissionAlert(leave.id)} className="btn-sm bg-danger ms-2" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-trash"></i>
+                        </span>
+                    </OverlayTrigger> 
+                }
             </>
         )
     }));
@@ -110,6 +123,20 @@ export const BasicTable = () => {
         return;
     }
   //*********Check Authentication End***********
+
+  //**********Permission Base Button Hide & Show Start************/
+    const [canCreate, setCanCreate] = useState(false);
+    const [canView, setCanView] = useState(false);
+    const [canEdit, setCanEdit] = useState(false);
+    const [canDelete, setCanDelete] = useState(false);
+
+    useEffect(() => {
+        hasButtonPermission('leaveinfo', 'view').then(setCanView);
+        hasButtonPermission('leaveinfo', 'edit').then(setCanEdit);
+        hasButtonPermission('leaveinfo', 'delete').then(setCanDelete);
+        hasButtonPermission('leaveinfo', 'create').then(setCanCreate);
+    }, []);
+  //**********Permission Base Button Hide & Show End************/
 
 
     const [showData, setShowData] = useState(false);
@@ -248,12 +275,18 @@ export const BasicTable = () => {
 
     
 
-    const dataTable = useMemo(() => DATATABLE(doctorLeave, {
-        handleShowDataById,
-        deletePermissionAlert,
-        handleEditDataById
-
-    }), [doctorLeave]);
+    const dataTable = useMemo(() => DATATABLE(doctorLeave, 
+        {
+            handleShowDataById,
+            deletePermissionAlert,
+            handleEditDataById
+        },
+        {
+            canView,
+            canEdit,
+            canDelete
+        }
+    ), [doctorLeave, canView, canEdit, canDelete]);
 
 
 
@@ -297,11 +330,16 @@ export const BasicTable = () => {
                                 <Card.Header className="justify-content-between">
                                     <div className='card-title'>List</div>
                                     <div className="prism-toggle">
-                                        <Link to={`${import.meta.env.BASE_URL}leaveinfo/createform`} state={{doctorLeave}}><button
-                                            type="button"
-                                            className="btn btn-sm btn-primary"> New
-                                        </button>
-                                        </Link>
+                                        {canCreate && (
+                                            <Link to={`${import.meta.env.BASE_URL}leaveinfo/createform`} state={{doctorLeave}}>
+                                                <OverlayTrigger placement="top" overlay={<Tooltip>Create</Tooltip>}> 
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-sm btn-primary"> New
+                                                    </button>
+                                                </OverlayTrigger>
+                                            </Link>
+                                        )}
                                     </div>
 
                                 </Card.Header>
