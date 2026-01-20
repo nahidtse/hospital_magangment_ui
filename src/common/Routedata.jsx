@@ -63,8 +63,8 @@ import PermissionEditForm from "../components/Permission/PermissionEditForm";
 import MenuEditForm from "../components/MenuCreate/MenuEditForm";
 import RoleEditForm from "../components/Role/RoleEditForm";
 import RoleSingleTableFunction from "../components/Role/RoleSingleTableFunction";
-import BusinessUnitTables from "../components/businessunit/BusinessUnitTables";
-import BusinessUnitForm from "../components/businessunit/BusinessUnitForm";
+import BusinessUnitTables from "../components/BusinessUnit/BusinessUnitTables";
+import BusinessUnitForm from "../components/BusinessUnit/BusinessUnitForm";
 
 
 export const Routedata = [
