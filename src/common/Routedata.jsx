@@ -63,7 +63,7 @@ import PermissionEditForm from "../components/Permission/PermissionEditForm";
 import MenuEditForm from "../components/MenuCreate/MenuEditForm";
 import RoleEditForm from "../components/Role/RoleEditForm";
 import RoleSingleTableFunction from "../components/Role/RoleSingleTableFunction";
-import BusinessUnitTables from "../components/BusinessUnit/BusinessUnitTables";
+// import BusinessUnitTables from "../components/BusinessUnit/BusinessUnitTables";
 
 
 export const Routedata = [
@@ -171,7 +171,7 @@ export const Routedata = [
   { id: 110, path: `${import.meta.env.BASE_URL}hr/LeaveInfoTables`, element: <LeaveInfoTables /> },
 
   // Business Unit
-  { id: 111, path: `${import.meta.env.BASE_URL}businessunit/dataTable`, element:  <BusinessUnitTables />},
+  // { id: 111, path: `${import.meta.env.BASE_URL}businessunit/dataTable`, element:  <BusinessUnitTables />},
   // { id: 111, path: `${import.meta.env.BASE_URL}businessunit/createform`, element: <BusinessUnitForm /> },
 
   // Module
