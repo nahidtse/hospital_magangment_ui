@@ -8,7 +8,7 @@ import RoleEditForm from "./AppointmentEditForm";
 import SingleTableFunction from "./SingleTableFunction";
 import AppointmentEditForm from "./AppointmentEditForm";
 import { hasButtonPermission } from "../../common/utils/hasButtonPermission";
-const basURL = import.meta.env.VITE_API_BASE_URL;
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
 // ******************************************************
@@ -18,40 +18,46 @@ const basURL = import.meta.env.VITE_API_BASE_URL;
 
 export const COLUMNS = [
     {
-        Header: "#",
+        Header: (<div className="text-center">{"#"}</div>),
         accessor: "id",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
     {
-        Header: "Doctor's Name",
+        Header: (<div className="text-center">{"Doctor's Name"}</div>),
         accessor: "doctorename",
     },
     {
-        Header: "BMDC No",
+        Header: (<div className="text-center">{"BMDC No"}</div>),
         accessor: "bmdcno",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
     {
-        Header: "Speciality",
+        Header: (<div className="text-center">{"Speciality"}</div>),
         accessor: "speciality",
     },
     {
-        Header: "Appointment Date",
+        Header: (<div className="text-center">{"Appointment Date"}</div>),
         accessor: "appointment_date",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
     {
-        Header: "Days",
+        Header: (<div className="text-center">{"Days"}</div>),
         accessor: "daytime",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
     {
-        Header: "Patient Name",
+        Header: (<div className="text-center">{"Patient Name"}</div>),
         accessor: "patient_name",
     },
     {
-        Header: "Mobile No",
+        Header: (<div className="text-center">{"Mobile No"}</div>),
         accessor: "mobile",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
     {
-        Header: "Actions",
+        Header: (<div className="text-center">{"Actions"}</div>),
         accessor: "action",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
 ];
 
@@ -141,7 +147,7 @@ export const BasicTable = () => {
 
 
     const fetchItems = () => {
-        fetch(`${basURL}/appointment`, {
+        fetch(`${baseURL}/appointment`, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`  // <-- must send token
@@ -171,7 +177,7 @@ export const BasicTable = () => {
     /** Delete Handler */
     const handleDeleteClick = async (appointmentId) => {
         try {
-            const result = await fetch(`${basURL}/appointment/destroy/${appointmentId}`, {
+            const result = await fetch(`${baseURL}/appointment/destroy/${appointmentId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -288,6 +294,7 @@ export const BasicTable = () => {
         {
             columns: COLUMNS,
             data: dataTable,
+            initialState: { pageSize: 100 },
         },
         useGlobalFilter,
         useSortBy,
@@ -322,7 +329,7 @@ export const BasicTable = () => {
                         <Col xl={12}>
                             <Card className="custom-card">
                                 <Card.Header className="justify-content-between">
-                                    <div className='card-title'>List</div>
+                                    <div className='card-title'>Appointment List</div>
                                     <div className="prism-toggle">
                                         {canCreate && (
                                             <Link to={`${import.meta.env.BASE_URL}appointment/createform`} state={{doctorAppointment}}>
@@ -346,7 +353,7 @@ export const BasicTable = () => {
                                             value={pageSize}
                                             onChange={(e) => setPageSize((e.target.value))}
                                         >
-                                            {[10, 25, 50, 100].map((pageSize) => (
+                                            {[100, 150, 200, 300].map((pageSize) => (
                                                 <option key={pageSize} value={pageSize}>
                                                     Show {pageSize}
                                                 </option>
@@ -354,8 +361,8 @@ export const BasicTable = () => {
                                         </select>
                                         <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
                                     </div>
-                                    <table {...getTableProps()} className="table table-hover mb-0 table-bordered">
-                                        <thead>
+                                    <table {...getTableProps()} className="table table-sm table-primary table-striped table-hover mb-0 table-bordered">
+                                        <thead className="bg-primary">
                                             {headerGroups.map((headerGroup) => (
                                                 <tr {...headerGroup.getHeaderGroupProps()} key={Math.random()}>
                                                     {headerGroup.headers.map((column) => (
@@ -363,7 +370,7 @@ export const BasicTable = () => {
                                                             {...column.getHeaderProps(column.getSortByToggleProps())}
                                                             className={column.className} key={Math.random()}
                                                         >
-                                                            <span className="tabletitle">{column.render("Header")}</span>
+                                                            <span className="tabletitle text-white">{column.render("Header")}</span>
                                                             <span className="float-end">
                                                                 {column.isSorted ? (
                                                                     column.isSortedDesc ? (

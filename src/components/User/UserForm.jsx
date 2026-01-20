@@ -2,12 +2,14 @@ import { isAction } from '@reduxjs/toolkit';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { Form, Button, Card, Col, InputGroup, Row } from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Select from 'react-select';
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 const UserForm = () => {
+
+  const navigate = useNavigate();
 
   //-----------Focus Input Start-----------------------------------
     const referenceSelectRef = useRef(null);  //For auto fucus
@@ -29,6 +31,7 @@ const UserForm = () => {
   //*********Check Authentication Start***********
     const token = localStorage.getItem('auth_token'); //Check Authentication
     const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+    const user_id = localStorage.getItem('user_id') // for created by
 
     if (!token || (expiry && Date.now() > Number(expiry))) {
       localStorage.clear();
@@ -48,6 +51,9 @@ const UserForm = () => {
     role_id: '',
     password: '',
     password_confirmation: '',
+    user_type_id: '',
+    doctors_id: [],
+    bu_id: []
   });
 
   // Get Six Months From Current Day
@@ -68,7 +74,10 @@ const UserForm = () => {
     role_id: '',
     password: '',
     password_confirmation: '',
-    is_active: true
+    is_active: true,
+    user_type_id: '',  //user_type_id:- 1=SuperAdmin, 2=Admin, 3=BU, 4=Doctor, 5=Attandant, 6=Patient
+    doctors_id: [],
+    bu_id: []   //bu_id -> business unit id
   })
 
   // console.log(addFormData)
@@ -76,6 +85,9 @@ const UserForm = () => {
   const [fromDate, setFromDate] = useState();
   const [toDate, setToDate] = useState();
   const [userRoles, setUserRoles] = useState([]); //For Select
+  const [userType, setUserType] = useState([]); //For Select User Type
+  const [doctors, setDoctors] = useState([]); //For Select Doctors
+  const [businessUnit, setBusinessUnite] = useState([]) // for react select business unit
   //Calender Open
   const [isOpenFormDate, setIsOpenFormDate] = useState(false);
   const [isOpenToDate, setIsOpenToDate] = useState(false);
@@ -85,7 +97,7 @@ const UserForm = () => {
 
 
   const onChangeHandler = (event) => {
-    event.preventDefault();
+    
     const fieldName = event.target.getAttribute("name");
     const fieldValue = event.target.value;
 
@@ -161,6 +173,9 @@ const UserForm = () => {
     if (!addFormData.role_id) {
       errors.role_id = "Role Name is required.";
     }
+    if (!addFormData.user_type_id) {
+      errors.user_type_id = "User Type is required.";
+    }
     if (!addFormData.password.trim()) {
       errors.password = "Password is required.";
     } else if (addFormData.password.length < 6) {
@@ -170,6 +185,30 @@ const UserForm = () => {
       errors.password_confirmation = "Confirm Password is required.";
     } else if (addFormData.password != addFormData.password_confirmation) {
       errors.password_confirmation = "Password don't match!";
+    }
+    // Doctor validation (conditional)
+    if (addFormData.user_type_id === 4) {
+      if (!addFormData.doctors_id || addFormData.doctors_id.length === 0) {
+        errors.doctors_id = "Doctor Name is required.";
+      }
+    }
+
+    if (addFormData.user_type_id === 5) {
+      if (!addFormData.doctors_id || addFormData.doctors_id.length === 0) {
+        errors.doctors_id = "At least one Doctor is required.";
+      }
+    }
+    // Business Unit validation (conditional)
+    if (addFormData.user_type_id === 3) {
+      if (!addFormData.bu_id || addFormData.bu_id.length === 0) {
+        errors.bu_id = "Business Unit is required.";
+      }
+    }
+
+    if (addFormData.user_type_id === 2) {
+      if (!addFormData.bu_id || addFormData.bu_id.length === 0) {
+        errors.bu_id = "At least one Business Unit required.";
+      }
     }
 
 
@@ -197,9 +236,13 @@ const UserForm = () => {
         password: addFormData.password,
         password_confirmation: addFormData.password_confirmation,
         is_active: addFormData.is_active ? 1 : 0,
+        user_type_id: addFormData.user_type_id,
+        doctors_id: addFormData.doctors_id,
+        bu_id: addFormData.bu_id,
+        created_by: user_id
       }
 
-      // console.log(submitData)
+      console.log(submitData)
       // return
 
       const result = await fetch(`${baseURL}/user/create`, {
@@ -212,11 +255,13 @@ const UserForm = () => {
       });
 
       const response = await result.json();
-      console.log(response)
+      // console.log(response)
 
       if (response.status == 'success') {
         toast.success(response.message, { autoClose: 1000 });
         setIsSubmitting(false);
+
+        navigate("/user/dataTable")
 
         // Clear form
         setFormData({
@@ -229,8 +274,9 @@ const UserForm = () => {
           role_id: '',
           password: '',
           password_confirmation: '',
-          is_active: 1
-
+          is_active: 1,
+          user_type_id: '',
+          doctors_id: []
         });
         setValidationErrors({})
 
@@ -273,8 +319,10 @@ const UserForm = () => {
       role_id: '',
       password: '',
       password_confirmation: '',
-      is_active: 1
-
+      is_active: 1,
+      user_type_id: '',
+      doctors_id: [],
+      bu_id: []
     })
   }
 
@@ -302,17 +350,121 @@ const UserForm = () => {
       }));
   
       // react-select  onChange handler
-      const selectChange = (selectedOption) => {
+      const selectRoleChange = (selectedOption) => {
         setFormData(prev => ({
           ...prev,
           role_id: selectedOption? selectedOption.value : null
         }))
       };
-   //----------React Select User End--------
+   //----------React Select User End----------
+
+    //----------React Select User Type Start--------
+      useEffect(() => {
+        fetch(`${baseURL}/user_type`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`  // <-- must send token
+          }
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            setUserType(data.data);
+          })
+      }, [])
+  
+      const activeUserTypeOptions = userType.filter(type => type.is_active == 1).map(type => ({
+      value: type.id,
+      label: `${type.user_type}`
+      }));
+  
+      // react-select  onChange handler
+      const selectUserTypeChange = (selectedOption) => {
+        setFormData(prev => ({
+          ...prev,
+          user_type_id: selectedOption? selectedOption.value : null,
+          doctors_id: [],
+          bu_id: []
+        }))
+      };
+   //----------React Select User Type End--------
+
+    //----------React Select Doctor's Start--------
+      useEffect(() => {
+        fetch(`${baseURL}/doctors`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`  // <-- must send token
+          }
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            setDoctors(data.data);
+          })
+      }, [])
+  
+      const activeDoctorsOptions = doctors.filter(doctor => doctor.is_active == 1).map(doctor => ({
+        value: doctor.id,
+        label: `${doctor.doctor_name}`
+      }));
+  
+      // react-select  onChange handler
+      const selectDoctorsChange = (selectedOption) => {
+        setFormData(prev => ({
+          ...prev,
+          doctors_id: selectedOption? [selectedOption.value] : []
+        }))
+      };
+
+      //multiple doctor's select
+      const selectDoctorsMultiChange = (selectedOption) => {
+        const selectedIds = selectedOption ? selectedOption.map(option => option.value) : [];
+        setFormData(prev => ({
+          ...prev,
+          doctors_id: selectedIds
+        }))
+      };
+   //----------React Select Doctor's End--------
+
+   //----------React Select Business Unit Start--------
+      useEffect(() => {
+        fetch(`${baseURL}/business_unit`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`  // <-- must send token
+          }
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            setBusinessUnite(data.data);
+          })
+      }, [])
+  
+      const activeBusinessUnitOptions = businessUnit.filter(busness => busness.is_active == 1).map(busness => ({
+        value: busness.id,
+        label: `${busness.business_unit}`
+      }));
+  
+      // react-select  onChange handler
+      const selectBusinessUnitChange = (selectedOption) => {
+        setFormData(prev => ({
+          ...prev,
+          bu_id: selectedOption? [selectedOption.value] : []  //bu-> bussness_unit
+        }))
+      };
+
+      //multiple doctor's select
+      const selectBusinessUnitMultiChange = (selectedOption) => {
+        const selectedIds = selectedOption ? selectedOption.map(option => option.value) : [];
+        setFormData(prev => ({
+          ...prev,
+          bu_id: selectedIds
+        }))
+      };
+   //----------React Select Business Unit End--------
 
 
 
-   //React select
+  //React select
   const customStyles = {
     control: (base, state) => ({
       ...base,
@@ -516,17 +668,112 @@ const UserForm = () => {
 
                     <Select
                       styles={customStyles}
-                      className={"border-dark"}
+                      className={`border-dark ${showValidationError.role_id ? 'is-invalid' : ''}`}
                       classNamePrefix="react-select"
                       options={activeRoleOptions}
                       value={activeRoleOptions.find(option => option.value === addFormData.role_id) || null}
-                      onChange={selectChange}
+                      onChange={selectRoleChange}
                       isSearchable={true}
                       isClearable={true}
                       tabIndex={9}
                     />
                     <Form.Control.Feedback type='invalid'>{showValidationError.role_id}</Form.Control.Feedback>
                   </Form.Group> 
+
+                 <Form.Group as={Col} md="3" controlId="validationCustom02">
+                    <Form.Label>User Type<span className='text-danger'> *</span> </Form.Label>
+
+                    <Select
+                      styles={customStyles}
+                      className={`border-dark ${showValidationError.user_type_id ? 'is-invalid' : ''}`}
+                      classNamePrefix="react-select"
+                      options={activeUserTypeOptions}
+                      value={activeUserTypeOptions.find(option => option.value === addFormData.user_type_id) || null}
+                      onChange={selectUserTypeChange}
+                      isSearchable={true}
+                      isClearable={true}
+                      tabIndex={9}
+                    />
+                    <Form.Control.Feedback type='invalid'>{showValidationError.user_type_id}</Form.Control.Feedback>
+                  </Form.Group> 
+
+                 {addFormData.user_type_id == 4 && (
+                  <Form.Group as={Col} md="3" controlId="validationCustom02">
+                    <Form.Label>Doctor Name<span className='text-danger'> *</span> </Form.Label>
+
+                    <Select
+                      styles={customStyles}
+                      className={`border-dark ${showValidationError.doctors_id ? 'is-invalid' : ''}`}
+                      classNamePrefix="react-select"
+                      options={activeDoctorsOptions}
+                      value={activeDoctorsOptions.find(option => option.value === addFormData.doctors_id[0]) || null}
+                      onChange={selectDoctorsChange}
+                      isSearchable={true}
+                      isClearable={true}
+                      tabIndex={9}
+                    />
+                    <Form.Control.Feedback type='invalid'>{showValidationError.doctors_id}</Form.Control.Feedback>
+                  </Form.Group> 
+                 )}
+
+                 {addFormData.user_type_id == 5 && (
+                  <Form.Group as={Col} md="3" controlId="validationCustom02">
+                    <Form.Label>Doctor's Name<span className='text-danger'> *</span> </Form.Label>
+
+                    <Select
+                      styles={customStyles}
+                      isMulti={true} // Enable multiple selection
+                      className={`border-dark ${showValidationError.doctors_id ? 'is-invalid' : ''}`}
+                      classNamePrefix="react-select"
+                      options={activeDoctorsOptions}
+                      value={activeDoctorsOptions.filter(option =>
+                        addFormData.doctors_id.includes(option.value)
+                      )}
+                      onChange={selectDoctorsMultiChange}
+                      tabIndex={4}
+                    />
+                    <Form.Control.Feedback type='invalid'>{showValidationError.doctors_id}</Form.Control.Feedback>
+                  </Form.Group>
+                 )}   
+
+                 {addFormData.user_type_id == 3 && (
+                  <Form.Group as={Col} md="3" controlId="validationCustom02">
+                    <Form.Label>Business Unit<span className='text-danger'> *</span> </Form.Label>
+
+                    <Select
+                      styles={customStyles}
+                      className={`border-dark ${showValidationError.bu_id ? 'is-invalid' : ''}`}
+                      classNamePrefix="react-select"
+                      options={activeBusinessUnitOptions}
+                      value={activeBusinessUnitOptions.find(option => option.value === addFormData.bu_id[0]) || null}
+                      onChange={selectBusinessUnitChange}
+                      isSearchable={true}
+                      isClearable={true}
+                      tabIndex={9}
+                    />
+                    <Form.Control.Feedback type='invalid'>{showValidationError.bu_id}</Form.Control.Feedback>
+                  </Form.Group> 
+                 )}
+
+                 {addFormData.user_type_id == 2 && (
+                  <Form.Group as={Col} md="3" controlId="validationCustom02">
+                    <Form.Label>Business Unit<span className='text-danger'> *</span> </Form.Label>
+
+                    <Select
+                      styles={customStyles}
+                      isMulti={true} // Enable multiple selection
+                      className={`border-dark ${showValidationError.bu_id ? 'is-invalid' : ''}`}
+                      classNamePrefix="react-select"
+                      options={activeBusinessUnitOptions}
+                      value={activeBusinessUnitOptions.filter(option =>
+                        addFormData.bu_id.includes(option.value)
+                      )}
+                      onChange={selectBusinessUnitMultiChange}
+                      tabIndex={4}
+                    />
+                    <Form.Control.Feedback type='invalid'>{showValidationError.bu_id}</Form.Control.Feedback>
+                  </Form.Group>
+                 )} 
                   
                   <Form.Group as={Col} md="3">
                     <Form.Label></Form.Label>

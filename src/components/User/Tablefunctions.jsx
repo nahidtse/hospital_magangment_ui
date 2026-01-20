@@ -1,4 +1,4 @@
-import { Button, Card, Col, Row, Table } from "react-bootstrap";
+import { Button, Card, Col, OverlayTrigger, Row, Table, Tooltip } from "react-bootstrap";
 import { useTable, useSortBy, useGlobalFilter, usePagination, } from "react-table";
 import { useEffect, useMemo, useState } from "react";
 
@@ -78,11 +78,15 @@ export const DATATABLE = (userInfo, handlers) =>
         status: user.is_active == 1 ? "Active" : "Inactive",
         action: (
             <>
-
-                <Link to={`${import.meta.env.BASE_URL}user/singledata`} state={{ singleData: user }}><i className="bi bi-eye btn-sm bg-info"></i></Link>
-                <Link to={`${import.meta.env.BASE_URL}user/edit`} state={{ editData: user }}><i className="bi bi-pencil btn-sm bg-primary ms-1"></i></Link>
-                <span onClick={() => handlers.deletePermissionAlert(user.id)} className="btn-sm bg-danger ms-1" style={{ cursor: "pointer" }}><i className="bi bi-trash"></i></span>
-
+                <OverlayTrigger placement="top" overlay={<Tooltip>View</Tooltip>}> 
+                    <Link to={`${import.meta.env.BASE_URL}user/singledata`} state={{ singleData: user }}><i className="bi bi-eye btn-sm bg-info"></i></Link>
+                </OverlayTrigger> 
+                <OverlayTrigger placement="top" overlay={<Tooltip>Edit</Tooltip>}> 
+                    <Link to={`${import.meta.env.BASE_URL}user/edit`} state={{ editData: user }}><i className="bi bi-pencil btn-sm bg-primary ms-1"></i></Link>
+                </OverlayTrigger>
+                <OverlayTrigger placement="top" overlay={<Tooltip>Delete</Tooltip>}> 
+                    <span onClick={() => handlers.deletePermissionAlert(user.id)} className="btn-sm bg-danger ms-1" style={{ cursor: "pointer" }}><i className="bi bi-trash"></i></span>
+                </OverlayTrigger>
             </>
         )
     }));
@@ -242,10 +246,13 @@ export const BasicTable = () => {
                         <Card.Header className="justify-content-between">
                             <div className='card-title'>User List</div>
                             <div className="prism-toggle">
-                                <Link to={`${import.meta.env.BASE_URL}user/createform`}><button
-                                    type="button"
-                                    className="btn btn-sm btn-primary"> New
-                                </button>
+                                <Link to={`${import.meta.env.BASE_URL}user/createform`}>
+                                    <OverlayTrigger placement="top" overlay={<Tooltip>Create</Tooltip>}> 
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-primary"> New
+                                        </button>
+                                    </OverlayTrigger> 
                                 </Link>
                             </div>
 

@@ -1,4 +1,4 @@
-import { Button, Card, Col, Form, Modal, Row, Table } from "react-bootstrap";
+import { Button, Card, Col, Form, Modal, OverlayTrigger, Row, Table, Tooltip } from "react-bootstrap";
 import { toast } from 'react-toastify';
 import { nanoid } from "nanoid";
 import { useTable, useSortBy, useGlobalFilter, usePagination, } from "react-table";
@@ -8,6 +8,8 @@ import SingleTableFunction from "./SingleTablefunction";
 import BusinessUnitEditForm from "./BusinessUnitEditForm";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
+import { hasButtonPermission } from "../../common/utils/hasButtonPermission";
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 // ******************************************************
 // ******************************************************
@@ -16,72 +18,72 @@ import Swal from "sweetalert2";
 
 export const COLUMNS = [
     {
-        Header: "#",
+        Header: (<div className="text-center">{"#"}</div>),
         accessor: "id",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
     {
-        Header: "Business Unit",
+        Header: (<div className="text-center">{"Business Unit"}</div>),
         accessor: "Name",
     },
     {
-        Header: "Short Name",
-        accessor: "Position",
+        Header: (<div className="text-center">{"Short Name"}</div>),
+        accessor: "sort_name",
     },
     {
-        Header: "Email",
-        accessor: "Office",
+        Header: (<div className="text-center">{"Email"}</div>),
+        accessor: "email",
     },
     {
-        Header: "Mobile",
-        accessor: "Age",
+        Header: (<div className="text-center">{"Mobile No"}</div>),
+        accessor: "mobile",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
     {
-        Header: "Status",
-        accessor: "date",
+        Header: (<div className="text-center">{"Status"}</div>),
+        accessor: "status",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
     {
-        Header: "Actions",
-        accessor: "Salary",
+        Header: (<div className="text-center">{"Actions"}</div>),
+        accessor: "action",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
 ];
 
 
 
-export const DATATABLE = (contacts, handlers) =>
-    contacts.map((contact, id) => ({
+export const DATATABLE = (businessUnit, handlers, permission) =>
+    businessUnit.map((business, id) => ({
         id: id + 1,
-        Name: contact.business_unit,
-        Position: contact.short_name,
-        Office: contact.email_address,
-        Age: contact.mobile_no,
-        date: contact.is_active == 1 ? "Active" : "Inactive",
-        Salary: (
+        Name: business.business_unit,
+        sort_name: business.short_name,
+        email: business.email_address,
+        mobile: business.mobile_no,
+        status: business.is_active == 1 ? "Active" : "Inactive",
+        action: (
             <>
-
-                <Button
-                    variant=""
-                    className="btn btn-info me-1"
-                    type="button"
-                    onClick={() => handlers.handleShowDataById(contact)}
-                >
-                    <i className="bi bi-eye me-1"></i>
-                </Button>
-                <Button
-                    variant=""
-                    className="btn btn-primary me-1"
-                    type="button"
-                    onClick={() => handlers.handleEditDataById(contact)}
-                >
-                    <i className="bi bi-pencil"></i>
-                </Button>
-                <Button
-                    variant=""
-                    className="btn btn-danger me-1"
-                    type="button"
-                    onClick={() => handlers.deletePermissionAlert(contact.id)}
-                >
-                    <i className="bi bi-trash"></i>
-                </Button>
+                {permission.canView && 
+                    <OverlayTrigger placement="top" overlay={<Tooltip>View</Tooltip>}> 
+                        <span onClick={() => handlers.handleShowDataById(business)}  className="btn-sm bg-info" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-eye"></i>
+                        </span>
+                    </OverlayTrigger> 
+                }
+                {permission.canEdit && 
+                    <OverlayTrigger placement="top" overlay={<Tooltip>Edit</Tooltip>}> 
+                        <span onClick={() => handlers.handleEditDataById(business)} className="btn-sm bg-primary ms-2" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-pencil"></i>
+                        </span>
+                    </OverlayTrigger> 
+                }
+                { permission.canDelete && 
+                    <OverlayTrigger placement="top" overlay={<Tooltip>Delete</Tooltip>}> 
+                        <span onClick={() => handlers.deletePermissionAlert(business.id)} className="btn-sm bg-danger ms-2" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-trash"></i>
+                        </span>
+                    </OverlayTrigger> 
+                }
             </>
         )
     }));
@@ -101,16 +103,46 @@ export const GlobalFilter = ({ filter, setFilter }) => {
 
 export const BasicTable = () => {
 
+    //*********Check Authentication Start***********
+        const token = localStorage.getItem('auth_token'); //Check Authentication
+        const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+
+        if (!token || (expiry && Date.now() > Number(expiry))) {
+            localStorage.clear();
+            window.location.href = "/login";
+            return;
+        }
+    //*********Check Authentication End***********
+
+    //**********Permission Base Button Hide & Show Start************/
+        const [canCreate, setCanCreate] = useState(false);
+        const [canView, setCanView] = useState(false);
+        const [canEdit, setCanEdit] = useState(false);
+        const [canDelete, setCanDelete] = useState(false);
+
+        console.log(canCreate)
+        console.log(canView)
+        console.log(canEdit)
+        console.log(canDelete)
+
+        useEffect(() => {
+            hasButtonPermission('businessunit', 'view').then(setCanView);
+            hasButtonPermission('businessunit', 'edit').then(setCanEdit);
+            hasButtonPermission('businessunit', 'delete').then(setCanDelete);
+            hasButtonPermission('businessunit', 'create').then(setCanCreate);
+        }, []);
+    //**********Permission Base Button Hide & Show End************/
+
 
     const [showData, setShowData] = useState(false);
-    const [contacts, setContacts] = useState([]);
+    const [businessUnit, setBusinessUnit] = useState([]);
     const [showSingleData, setSingleData] = useState([]);
     const [passEditFormData, setPassingEditFormData] = useState(null);
 
 
-    const handleShowDataById = (contact) => {
+    const handleShowDataById = (business) => {
         setShowData(true);
-        setSingleData(contact);
+        setSingleData(business);
 
     }
 
@@ -126,7 +158,7 @@ export const BasicTable = () => {
 
             const response = await result.json();
             if (response.status == 'success') {
-                setContacts(prevContact => prevContact.filter(c => c.id !== contactId));
+                setBusinessUnit(prevContact => prevContact.filter(c => c.id !== contactId));
 
             }
             return response;
@@ -173,11 +205,11 @@ export const BasicTable = () => {
 
 
     /** Edit Handler */
-    const handleEditDataById = (contact) => {
-        // const data = contacts.find((contact) => contact.id == contactId);
+    const handleEditDataById = (business) => {
+        // const data = businessUnit.find((business) => business.id == contactId);
         setShowData(true);
         setSingleData(null)
-        setPassingEditFormData(contact);
+        setPassingEditFormData(business);
 
     }
 
@@ -190,7 +222,7 @@ export const BasicTable = () => {
         )
     } else if (passEditFormData) {
         content = (
-            <BusinessUnitEditForm setBusinessUnitList={setShowData} setContactsData={setContacts} passEditFormData={passEditFormData} setPassingEditFormData={setPassingEditFormData} />
+            <BusinessUnitEditForm setBusinessUnitList={setShowData} setContactsData={setBusinessUnit} passEditFormData={passEditFormData} setPassingEditFormData={setPassingEditFormData} />
         )
     }
 
@@ -198,23 +230,34 @@ export const BasicTable = () => {
     /** Data Fetch */
 
     useEffect(() => {
-        fetch('https://cserp.store/api/businessunits')
+        fetch(`${baseURL}/business_unit`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`  // <-- must send token
+            }
+        })
             .then((response) => response.json())
             .then((data) => {
               
-                setContacts(data.data)
+                setBusinessUnit(data.data)
             })
             .catch((error) => {
                 console.log("Error Fetching the data: ", error)
             })
     }, [])
 
-    const dataTable = useMemo(() => DATATABLE(contacts, {
-        handleShowDataById,
-        deletePermissionAlert,
-        handleEditDataById
-
-    }), [contacts]);
+    const dataTable = useMemo(() => DATATABLE(businessUnit, 
+        {
+            handleShowDataById,
+            deletePermissionAlert,
+            handleEditDataById
+        },
+        {
+            canView,
+            canEdit,
+            canDelete
+        }
+    ), [businessUnit, canView, canEdit, canDelete]);
 
 
 
@@ -222,6 +265,7 @@ export const BasicTable = () => {
         {
             columns: COLUMNS,
             data: dataTable,
+            initialState: { pageSize: 50 },
         },
         useGlobalFilter,
         useSortBy,
@@ -258,11 +302,16 @@ export const BasicTable = () => {
                                 <Card.Header className="justify-content-between">
                                     <div className='card-title'>Business Unit List</div>
                                     <div className="prism-toggle">
-                                        <Link to={`${import.meta.env.BASE_URL}businessunit/createform`}><button
-                                            type="button"
-                                            className="btn btn-sm btn-primary"> New
-                                        </button>
-                                        </Link>
+                                        {canCreate && (
+                                            <Link to={`${import.meta.env.BASE_URL}businessunit/createform`}>
+                                                <OverlayTrigger placement="top" overlay={<Tooltip>Create</Tooltip>}> 
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-sm btn-primary"> New
+                                                    </button>
+                                                </OverlayTrigger>
+                                            </Link>
+                                        )}
                                     </div>
 
                                 </Card.Header>
@@ -275,7 +324,7 @@ export const BasicTable = () => {
                                             value={pageSize}
                                             onChange={(e) => setPageSize((e.target.value))}
                                         >
-                                            {[10, 25, 50, 100].map((pageSize) => (
+                                            {[50, 100, 150, 200].map((pageSize) => (
                                                 <option key={pageSize} value={pageSize}>
                                                     Show {pageSize}
                                                 </option>
@@ -283,8 +332,8 @@ export const BasicTable = () => {
                                         </select>
                                         <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
                                     </div>
-                                    <table {...getTableProps()} className="table table-hover mb-0 table-bordered">
-                                        <thead>
+                                    <table {...getTableProps()} className="table table-sm table-primary table-striped table-hover mb-0 table-bordered">
+                                        <thead className="bg-primary">
                                             {headerGroups.map((headerGroup) => (
                                                 <tr {...headerGroup.getHeaderGroupProps()} key={Math.random()}>
                                                     {headerGroup.headers.map((column) => (
@@ -292,7 +341,7 @@ export const BasicTable = () => {
                                                             {...column.getHeaderProps(column.getSortByToggleProps())}
                                                             className={column.className} key={Math.random()}
                                                         >
-                                                            <span className="tabletitle">{column.render("Header")}</span>
+                                                            <span className="tabletitle text-white">{column.render("Header")}</span>
                                                             <span className="float-end">
                                                                 {column.isSorted ? (
                                                                     column.isSortedDesc ? (

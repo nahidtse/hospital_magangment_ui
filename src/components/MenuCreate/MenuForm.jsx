@@ -267,7 +267,7 @@ const MenuForm = () => {
     // react-select  onChange handler
     const selectPermissionChange = (selectedOption) => {
 
-       const selectedIds = selectedOption ? selectedOption.map(option => option.value) : [];
+      const selectedIds = selectedOption ? selectedOption.map(option => option.value) : [];
 
       setFormData(prev => ({
         ...prev,

@@ -30,7 +30,7 @@ const UserSingleTableFunction = () => {
                         <Card.Body className=''>
 
                             <Form>
-                                <Row className="mb-3">
+                                <Row className="mb-2">
                                     <Form.Group as={Col} md="3" >
                                         <Form.Label>User Name</Form.Label>
                                         <Form.Control
@@ -78,7 +78,7 @@ const UserSingleTableFunction = () => {
                                     </Form.Group>
                                 </Row>
 
-                                <Row className="mb-3">
+                                <Row className="mb-2">
                                     <Form.Group as={Col} md="3" >
                                         <Form.Label>From Date</Form.Label>
                                         <Form.Control
@@ -114,7 +114,7 @@ const UserSingleTableFunction = () => {
                                         />
 
                                     </Form.Group>
-                                    {/* <Form.Group as={Col} md="3" >
+                                    <Form.Group as={Col} md="3" >
                                         <Form.Label>Create By</Form.Label>
                                         <Form.Control
                                             type="text"
@@ -125,7 +125,48 @@ const UserSingleTableFunction = () => {
 
                                         />
 
-                                    </Form.Group> */}
+                                    </Form.Group>
+                                </Row>
+                                <Row className="mb-2">
+                                    <Form.Group as={Col} md="3" >
+                                        <Form.Label>User Type</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            maxLength={20}
+                                            className='readableInputBgColor border-dark'
+                                            readOnly
+                                            value={singleUser?.user_type?.user_type || ''}
+                                        />
+
+                                    </Form.Group>
+
+                                    {(singleUser.user_type_id == 4 || singleUser.user_type_id == 5) && (
+                                        <Form.Group as={Col} md="3" >
+                                            <Form.Label>Doctor's Name</Form.Label>
+                                            <Form.Control
+                                                as="textarea"
+                                                row={4}
+                                                className='readableInputBgColor border-dark'
+                                                readOnly
+                                                value={singleUser.doctors_info?.map((doctor => doctor.doctor_name)).join(', ') || ''}
+
+                                            />
+
+                                        </Form.Group>
+                                    )}
+
+                                    {(singleUser.user_type_id == 2 || singleUser.user_type_id == 3) && (
+                                        <Form.Group as={Col} md="3">
+                                            <Form.Label>Business Unit</Form.Label>
+                                            <Form.Control
+                                            as="textarea"
+                                            rows={3}
+                                            className='readableInputBgColor border-dark'
+                                            readOnly
+                                            value={ singleUser?.businessUnit?.map(bu => bu.business_unit).join(', ') || ''}
+                                            />
+                                        </Form.Group>
+                                    )}
 
                                     <Form.Group as={Col} md="3" className='mt-4'>
                                         <div className="form-check form-switch">
@@ -134,6 +175,7 @@ const UserSingleTableFunction = () => {
                                                 type="checkbox"
                                                 id="flexSwitchCheckChecked"
                                                 checked={singleUser.is_active == 1}
+                                                readOnly
                                             />
                                             <label className="form-check-label" htmlFor="flexSwitchCheckChecked">
                                                 {singleUser.is_active == 1 ? 'Active' : 'Inactive'}
