@@ -4,8 +4,8 @@ import { nanoid } from "nanoid";
 import { useTable, useSortBy, useGlobalFilter, usePagination, } from "react-table";
 import { Fragment, useEffect, useMemo, useState } from "react";
 // import BusinessUnitForm from "./BusinessUnitForm";
-// import SingleTableFunction from "./SingleTablefunction";
-// import BusinessUnitEditForm from "./BusinessUnitEditForm";
+import BusinessSingleTableFunction from "./BusinessSingleTableFunction";
+import BusinessUnitEdit from "./BusinessUnitEdit";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { hasButtonPermission } from "../../common/utils/hasButtonPermission";
@@ -215,16 +215,16 @@ export const BasicTable = () => {
 
 
     // /** Show Component */
-    // let content;
-    // if (showSingleData) {
-    //     content = (
-    //         <SingleTableFunction setBusinessUnitList={setShowData} singleContactsData={showSingleData} setSingleData={setSingleData} />
-    //     )
-    // } else if (passEditFormData) {
-    //     content = (
-    //         <BusinessUnitEditForm setBusinessUnitList={setShowData} setContactsData={setBusinessUnit} passEditFormData={passEditFormData} setPassingEditFormData={setPassingEditFormData} />
-    //     )
-    // }
+    let content;
+    if (showSingleData) {
+        content = (
+            <BusinessSingleTableFunction setBusinessUnitList={setShowData} singleContactsData={showSingleData} setSingleData={setSingleData} />
+        )
+    } else if (passEditFormData) {
+        content = (
+            <BusinessUnitEdit setBusinessUnitList={setShowData} setContactsData={setBusinessUnit} passEditFormData={passEditFormData} setPassingEditFormData={setPassingEditFormData} />
+        )
+    }
 
 
     /** Data Fetch */
