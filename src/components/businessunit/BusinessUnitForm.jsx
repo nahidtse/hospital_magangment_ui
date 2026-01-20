@@ -80,7 +80,7 @@ const BusinessUnitForm = () => {
       formData.append('mobile_no', addFormData.mobilenumber);
       formData.append('address', addFormData.address);
       formData.append('is_active', addFormData.isActive ? 1 : 0);
-      formData.append('create_by', 1);
+      formData.append('created_by', 1);
       formData.append('updated_by', 1);
 
       if (addFormData.logo) {

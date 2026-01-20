@@ -104,7 +104,7 @@ const BusinessUnitEditForm = ({ setBusinessUnitList, setContactsData, passEditFo
       formData.append('mobile_no', editFormData.mobilenumber);
       formData.append('address', editFormData.address);
       formData.append('is_active', editFormData.isActive ? 1 : 0);
-      formData.append('create_by', 1);
+      formData.append('created_by', 1);
       formData.append('updated_by', 1);
 
       if (editFormData.logo) {
