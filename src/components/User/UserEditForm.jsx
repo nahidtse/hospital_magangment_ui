@@ -47,7 +47,7 @@ const UserEditForm = () => {
     bu_id: []
   })
 
-  // console.log(editFormData)
+  console.log(editFormData)
 
   const [showValidationError, setValidationErrors] = useState({});
 
@@ -74,9 +74,13 @@ const UserEditForm = () => {
         // password_confirmation: passEditFormData.password,
         is_active: passEditFormData.is_active,
         user_type_id: passEditFormData.user_type_id,
-        doctors_id: passEditFormData.doctors_id,
-        bu_id: passEditFormData.bu_id,
-      });
+        doctors_id: Array.isArray(passEditFormData.doctors_id)
+          ? passEditFormData.doctors_id
+          : [],
+        bu_id: Array.isArray(passEditFormData.bu_id)
+          ? passEditFormData.bu_id
+          : [],
+        });
     }
   }, [passEditFormData]);
 
@@ -619,7 +623,7 @@ const UserEditForm = () => {
                     </Form.Group>
                   )}
 
-                  {editFormData.user_type_id == 3 && (
+                  {Number(editFormData.user_type_id) === 3 && (
                     <Form.Group as={Col} md="3" controlId="validationCustom02">
                       <Form.Label>Business Unit<span className='text-danger'> *</span> </Form.Label>
   
@@ -628,7 +632,7 @@ const UserEditForm = () => {
                         className={`border-dark ${showValidationError.bu_id ? 'is-invalid' : ''}`}
                         classNamePrefix="react-select"
                         options={activeBusinessUnitOptions}
-                        value={activeBusinessUnitOptions.find(option => option.value === editFormData.bu_id[0]) || null}
+                        value={activeBusinessUnitOptions.find(option => option.value === editFormData.bu_id?.[0]) || null}
                         onChange={selectBusinessUnitChange}
                         isSearchable={true}
                         isClearable={true}
@@ -638,7 +642,7 @@ const UserEditForm = () => {
                      </Form.Group> 
                     )}
   
-                    {editFormData.user_type_id == 2 && (
+                    {[2, 4, 5].includes(Number(editFormData.user_type_id)) && (
                     <Form.Group as={Col} md="3" controlId="validationCustom02">
                       <Form.Label>Business Unit<span className='text-danger'> *</span> </Form.Label>
   
@@ -649,7 +653,7 @@ const UserEditForm = () => {
                         classNamePrefix="react-select"
                         options={activeBusinessUnitOptions}
                         value={activeBusinessUnitOptions.filter(option =>
-                          editFormData.bu_id.includes(option.value)
+                          (editFormData.bu_id || []).includes(option.value)
                         )}
                         onChange={selectBusinessUnitMultiChange}
                         tabIndex={4}

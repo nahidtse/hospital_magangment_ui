@@ -10,6 +10,8 @@ const UserSingleTableFunction = () => {
     const singleUser = location.state?.singleData || ''
     // console.log(singleUser)
 
+    const userTypeId = Number(singleUser?.user_type_id);
+
     return (
         <Fragment>
 
@@ -121,7 +123,7 @@ const UserSingleTableFunction = () => {
                                             maxLength={20}
                                             className='readableInputBgColor border-dark'
                                             readOnly
-                                            value={singleUser.created_by || ''}
+                                            value={singleUser?.created_by?.user_name || ''}
 
                                         />
 
@@ -155,18 +157,22 @@ const UserSingleTableFunction = () => {
                                         </Form.Group>
                                     )}
 
-                                    {(singleUser.user_type_id == 2 || singleUser.user_type_id == 3) && (
+                                    {[2, 3, 5].includes(userTypeId) && (
                                         <Form.Group as={Col} md="3">
                                             <Form.Label>Business Unit</Form.Label>
                                             <Form.Control
                                             as="textarea"
                                             rows={3}
-                                            className='readableInputBgColor border-dark'
+                                            className="readableInputBgColor border-dark"
                                             readOnly
-                                            value={ singleUser?.businessUnit?.map(bu => bu.business_unit).join(', ') || ''}
+                                            value={
+                                                singleUser?.businessUnit
+                                                ?.map(bu => bu.business_unit)
+                                                .join(', ') || ''
+                                            }
                                             />
                                         </Form.Group>
-                                    )}
+                                        )}
 
                                     <Form.Group as={Col} md="3" className='mt-4'>
                                         <div className="form-check form-switch">

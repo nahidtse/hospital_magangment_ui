@@ -755,7 +755,7 @@ const UserForm = () => {
                   </Form.Group> 
                  )}
 
-                 {addFormData.user_type_id == 2 && (
+                 {[2, 4, 5].includes(addFormData.user_type_id) && (
                   <Form.Group as={Col} md="3" controlId="validationCustom02">
                     <Form.Label>Business Unit<span className='text-danger'> *</span> </Form.Label>
 
