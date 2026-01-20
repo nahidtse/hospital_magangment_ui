@@ -5,10 +5,6 @@ import LeaveInfoTables from "../components/hr/LeaveInfoTables";
 import LeaveType from "../components/hr/leavetype/LeaveType";
 
 import DataTables from "../components/hr/leavetype/DataTables";
-import BusinessUnitTables from "../components/businessunit/BusinessUnitTables";
-import BusinessUnitForm from "../components/businessunit/BusinessUnitForm";
-import BusinessUnitEditForm from "../components/businessunit/BusinessUnitEditForm";
-import SingleTableFunction from "../components/businessunit/SingleTablefunction";
 import ModuleTable from "../components/module/ModuleTable";
 import ModuleForm from "../components/module/ModuleForm";
 import RoleTable from "../components/Role/RoleTable";
@@ -67,6 +63,8 @@ import PermissionEditForm from "../components/Permission/PermissionEditForm";
 import MenuEditForm from "../components/MenuCreate/MenuEditForm";
 import RoleEditForm from "../components/Role/RoleEditForm";
 import RoleSingleTableFunction from "../components/Role/RoleSingleTableFunction";
+import BusinessUnitTables from "../components/businessunit/BusinessUnitTables";
+import BusinessUnitForm from "../components/businessunit/BusinessUnitForm";
 
 
 export const Routedata = [
@@ -173,11 +171,9 @@ export const Routedata = [
   { id: 109, path: `${import.meta.env.BASE_URL}hr/LeaveInfo`, element: <LeaveInfo /> },
   { id: 110, path: `${import.meta.env.BASE_URL}hr/LeaveInfoTables`, element: <LeaveInfoTables /> },
 
-  // Business Unit 
+  // Business Unit
   { id: 111, path: `${import.meta.env.BASE_URL}businessunit/dataTable`, element: <BusinessUnitTables /> },
-  { id: 112, path: `${import.meta.env.BASE_URL}businessunit/createform`, element: <BusinessUnitForm /> },
-  { id: 113, path: `${import.meta.env.BASE_URL}businessunit/editform`, element: <BusinessUnitEditForm /> },
-  { id: 114, path: `${import.meta.env.BASE_URL}businessunit/show`, element: <SingleTableFunction /> },
+  { id: 111, path: `${import.meta.env.BASE_URL}businessunit/createform`, element: <BusinessUnitForm /> },
 
   // Module
   { id: 115, path: `${import.meta.env.BASE_URL}module/dataTable`, element: <ModuleTable /> },

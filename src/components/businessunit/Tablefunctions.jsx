@@ -4,7 +4,7 @@ import { nanoid } from "nanoid";
 import { useTable, useSortBy, useGlobalFilter, usePagination, } from "react-table";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import BusinessUnitForm from "./BusinessUnitForm";
-import SingleTableFunction from "./SingleTablefunction";
+import SingleTableFunction from "./SingleTableFunction";
 import BusinessUnitEditForm from "./BusinessUnitEditForm";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
