@@ -174,6 +174,36 @@ const UserSingleTableFunction = () => {
                                         </Form.Group>
                                         )}
 
+
+                                    <Form.Group as={Col} md="3">
+                                        <Form.Label>Android Id Fixed<span className='text-danger'></span> </Form.Label>
+                    
+                                        <Form.Group controlId="tickCheckbox">
+                                            <Form.Check
+                                                type="checkbox"
+                                                label={singleUser.is_android_fixed ? 'Yes' : 'No'}
+                                                name="tickOption"
+                                                checked={singleUser.is_android_fixed}
+                                                readOnly
+                                            />
+                                        </Form.Group>
+                                        {/* <Form.Control.Feedback type='invalid'>{showValidationError.bu_id}</Form.Control.Feedback> */}
+                                    </Form.Group>
+                    
+                                    {singleUser.is_android_fixed == 1 && (
+                                    <Form.Group as={Col} md="3" controlId="validationCustom01">
+                                        <Form.Label>Android Id<span className='text-danger ms-1'>*</span></Form.Label>
+                                        <Form.Control
+                                            required
+                                            type="text"
+                                            className='border-dark'
+                                            placeholder="Enter user name"
+                                            value={singleUser.android_id || ''}
+                                            readOnly
+                                        />
+                                    </Form.Group>
+                                    )}
+
                                     <Form.Group as={Col} md="3" className='mt-4'>
                                         <div className="form-check form-switch">
                                             <input

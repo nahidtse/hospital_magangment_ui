@@ -53,7 +53,9 @@ const UserForm = () => {
     password_confirmation: '',
     user_type_id: '',
     doctors_id: [],
-    bu_id: []
+    bu_id: [],
+    is_android_fixed: '',
+    android_id: ''
   });
 
   // Get Six Months From Current Day
@@ -77,10 +79,12 @@ const UserForm = () => {
     is_active: true,
     user_type_id: '',  //user_type_id:- 1=SuperAdmin, 2=Admin, 3=BU, 4=Doctor, 5=Attandant, 6=Patient
     doctors_id: [],
-    bu_id: []   //bu_id -> business unit id
+    bu_id: [],   //bu_id -> business unit id
+    is_android_fixed: false,
+    android_id: ''
   })
 
-  // console.log(addFormData)
+  console.log(addFormData)
 
   const [fromDate, setFromDate] = useState();
   const [toDate, setToDate] = useState();
@@ -210,6 +214,12 @@ const UserForm = () => {
         errors.bu_id = "At least one Business Unit required.";
       }
     }
+    
+    if (addFormData.is_android_fixed === true) {
+      if (!addFormData.android_id) {
+        errors.android_id = "Android Id is required.";
+      }
+    }
 
 
     // Check if any errors
@@ -239,10 +249,12 @@ const UserForm = () => {
         user_type_id: addFormData.user_type_id,
         doctors_id: addFormData.doctors_id,
         bu_id: addFormData.bu_id,
-        created_by: user_id
+        is_android_fixed: addFormData.is_android_fixed ? 1 : 0,
+        android_id: addFormData.android_id,
+        created_by: user_id,
       }
 
-      console.log(submitData)
+      // console.log(submitData)
       // return
 
       const result = await fetch(`${baseURL}/user/create`, {
@@ -269,14 +281,16 @@ const UserForm = () => {
           full_name: '',
           email: '',
           mobile_no: '',
-          from_date: new Date(), // where will be change TODO::
+          from_date: new Date(), // where will be change TODO
           to_date: getSixMonths(new Date()),
           role_id: '',
           password: '',
           password_confirmation: '',
           is_active: 1,
           user_type_id: '',
-          doctors_id: []
+          doctors_id: [],
+          is_android_fixed: false,
+          android_id: ''
         });
         setValidationErrors({})
 
@@ -322,7 +336,9 @@ const UserForm = () => {
       is_active: 1,
       user_type_id: '',
       doctors_id: [],
-      bu_id: []
+      bu_id: [],
+      is_android_fixed: false,
+      android_id: ''
     })
   }
 
@@ -529,6 +545,7 @@ const UserForm = () => {
                     />
                     <Form.Control.Feedback type='invalid'>{showValidationError.user_name}</Form.Control.Feedback>
                   </Form.Group>
+
                   <Form.Group as={Col} md="3" controlId="validationCustom012">
                     <Form.Label>Full Name <span className='text-danger ms-1'>*</span></Form.Label>
                     <Form.Control
@@ -692,7 +709,7 @@ const UserForm = () => {
                       onChange={selectUserTypeChange}
                       isSearchable={true}
                       isClearable={true}
-                      tabIndex={9}
+                      tabIndex={10}
                     />
                     <Form.Control.Feedback type='invalid'>{showValidationError.user_type_id}</Form.Control.Feedback>
                   </Form.Group> 
@@ -710,7 +727,7 @@ const UserForm = () => {
                       onChange={selectDoctorsChange}
                       isSearchable={true}
                       isClearable={true}
-                      tabIndex={9}
+                      tabIndex={11}
                     />
                     <Form.Control.Feedback type='invalid'>{showValidationError.doctors_id}</Form.Control.Feedback>
                   </Form.Group> 
@@ -730,7 +747,7 @@ const UserForm = () => {
                         addFormData.doctors_id.includes(option.value)
                       )}
                       onChange={selectDoctorsMultiChange}
-                      tabIndex={4}
+                      tabIndex={12}
                     />
                     <Form.Control.Feedback type='invalid'>{showValidationError.doctors_id}</Form.Control.Feedback>
                   </Form.Group>
@@ -749,7 +766,7 @@ const UserForm = () => {
                       onChange={selectBusinessUnitChange}
                       isSearchable={true}
                       isClearable={true}
-                      tabIndex={9}
+                      tabIndex={13}
                     />
                     <Form.Control.Feedback type='invalid'>{showValidationError.bu_id}</Form.Control.Feedback>
                   </Form.Group> 
@@ -769,11 +786,51 @@ const UserForm = () => {
                         addFormData.bu_id.includes(option.value)
                       )}
                       onChange={selectBusinessUnitMultiChange}
-                      tabIndex={4}
+                      tabIndex={14}
                     />
                     <Form.Control.Feedback type='invalid'>{showValidationError.bu_id}</Form.Control.Feedback>
                   </Form.Group>
                  )} 
+
+                  <Form.Group as={Col} md="3">
+                    <Form.Label>Android Id Fixed<span className='text-danger'></span> </Form.Label>
+
+                    <Form.Group controlId="tickCheckbox">
+                      <Form.Check
+                          type="checkbox"
+                          label={addFormData.is_android_fixed ? 'Yes' : 'No'}
+                          name="tickOption"
+                          checked={addFormData.is_android_fixed}
+                          onChange={(e) =>
+                            setFormData({
+                              ...addFormData,
+                              is_android_fixed: e.target.checked,
+                              android_id: ''
+                            })
+                          }
+                      />
+                  </Form.Group>
+                    {/* <Form.Control.Feedback type='invalid'>{showValidationError.bu_id}</Form.Control.Feedback> */}
+                  </Form.Group>
+
+                  {addFormData.is_android_fixed && (
+                    <Form.Group as={Col} md="3" controlId="validationCustom01">
+                      <Form.Label>Android Id<span className='text-danger ms-1'>*</span></Form.Label>
+                      <Form.Control
+                        required
+                        type="text"
+                        className='border-dark'
+                        placeholder="Enter user name"
+                        name='android_id'
+                        value={addFormData.android_id || ''}
+                        isInvalid={!!showValidationError.android_id}
+                        onChange={onChangeHandler}
+                        tabIndex={15}
+
+                      />
+                      <Form.Control.Feedback type='invalid'>{showValidationError.android_id}</Form.Control.Feedback>
+                    </Form.Group>
+                  )}
                   
                   <Form.Group as={Col} md="3">
                     <Form.Label></Form.Label>
@@ -802,7 +859,7 @@ const UserForm = () => {
                     >
                       Reset
                     </button>
-                    <Button tabIndex={10} type='submit' disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save"}</Button>
+                    <Button tabIndex={16} type='submit' disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save"}</Button>
                   </Col>
                 </Row>
               </Form>

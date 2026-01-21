@@ -44,7 +44,9 @@ const UserEditForm = () => {
     is_active: 1,
     user_type_id: '', //user_type_id:- 1=SuperAdmin, 2=Admin, 3=BU, 4=Doctor, 5=Attandant, 6=Patient
     doctors_id: [],
-    bu_id: []
+    bu_id: [],
+    is_android_fixed: false,
+    android_id: ''
   })
 
   console.log(editFormData)
@@ -80,7 +82,9 @@ const UserEditForm = () => {
         bu_id: Array.isArray(passEditFormData.bu_id)
           ? passEditFormData.bu_id
           : [],
-        });
+        is_android_fixed: passEditFormData.is_android_fixed,
+        android_id: passEditFormData.android_id
+      });
     }
   }, [passEditFormData]);
 
@@ -314,6 +318,8 @@ const UserEditForm = () => {
         user_type_id: editFormData.user_type_id,
         doctors_id:editFormData.doctors_id,
         bu_id: editFormData.bu_id,
+        is_android_fixed: editFormData.is_android_fixed ? 1 : 0,
+        android_id: editFormData.android_id,
         updated_by: user_id
       }
 
@@ -642,7 +648,7 @@ const UserEditForm = () => {
                      </Form.Group> 
                     )}
   
-                    {[2, 4, 5].includes(Number(editFormData.user_type_id)) && (
+                  {[2, 4, 5].includes(Number(editFormData.user_type_id)) && (
                     <Form.Group as={Col} md="3" controlId="validationCustom02">
                       <Form.Label>Business Unit<span className='text-danger'> *</span> </Form.Label>
   
@@ -660,7 +666,47 @@ const UserEditForm = () => {
                       />
                       <Form.Control.Feedback type='invalid'>{showValidationError.bu_id}</Form.Control.Feedback>
                      </Form.Group>
-                  )}  
+                  )} 
+
+                  <Form.Group as={Col} md="3">
+                    <Form.Label>Android Id Fixed<span className='text-danger'></span> </Form.Label>
+
+                    <Form.Group controlId="tickCheckbox">
+                      <Form.Check
+                          type="checkbox"
+                          label={editFormData.is_android_fixed ? 'Yes' : 'No'}
+                          name="tickOption"
+                          checked={editFormData.is_android_fixed}
+                          onChange={(e) =>
+                            setEditFormData({
+                              ...editFormData,
+                              is_android_fixed: e.target.checked,
+                              android_id: ''
+                            })
+                          }
+                      />
+                    </Form.Group>
+                    {/* <Form.Control.Feedback type='invalid'>{showValidationError.bu_id}</Form.Control.Feedback> */}
+                  </Form.Group>
+
+                  {editFormData.is_android_fixed && (
+                    <Form.Group as={Col} md="3" controlId="validationCustom01">
+                      <Form.Label>Android Id<span className='text-danger ms-1'>*</span></Form.Label>
+                      <Form.Control
+                        required
+                        type="text"
+                        className='border-dark'
+                        placeholder="Enter user name"
+                        name='android_id'
+                        value={editFormData.android_id || ''}
+                        isInvalid={!!showValidationError.android_id}
+                        onChange={handleEditFormChange}
+                        // tabIndex={10}
+
+                      />
+                      <Form.Control.Feedback type='invalid'>{showValidationError.android_id}</Form.Control.Feedback>
+                    </Form.Group>
+                  )} 
 
                   <Form.Group as={Col} md="3">
                     <Form.Label></Form.Label>
