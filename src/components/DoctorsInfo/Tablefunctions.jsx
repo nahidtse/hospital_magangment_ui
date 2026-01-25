@@ -122,6 +122,8 @@ export const BasicTable = () => {
     const [showSingleData, setSingleData] = useState([]);
     const [passEditFormData, setPassingEditFormData] = useState(null);
 
+    // console.log(doctorData)
+
 
 
     const fetchItems = () => {  

@@ -5,7 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Select from 'react-select';
 import DatePicker from 'react-datepicker';
-const basURL = import.meta.env.VITE_API_BASE_URL;
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
 const AppointmentForm = () => {
@@ -17,6 +17,7 @@ const AppointmentForm = () => {
   //*********Check Authentication Start***********
   const token = localStorage.getItem('auth_token'); //Check Authentication
   const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+  const user_id = localStorage.getItem('user_id')  //for created_by
 
   if (!token || (expiry && Date.now() > Number(expiry))) {
       localStorage.clear();
@@ -33,6 +34,9 @@ const AppointmentForm = () => {
     mobile_no: '',
     email_no: '',
     remarks: '',
+    bu_id: '',
+    status: 1,
+    consultation_fee: ''
   });
 
   const [addFormData, setFormData] = useState({
@@ -44,18 +48,23 @@ const AppointmentForm = () => {
     mobileNo: '',
     email: '',
     remarks: '',
+    bu_id: '',
+    status: 1,
+    consultation_fee: ''
   })
 
   // console.log(addFormData)
 
   const [doctorsInfo, setDoctorsInfo] = useState([]);
   const [selectedDoctorSpeciality, setSelectedDoctorSpeciality] = useState(''); //Speciality Update
+  const [selectedDoctorfee, setSelectedDoctorFee] = useState(''); //Consultetion fee Update
   const [selectedDoctorOption, setSelectedDoctorOption] = useState(null); //React Select
   const [isOpenDate, setIsOpenDate] = useState(false); //for date picker open use icon
   const [doctorScheduleDays, setDoctorScheduleDays] = useState([]); // one doctor all schedule
   const [filteredSchedule, setFilteredSchedule] = useState([]); // filter weekend day
-  // console.log(filteredSchedule)
-  // console.log(doctorScheduleDays)
+  // console.log(doctorsInfo)
+  const [businessUnit, setBusinessUnite] = useState([]) // for react select Business Unit
+  // console.log(selectedDoctorSpeciality)
 
 
   const onChangeHandler = (event) => {
@@ -74,17 +83,23 @@ const AppointmentForm = () => {
     setSelectedDoctorOption(selectedOption);
     
     if (selectedOption) {
-      const newFormData = { ...addFormData };
-      newFormData.doctorId = selectedOption.value;
-      setFormData(newFormData);
+      setFormData(prev => ({
+        ...prev,
+        doctorId: selectedOption.value,
+        consultation_fee: selectedOption.consultation_fee || '' //important
+      }));
       
       fetchDoctorSchedule(selectedOption.value) // for doctor schedule api call
       setSelectedDoctorSpeciality(selectedOption.speciality || '');
+      setSelectedDoctorFee(selectedOption.consultation_fee || '');
     } else {
-      const newFormData = { ...addFormData };
-      newFormData.doctorId = '';
-      setFormData(newFormData);
+      setFormData(prev => ({
+        ...prev,
+        doctorId: '',
+        consultation_fee: ''
+      }));
       setSelectedDoctorSpeciality('');
+      setSelectedDoctorFee('');
     }
   };
 
@@ -159,12 +174,16 @@ const AppointmentForm = () => {
         email_no: addFormData.email,
         patient_id: addFormData.patientId,
         remarks: addFormData.remarks,
+        bu_id: addFormData.bu_id,
+        status: 1,
+        consultation_fee: addFormData.consultation_fee,
+        created_by: user_id
       }
 
       // console.log(submitData)
       // return;
 
-      const result = await fetch(`${basURL}/appointment/create`, {
+      const result = await fetch(`${baseURL}/appointment/create`, {
         method: 'POST',
         headers: {
           "Content-type": "application/json",
@@ -190,9 +209,13 @@ const AppointmentForm = () => {
           mobileNo: '',
           email: '',
           remarks: '',
+          bu_id: '',
+          status: 1,
+          consultation_fee: ''
         });
         setSelectedDoctorOption(null);
         setSelectedDoctorSpeciality('');
+        setSelectedDoctorFee('');
         setValidationErrors({});
 
       } else {
@@ -223,9 +246,13 @@ const AppointmentForm = () => {
         mobileNo: '',
         email: '',
         remarks: '',
+        bu_id: '',
+        status: 1,
+        consultation_fee: ''
     });
     setSelectedDoctorOption(null); //React clear
     setSelectedDoctorSpeciality(''); //Speciality clear
+    setSelectedDoctorFee(''); //Consultetion fee clear
     setValidationErrors({}) //Validation Errors Clear
   }
 
@@ -234,7 +261,7 @@ const AppointmentForm = () => {
    * TODO:: Optimize
   */
   useEffect(() => {
-    fetch(`${basURL}/doctors`, {
+    fetch(`${baseURL}/doctors/login_user`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`  // <-- must send token
@@ -250,13 +277,14 @@ const AppointmentForm = () => {
  const doctorOptions = doctorsInfo.map(doctor => ({
    value: doctor.id,
    label: `${doctor.doctor_name} (${doctor.bmdc_no})`,
-   speciality: doctor.speciality?.lookup_value 
+   speciality: doctor.speciality?.lookup_value,
+   consultation_fee: doctor?.consultation_fee
   }));
 
  //for single doctor all schedule
  const fetchDoctorSchedule = async (doctorId) => {
     try {
-      const result = await fetch(`${basURL}/chamber/getdoctorschedule/${doctorId}`, {
+      const result = await fetch(`${baseURL}/chamber/getdoctorschedule/${doctorId}`, {
         headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`  // <-- must send token
@@ -275,6 +303,43 @@ const AppointmentForm = () => {
       setDoctorScheduleDays([]);
     }
   };
+
+  //----------React Select Business Unit Start--------
+    useEffect(() => {
+      fetch(`${baseURL}/business_unit/login_user`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`  // <-- must send token
+        }
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          setBusinessUnite(data.data);
+        })
+    }, [])
+
+    const activeBusinessUnitOptions = businessUnit.filter(busness => busness.is_active == 1).map(busness => ({
+      value: busness.id,
+      label: `${busness.business_unit}`
+    }));
+
+    useEffect(() => {
+      if (activeBusinessUnitOptions.length > 0 && !addFormData.bu_id) {
+        setFormData(prev => ({
+          ...prev,
+          bu_id: activeBusinessUnitOptions[0].value
+        }));
+      }
+    }, [activeBusinessUnitOptions]);
+
+    // react-select  onChange handler
+    const selectBusinessUnitChange = (selectedOption) => {
+      setFormData(prev => ({
+        ...prev,
+        bu_id: selectedOption? selectedOption.value : ''  //bu-> bussness_unit
+      }))
+    };
+  //----------React Select Business Unit End--------
 
 
   //React select Style
@@ -311,7 +376,49 @@ const AppointmentForm = () => {
               <Form noValidate onSubmit={handleSubmit}>
                 <Row className="mb-3">
 
-                  <Form.Group as={Col} md="4" controlId="validationCustom02">
+                  <Form.Group as={Col} md="2" controlId="validationCustom02">
+                    <Form.Label>Business Unit<span className='text-danger ms-1'>*</span></Form.Label>
+                    <Select
+                      styles={{
+                        ...customStyles,
+                        control: (base, state) => ({
+                          ...base,
+                          borderColor: '#000', // dark border
+                          backgroundColor: activeBusinessUnitOptions.length === 1 ? '#EEEEEE' : '#fff', // single option color, normal otherwise
+                          pointerEvents: activeBusinessUnitOptions.length === 1 ? 'none' : 'auto', // readonly effect
+                          opacity: 1,
+                          minHeight: '40px',
+                        }),
+                        singleValue: (base) => ({
+                          ...base,
+                          color: '#000',
+                        }),
+                        menu: (base) => ({
+                          ...base,
+                          zIndex: 9999,
+                        }),
+                      }}
+                      options={activeBusinessUnitOptions}
+                      className={`border-dark readableInputBgColor ${showValidationError.bu_id ? 'is-invalid' : ''}`}
+                      onChange={selectBusinessUnitChange}
+                      value={
+                        activeBusinessUnitOptions.find(
+                          option => option.value === addFormData.bu_id
+                        ) || null
+                      }
+                      placeholder="Business Unit"
+                      isSearchable={activeBusinessUnitOptions.length > 1}
+                      disabled= {false}
+                    />
+
+                    {showValidationError.bu_id && (
+                      <Form.Control.Feedback type="invalid" className="d-block">
+                        {showValidationError.bu_id}
+                      </Form.Control.Feedback>
+                    )}
+                  </Form.Group>
+                  
+                  <Form.Group as={Col} md="2" controlId="validationCustom02">
                     <Form.Label>Doctor's Name & BMDC No <span className='text-danger ms-1'>*</span></Form.Label>
                     <Select
                       styles={customStyles} 
@@ -459,11 +566,38 @@ const AppointmentForm = () => {
                     <Form.Control.Feedback type='invalid'>{showValidationError.email_no}</Form.Control.Feedback>
                   </Form.Group>
 
-                    <Form.Group as={Col} md="6" controlId="validationCustom01">
+                  <Form.Group as={Col} md="2" controlId="validationCustom01">
+                      <Form.Label>Status<span className='text-danger ms-1'></span></Form.Label>
+                      <Form.Control
+                        required
+                        type="text"
+                        className='border-dark readableInputBgColor'
+                        placeholder='example@gmail.com'
+                        value= "Booked"
+                        readOnly
+                      />
+                    <Form.Control.Feedback type='invalid'>{showValidationError.email_no}</Form.Control.Feedback>
+                  </Form.Group>
+
+                  <Form.Group as={Col} md="2" controlId="validationCustom01">
+                      <Form.Label>Consultation Fee<span className='text-danger ms-1'></span></Form.Label>
+                      <Form.Control
+                        required
+                        type="text"
+                        className='border-dark readableInputBgColor'
+                        placeholder='Exp: 1000'
+                        name='email'
+                        value={selectedDoctorfee}
+                        readOnly
+                      />
+                    <Form.Control.Feedback type='invalid'>{showValidationError.email_no}</Form.Control.Feedback>
+                  </Form.Group>
+
+                    <Form.Group as={Col} md="2" controlId="validationCustom01">
                       <Form.Label>Remarks<span className='text-danger ms-1'></span></Form.Label>
                         <Form.Control
                           as='textarea'
-                          rows={4}
+                          rows={2}
                           placeholder="Enter Remarks Doctor's..."
                           className='border-dark'
                           name='remarks'

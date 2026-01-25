@@ -8,11 +8,21 @@ import RoleEditForm from "./AppointmentEditForm";
 import SingleTableFunction from "./SingleTableFunction";
 import AppointmentEditForm from "./AppointmentEditForm";
 import { hasButtonPermission } from "../../common/utils/hasButtonPermission";
+import { format, parseISO } from 'date-fns';
+import DatePicker from "react-datepicker";
+import { StatusChangeModal } from "./StatusChangeModal";
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
 // ******************************************************
 // ******************************************************
+
+const STATUS_MAP = {
+  1: 'Booked',
+  2: 'Checked In',
+  3: 'In Consultation',
+  4: 'Completed',
+};
 // ******************************************************
 
 
@@ -55,6 +65,11 @@ export const COLUMNS = [
         Cell: ({ value }) => <div className="text-center">{value}</div>
     },
     {
+        Header: (<div className="text-center">{"Status"}</div>),
+        accessor: "status",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
+    },
+    {
         Header: (<div className="text-center">{"Actions"}</div>),
         accessor: "action",
         Cell: ({ value }) => <div className="text-center">{value}</div>
@@ -67,10 +82,23 @@ export const DATATABLE = (doctorAppointment, handlers, permission) =>
         doctorename: appointment.doctor.doctor_name || "Doctor Name",
         speciality: appointment.doctor.speciality.lookup_value || "Speciality",
         bmdcno: appointment.doctor.bmdc_no || "MBDC No",
-        appointment_date: appointment.appointment_date || "Appointment Date",
+        appointment_date: appointment.appointment_date ? format(parseISO(appointment.appointment_date), 'dd-MM-yyyy') : '' || "Appointment Date",
         daytime: appointment.days || "Days & Schedule Time",
         patient_name: appointment.patient_name || "Patient Name",
         mobile: appointment.mobile_no || "Mobile No",
+        status: (
+            <span
+                className={`badge ${
+                appointment.status === 1 ? 'bg-primary'
+                : appointment.status === 2 ? 'bg-warning text-dark'
+                : appointment.status === 3 ? 'bg-info'
+                : appointment.status === 4 ? 'bg-success'
+                : 'bg-secondary'
+                }`}
+            >
+                {STATUS_MAP[appointment.status] || ''}
+            </span>
+        ),
         action: (
             <>
                 {permission.canView && 
@@ -94,6 +122,11 @@ export const DATATABLE = (doctorAppointment, handlers, permission) =>
                         </span>
                     </OverlayTrigger> 
                 }
+                    <OverlayTrigger placement="top" overlay={<Tooltip>Quick Info</Tooltip>}> 
+                        <span onClick={() => handlers.handleShowModalById(appointment)} className="btn-sm bg-success ms-2" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-play-circle"></i>
+                        </span>
+                    </OverlayTrigger> 
             </>
         )
     }));
@@ -143,6 +176,49 @@ export const BasicTable = () => {
     const [doctorAppointment, setDoctorAppointment] = useState([]);
     const [showSingleData, setSingleData] = useState([]);
     const [passEditFormData, setPassingEditFormData] = useState(null);
+
+    // console.log(doctorAppointment)
+
+    const [fromDate, setFromDate] = useState(new Date());
+    const [toDate, setToDate] = useState(new Date());
+
+
+    //*********Date Wise Filter (From date - To date) Start**********/
+    const filteredAppointments = useMemo(() => {
+        if (!fromDate || !toDate) return doctorAppointment;
+
+        const from = format(fromDate, "yyyy-MM-dd");
+        const to = format(toDate, "yyyy-MM-dd");
+
+        return doctorAppointment.filter(item =>
+            item.appointment_date &&
+            item.appointment_date >= from &&
+            item.appointment_date <= to
+        );
+    }, [doctorAppointment, fromDate, toDate]);
+    //*********Date Wise Filter (From date - To date) End**********/
+
+    const [showStatusModal, setShowStatusModal] = useState(false);  //Modal Open Close
+    const [selectedPatient, setSelectedPatient] = useState(null);  //Selected Id for modal
+
+    //--------Modal Handler Start-----------
+        const openStatusModal = (appointment) => {
+            setSelectedPatient(appointment); // full appointment object
+            setShowStatusModal(true);        // modal open
+        };
+
+        const closeStatusModal = () => {
+            setShowStatusModal(false);
+            setSelectedPatient(null);
+        };
+    //--------Modal Handler End----------- 
+
+
+    const handleShowModalById = (appointment) => {
+        openStatusModal(appointment);
+    };
+
+
 
 
 
@@ -275,18 +351,19 @@ export const BasicTable = () => {
 
     
 
-    const dataTable = useMemo(() => DATATABLE(doctorAppointment, 
+    const dataTable = useMemo(() => DATATABLE(filteredAppointments, 
         {
             handleShowDataById,
             deletePermissionAlert,
-            handleEditDataById
+            handleEditDataById,
+            handleShowModalById
         },
         {
             canView,
             canEdit,
             canDelete
         }
-    ), [doctorAppointment, canView, canEdit, canDelete]);
+    ), [filteredAppointments, canView, canEdit, canDelete]);
 
 
 
@@ -343,11 +420,47 @@ export const BasicTable = () => {
                                         )}
                                     </div>
 
+                                    <StatusChangeModal
+                                        show={showStatusModal}
+                                        onHide={closeStatusModal}
+                                        appointment={selectedPatient}
+                                    />
+
                                 </Card.Header>
 
                                 <Card.Body>
 
-                                    <div className="d-flex">
+                                    <div className="d-flex justify-content-center gap-2 border border-box">
+                                        <div className="col-auto p-2">
+                                            <label><strong>From Date</strong></label>
+                                            <DatePicker
+                                                selected={fromDate}
+                                                onChange={(date) => setFromDate(date)}
+                                                selectsStart
+                                                startDate={fromDate}
+                                                endDate={toDate}
+                                                dateFormat="dd-MM-yyyy"
+                                                placeholderText="From date"
+                                                className="form-control"
+                                            />
+                                        </div>
+
+                                        <div className="col-auto p-2">
+                                            <label><strong>To Date</strong></label>
+                                            <DatePicker
+                                                selected={toDate}
+                                                onChange={(date) => setToDate(date)}
+                                                selectsEnd
+                                                startDate={fromDate}
+                                                endDate={toDate}
+                                                minDate={fromDate}
+                                                dateFormat="dd-MM-yyyy"
+                                                placeholderText="To date"
+                                                className="form-control"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="d-flex mt-1">
                                         <select
                                             className=" mb-4 selectpage border me-1"
                                             value={pageSize}
@@ -407,8 +520,8 @@ export const BasicTable = () => {
                                     <div className="d-block d-sm-flex mt-4 ">
                                         <span>
                                             Showing {pageIndex * pageSize + 1} to{" "}
-                                            {Math.min((pageIndex + 1) * pageSize, doctorAppointment.length)} of{" "}
-                                            {doctorAppointment.length} entries
+                                            {Math.min((pageIndex + 1) * pageSize, filteredAppointments.length)} of{" "}
+                                            {filteredAppointments.length} entries
                                         </span>
                                         <span className="ms-sm-auto ">
                                             <Button

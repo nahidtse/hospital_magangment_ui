@@ -104,6 +104,16 @@ const DoctorsProfile = ({ setBusinessUnitList, singleContactsData, setSingleData
                                             </Form.Group>
                                         </Row>
                                         <Row>
+                                            <Form.Group as={Col} md="6" className='mt-2'>
+                                                <Form.Label>Business Unit</Form.Label>
+                                                <Form.Control
+                                                    type="text"
+                                                    className='border-dark readableInputBgColor'
+                                                    readOnly
+                                                    value={singleContactsData.businessUnite?.map(item => item.business_unit).join(", ") || ""}
+                                                />
+                                            </Form.Group>
+
                                             <Form.Group as={Col} md="6" className='mt-4'>
                                                 <div className="form-check form-switch">
                                                     <input

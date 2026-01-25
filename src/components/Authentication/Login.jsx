@@ -93,13 +93,16 @@ function Login() {
         toast.success(response.message, { autoClose: 1000 });
 
         // Expire in 5 seconds
-        const expiryTime = Date.now() + 60 * 60 * 5000;
+        // const expiryTime = Date.now() + 60 * 60 * 5000;
+
+        const expiryTime = new Date(response.data.token_expires_at).getTime(); // number in ms
 
         const token = response.data.access_token;
         const user_name  = response.data.user.user_name;
         const role_id = response.data.user.role_id;
         const full_name = response.data.user.full_name;
         const user_id = response.data.user.id;
+        // const expiryTime = response.data.token_expires_at;
         // const isActive = response.user.is_active;
 
 

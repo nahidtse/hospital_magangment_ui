@@ -4,7 +4,7 @@ import { Button, Card, Col, Form, Row } from 'react-bootstrap';
 import { Link, useLocation } from 'react-router-dom';
 import Select from 'react-select';
 import { toast } from 'react-toastify';
-const basURL = import.meta.env.VITE_API_BASE_URL;
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
 
@@ -29,10 +29,25 @@ const DoctorsInfoForm = () => {
 
   const fileInputRef = useRef(null); //For image filed clear
 
+  //-----------Focus Input Start-----------------------------------
+      const referenceSelectRef = useRef(null);  //For auto fucus
+      // Component mount then focus 
+      useEffect(() => {
+        // small timeout for render then focus
+        const timer = setTimeout(() => {
+          if (referenceSelectRef.current) {
+            referenceSelectRef.current.focus();
+          }
+        }, 100);
+        return () => clearTimeout(timer);
+      }, []);
+    //-----------Focus Input End----------------------------------- 
+
 
   //*********Check Authentication Start***********
   const token = localStorage.getItem('auth_token'); //Check Authentication
   const expiry = localStorage.getItem('auth_token_expiry');  // token expire check
+  const user_id = localStorage.getItem('user_id')  // for created_by
 
   if (!token || (expiry && Date.now() > Number(expiry))) {
       localStorage.clear();
@@ -54,6 +69,7 @@ const DoctorsInfoForm = () => {
     within: '',
     consultation_time: '',
     about_doctor: '',
+    bu_id: []
   });
 
   const [addFormData, setFormData] = useState({
@@ -71,16 +87,18 @@ const DoctorsInfoForm = () => {
     within: '',
     consultationtime: '',
     aboutdoctor: '',
-    // createby: 1,
+    bu_id: []
 
   })
-// console.log(addFormData)
+ // console.log(addFormData)
 
   const [getSPlookupData, setSPlookupData] = useState([]);
   const [getDGlookupData, setGDlookupdata] = useState([]);
 
   // console.log("SP",getSPlookupData)
   // console.log("DG",getDGlookupData)
+
+  const [businessUnit, setBusinessUnite] = useState([]) //for react select BU
 
 
 
@@ -117,6 +135,9 @@ const DoctorsInfoForm = () => {
     if (!addFormData.degreeId || addFormData.degreeId.length === 0) {
       errors.degree_id = "Doctor's Degree is required.";
     }
+    if (!addFormData.bu_id || addFormData.bu_id.length === 0) {
+      errors.bu_id = "Business Unit is required.";
+    }
 
     // Check if any errors
     if (Object.keys(errors).length > 0) {
@@ -141,6 +162,8 @@ const DoctorsInfoForm = () => {
       formData.append("within_day", addFormData.within);
       formData.append("consultation_time", addFormData.consultationtime);
       formData.append("about_doctor", addFormData.aboutdoctor);
+      formData.append("bu_id", JSON.stringify(addFormData.bu_id));
+      formData.append("created_by", user_id);
 
 
       // for (let pair of formData.entries()) {
@@ -148,7 +171,7 @@ const DoctorsInfoForm = () => {
       // }
       // return;
 
-      const result = await fetch(`${basURL}/doctors/create`,{
+      const result = await fetch(`${baseURL}/doctors/create`,{
         method: 'POST',
         body: formData,
         headers: {
@@ -178,7 +201,8 @@ const DoctorsInfoForm = () => {
           within: '',
           consultationtime: '',
           aboutdoctor: '',
-          doctorId: generateTinyDoctorId()
+          doctorId: generateTinyDoctorId(),
+          bu_id: []
         });
 
         setValidationErrors({})
@@ -220,7 +244,8 @@ const DoctorsInfoForm = () => {
       within: '',
       consultationtime: '',
       aboutdoctor: '',
-      doctorId: generateTinyDoctorId()
+      doctorId: generateTinyDoctorId(),
+      bu_id: []
     });
     if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -233,7 +258,7 @@ const DoctorsInfoForm = () => {
    * TODO:: Optimize
   */
   useEffect(() => {
-    fetch(`${basURL}/lookupvalue/multiplefilter/sp`, {
+    fetch(`${baseURL}/lookupvalue/multiplefilter/sp`, {
       headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`  // <-- must send token
@@ -247,7 +272,7 @@ const DoctorsInfoForm = () => {
 
 
   useEffect(() => {
-    fetch(`${basURL}/lookupvalue/multiplefilter/dg`, {
+    fetch(`${baseURL}/lookupvalue/multiplefilter/dg`, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`  // <-- must send token
@@ -263,6 +288,52 @@ const DoctorsInfoForm = () => {
     value: item.id,
     label: item.lookup_value,
   }));
+
+
+  //----------React Select Business Unit Start--------
+    useEffect(() => {
+      fetch(`${baseURL}/business_unit`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`  // <-- must send token
+        }
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          setBusinessUnite(data.data);
+        })
+    }, [])
+
+    const activeBusinessUnitOptions = businessUnit.filter(busness => busness.is_active == 1).map(busness => ({
+      value: busness.id,
+      label: `${busness.business_unit}`
+    }));
+
+    //multiple doctor's select
+    const selectBusinessUnitMultiChange = (selectedOption) => {
+      const selectedIds = selectedOption ? selectedOption.map(option => option.value) : [];
+      setFormData(prev => ({
+        ...prev,
+        bu_id: selectedIds
+      }))
+    };
+  //----------React Select Business Unit End--------
+
+
+  //React select
+  const customStyles = {
+    control: (base, state) => ({
+      ...base,
+      borderColor: '#000',
+      borderRadius: '0.375rem',
+      fontSize: '0.875rem',
+      // padding: '1px',
+      minHeight: '40px',
+      // '&:hover': {
+      //   borderColor: '#000'
+      // }
+    }),
+  };
 
 
 
@@ -282,12 +353,26 @@ const DoctorsInfoForm = () => {
 
             <Card.Body>
 
-              <Form noValidate onSubmit={handleSubmit}>
+              <Form 
+                noValidate 
+                onSubmit={handleSubmit}
+                onKeyDown={(e) => {
+                  const activeEl = document.activeElement; // active element define
+                  if (e.key === "Enter" && e.target.tagName !== 'TEXTAREA') {
+                    if (activeEl && activeEl.type === "submit") {
+                      return; 
+                    } else {
+                      e.preventDefault();
+                    }
+                  }
+               }}
+              >
                 <Row className="mb-3">
 
                   <Form.Group as={Col} md="4" controlId="validationCustom01">
                     <Form.Label>Doctor's Name <span className='text-danger ms-1'>*</span></Form.Label>
                     <Form.Control
+                      ref={referenceSelectRef}
                       required
                       type="text"
                       className='border-dark'
@@ -296,7 +381,7 @@ const DoctorsInfoForm = () => {
                       value={addFormData.doctorsname}
                       isInvalid={!!showValidationError.doctors_name}
                       onChange={onChangeHandler}
-
+                      tabIndex={1}
                     />
                     <Form.Control.Feedback type='invalid'>{showValidationError.doctors_name}</Form.Control.Feedback>
                   </Form.Group>
@@ -311,6 +396,7 @@ const DoctorsInfoForm = () => {
                       onChange={onChangeHandler}
                       value={addFormData.specialityId || ''}
                       aria-label="Select role"
+                      tabIndex={2}
                     >
                       <option value="">Select Specialty</option>
                       {getSPlookupData && getSPlookupData.length > 0 ? (getSPlookupData.map((speciality) => (
@@ -330,6 +416,7 @@ const DoctorsInfoForm = () => {
                     <Form.Label>Select Degree<span className='text-danger'> *</span> </Form.Label>
 
                     <Select
+                      styles={customStyles}
                       isMulti={true}
                       name="degreeId"
                       className={`border-dark ${showValidationError.degree_id ? 'is-invalid' : ''}`}
@@ -344,15 +431,17 @@ const DoctorsInfoForm = () => {
                           ...prev,
                           degreeId: selectedIds,
                         }));
-                      }} />
+                      }}
+                      tabIndex={3} 
+                    />
                     <Form.Control.Feedback type='invalid'>{showValidationError.degree_id}</Form.Control.Feedback>
                   </Form.Group>                
                 </Row>
 
                 <Row>
-                    <Form.Group as={Col} md="4" controlId="validationCustom01"> 
+                    <Form.Group as={Col} md="4"> 
                       <Row>
-                         <Form.Group as={Col} md="8" controlId="validationCustom01">
+                         <Form.Group as={Col} md="8">
                               <Form.Label>BMDC NO <span className='text-danger ms-1'>*</span></Form.Label>
                               <Form.Control
                                 required
@@ -363,7 +452,7 @@ const DoctorsInfoForm = () => {
                                 value={addFormData.bmdcnumber}
                                 isInvalid={!!showValidationError.bmdc_no}
                                 onChange={onChangeHandler}
-
+                                tabIndex={4}
                               />
                             <Form.Control.Feedback type='invalid'>{showValidationError.bmdc_no}</Form.Control.Feedback>
                          </Form.Group>
@@ -378,14 +467,32 @@ const DoctorsInfoForm = () => {
                                 value={addFormData?.doctorId || ''}
                                 // isInvalid={!!showValidationError.doctor_id}
                                 onChange={onChangeHandler}
-
+                                tabIndex={-1}
                               />
                               {/* <Form.Control.Feedback type='invalid'>{showValidationError.doctor_id}</Form.Control.Feedback> */}
                          </Form.Group>
                       </Row>
                   </Form.Group>
 
-                  <Form.Group as={Col} md="4" controlId="validationCustom01">
+                  <Form.Group as={Col} md="4" controlId="validationCustom02">
+                    <Form.Label>Business Unit<span className='text-danger'> *</span> </Form.Label>
+
+                    <Select
+                      styles={customStyles}
+                      isMulti={true} // Enable multiple selection
+                      className={`border-dark ${showValidationError.bu_id ? 'is-invalid' : ''}`}
+                      classNamePrefix="react-select"
+                      options={activeBusinessUnitOptions}
+                      value={activeBusinessUnitOptions.filter(option =>
+                        addFormData.bu_id.includes(option.value)
+                      )}
+                      onChange={selectBusinessUnitMultiChange}
+                      tabIndex={5}
+                    />
+                    <Form.Control.Feedback type='invalid'>{showValidationError.bu_id}</Form.Control.Feedback>
+                   </Form.Group> 
+
+                  <Form.Group as={Col} md="3" controlId="validationCustom01">
                     <Form.Label>Image <span className='text-danger ms-1'></span></Form.Label>
                     <Form.Control
                       required
@@ -395,11 +502,12 @@ const DoctorsInfoForm = () => {
                       isInvalid={!!showValidationError.image}
                       onChange={onChangeHandler}
                       ref={fileInputRef}
+                      tabIndex={6}
                     />
                     <Form.Control.Feedback type='invalid'>{showValidationError.image}</Form.Control.Feedback>
                   </Form.Group>
 
-                  <Form.Group as={Col} md="4" className='mt-4'>
+                  <Form.Group as={Col} md="1" className='mt-4'>
                     <div className="form-check form-switch">
                       <input
                         className="form-check-input"
@@ -432,7 +540,7 @@ const DoctorsInfoForm = () => {
                       value={addFormData.consultationfee}
                       isInvalid={!!showValidationError.consultation_fee}
                       onChange={onChangeHandler}
-
+                      tabIndex={7}
                     />
                     <Form.Control.Feedback type='invalid'>{showValidationError.consultation_fee}</Form.Control.Feedback>
                   </Form.Group>
@@ -448,7 +556,7 @@ const DoctorsInfoForm = () => {
                       value={addFormData.vat}
                       isInvalid={!!showValidationError.vat}
                       onChange={onChangeHandler}
-
+                      tabIndex={8}
                     />
                     <Form.Control.Feedback type='invalid'>{showValidationError.vat}</Form.Control.Feedback>
                   </Form.Group>
@@ -484,7 +592,7 @@ const DoctorsInfoForm = () => {
                       value={addFormData.followupfee}
                       isInvalid={!!showValidationError.followup_fee}
                       onChange={onChangeHandler}
-
+                      tabIndex={9}
                     />
                     <Form.Control.Feedback type='invalid'>{showValidationError.followup_fee}</Form.Control.Feedback>
                   </Form.Group>
@@ -500,7 +608,7 @@ const DoctorsInfoForm = () => {
                       value={addFormData.within}
                       isInvalid={!!showValidationError.within}
                       onChange={onChangeHandler}
-
+                      tabIndex={10}
                     />
                     <Form.Control.Feedback type='invalid'>{showValidationError.within}</Form.Control.Feedback>
                   </Form.Group>
@@ -516,7 +624,7 @@ const DoctorsInfoForm = () => {
                       value={addFormData.consultationtime}
                       isInvalid={!!showValidationError.consultation_time}
                       onChange={onChangeHandler}
-
+                      tabIndex={11}
                     />
                     <Form.Control.Feedback type='invalid'>{showValidationError.consultation_time}</Form.Control.Feedback>
                   </Form.Group>
@@ -541,7 +649,7 @@ const DoctorsInfoForm = () => {
                         name='aboutdoctor'
                         value={addFormData.aboutdoctor}
                         onChange={onChangeHandler}
-
+                        tabIndex={12}
                       ></Form.Control>
                     </div>
                     <Form.Control.Feedback type='invalid'>{showValidationError.about_doctor}</Form.Control.Feedback>
@@ -554,7 +662,7 @@ const DoctorsInfoForm = () => {
                 
                 <div className='d-flex justify-content-end'>
                   <button type="reset" id="resetBtn" className="btn btn-outline-secondary me-2" onClick={resetHandling}>Reset</button>
-                  <Button type="submit">Save</Button>
+                  <Button tabIndex={13} type="submit">Save</Button>
                 </div>
               </Form>
 

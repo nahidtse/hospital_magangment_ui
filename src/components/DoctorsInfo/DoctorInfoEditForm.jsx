@@ -4,7 +4,7 @@ import { Button, Card, Col, Form, InputGroup, Row } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Select from 'react-select';
-const basURL = import.meta.env.VITE_API_BASE_URL;
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
 const DoctorInfoEditForm = ({
@@ -35,7 +35,7 @@ const DoctorInfoEditForm = ({
     withinday: '',
     consultationtime: '',
     aboutdoctor: '',
-    // createby: '',
+    bu_id: [],
   })
 
   // console.log(editFormData)
@@ -44,6 +44,7 @@ const DoctorInfoEditForm = ({
 
   const [getSPlookupData, setSPlookupData] = useState([]);
   const [getDGlookupData, setGDlookupData] = useState([]);
+  const [businessUnit, setBusinessUnite] = useState([]) // for react select Business Unit
 
 
   const [showValidationError, setValidationErrors] = useState({
@@ -51,7 +52,8 @@ const DoctorInfoEditForm = ({
     speciality_id: '',
     degree_id: '',
     bmdc_no: '',
-    consultation_fee: ''
+    consultation_fee: '',
+    bu_id: []
   });
   // console.log(showValidationError)
 
@@ -74,6 +76,7 @@ const DoctorInfoEditForm = ({
         withinday: passEditFormData.within_day || '',
         consultationtime: passEditFormData.consultation_time || '',
         aboutdoctor: passEditFormData.about_doctor || '',
+        bu_id: passEditFormData.bu_id || '',
       });
     }
   }, [passEditFormData]);
@@ -84,6 +87,7 @@ const DoctorInfoEditForm = ({
    */
   const token = localStorage.getItem('auth_token'); //Check Authentication
   const expiry = localStorage.getItem('auth_token_expiry'); //check token expiry time
+  const user_id = localStorage.getItem('user_id') // for Updated_by
 
   if (!token || (expiry && Date.now() > Number(expiry))) {
     localStorage.clear();
@@ -92,7 +96,7 @@ const DoctorInfoEditForm = ({
   }
 
   useEffect(() => {
-    fetch(`${basURL}/lookupvalue/multiplefilter/sp`, {
+    fetch(`${baseURL}/lookupvalue/multiplefilter/sp`, {
       headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`  // <-- must send token
@@ -106,7 +110,7 @@ const DoctorInfoEditForm = ({
 
 
   useEffect(() => {
-    fetch(`${basURL}/lookupvalue/multiplefilter/dg`, {
+    fetch(`${baseURL}/lookupvalue/multiplefilter/dg`, {
       headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`  // <-- must send token
@@ -169,6 +173,10 @@ const DoctorInfoEditForm = ({
         }
       }
 
+    if (!editFormData.bu_id || editFormData.bu_id.length === 0) {
+      errors.bu_id = "Business Unit is required.";
+    }  
+
 
     // Check if any errors
     if (Object.keys(errors).length > 0) {
@@ -195,13 +203,15 @@ const DoctorInfoEditForm = ({
         formData.append("within_day", editFormData.withinday); 
         formData.append("consultation_time", editFormData.consultationtime); 
         formData.append("about_doctor", editFormData.aboutdoctor); 
+        formData.append("bu_id", JSON.stringify(editFormData.bu_id)); 
+        formData.append("updated_by", user_id)
       
       // for (let pair of formData.entries()) {
       //   console.log(pair[0], pair[1]);
       // }
       // return;
 
-      const result = await fetch(`${basURL}/doctors/update/${passEditFormData.id}`, {
+      const result = await fetch(`${baseURL}/doctors/update/${passEditFormData.id}`, {
         method: 'POST',
         body: formData,
         headers: {
@@ -244,6 +254,53 @@ const DoctorInfoEditForm = ({
     }
 
   };
+
+
+  //----------React Select Business Unit Start--------
+      useEffect(() => {
+        fetch(`${baseURL}/business_unit`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`  // <-- must send token
+          }
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            setBusinessUnite(data.data);
+          })
+      }, [])
+  
+      const activeBusinessUnitOptions = businessUnit.filter(busness => busness.is_active == 1).map(busness => ({
+        value: busness.id,
+        label: `${busness.business_unit}`
+      }));
+  
+      //multiple doctor's select
+      const selectBusinessUnitMultiChange = (selectedOption) => {
+        const selectedIds = selectedOption ? selectedOption.map(option => option.value) : [];
+        setEditFormData(prev => ({
+          ...prev,
+          bu_id: selectedIds
+        }))
+      };
+  //----------React Select Business Unit End--------
+
+
+  //React select
+  const customStyles = {
+    control: (base, state) => ({
+      ...base,
+      borderColor: '#000',
+      borderRadius: '0.375rem',
+      fontSize: '0.875rem',
+      // padding: '1px',
+      minHeight: '40px',
+      // '&:hover': {
+      //   borderColor: '#000'
+      // }
+    }),
+  };
+
 
   return (
     <Fragment>
@@ -361,7 +418,25 @@ const DoctorInfoEditForm = ({
                       </Form.Group>
                     </Row>
                     </Form.Group>
-                  <Form.Group as={Col} md="4" controlId="validationCustom01" className='mt-2'>
+
+                    <Form.Group as={Col} md="4" controlId="validationCustom02">
+                      <Form.Label>Business Unit<span className='text-danger'> *</span> </Form.Label>
+  
+                      <Select
+                        styles={customStyles}
+                        isMulti={true} // Enable multiple selection
+                        className={`border-dark ${showValidationError.bu_id ? 'is-invalid' : ''}`}
+                        classNamePrefix="react-select"
+                        options={activeBusinessUnitOptions}
+                        value={activeBusinessUnitOptions.filter(option =>
+                          editFormData.bu_id.includes(option.value)
+                        )}
+                        onChange={selectBusinessUnitMultiChange}
+                      />
+                      <Form.Control.Feedback type='invalid'>{showValidationError.bu_id}</Form.Control.Feedback>
+                    </Form.Group> 
+
+                  <Form.Group as={Col} md="3" className='mt-2'>
                     <Form.Label>Image<span className='text-danger ms-1'>*</span></Form.Label>
                     <Form.Control
                       required
@@ -376,7 +451,7 @@ const DoctorInfoEditForm = ({
                     <Form.Control.Feedback type='invalid'>{showValidationError.image}</Form.Control.Feedback>
                   </Form.Group>
 
-                  <Form.Group as={Col} md="4">
+                  <Form.Group as={Col} md="1">
                     <div className="form-check form-switch">
                       {editFormData.imagePreview && (
                       <div className="mt-2">
