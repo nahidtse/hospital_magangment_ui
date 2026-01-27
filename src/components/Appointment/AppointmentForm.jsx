@@ -366,7 +366,7 @@ const AppointmentForm = () => {
               <div className='card-title'>New Appointment</div>
               <div className="prism-toggle">
                 <Link to={`${import.meta.env.BASE_URL}appointment/dataTable`}>
-                  <button className="btn btn-sm btn-primary">List</button>
+                  <button className="btn btn-primary">List</button>
                 </Link>
               </div>
             </Card.Header>

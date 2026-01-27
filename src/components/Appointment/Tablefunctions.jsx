@@ -1,6 +1,6 @@
 import { Button, Card, Col, OverlayTrigger, Row, Table, Tooltip } from "react-bootstrap";
 import { useTable, useSortBy, useGlobalFilter, usePagination, } from "react-table";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -11,6 +11,8 @@ import { hasButtonPermission } from "../../common/utils/hasButtonPermission";
 import { format, parseISO } from 'date-fns';
 import DatePicker from "react-datepicker";
 import { StatusChangeModal } from "./StatusChangeModal";
+import { PatientInfoModal } from "../InvoiceDiagonestic/PatientInfoModal";
+import { PatientLinkModal } from "./PatientLinkModal";
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
@@ -18,10 +20,14 @@ const baseURL = import.meta.env.VITE_API_BASE_URL;
 // ******************************************************
 
 const STATUS_MAP = {
+  0: 'Cancel',
   1: 'Booked',
   2: 'Checked In',
   3: 'In Consultation',
   4: 'Completed',
+  5: 'Absent',
+  6: 'Reschedule',
+  7: 'Checked In Cancel',
 };
 // ******************************************************
 
@@ -36,19 +42,15 @@ export const COLUMNS = [
         Header: (<div className="text-center">{"Doctor's Name"}</div>),
         accessor: "doctorename",
     },
-    {
-        Header: (<div className="text-center">{"BMDC No"}</div>),
-        accessor: "bmdcno",
-        Cell: ({ value }) => <div className="text-center">{value}</div>
-    },
-    {
-        Header: (<div className="text-center">{"Speciality"}</div>),
-        accessor: "speciality",
-    },
+    // {
+    //     Header: (<div className="text-center">{"Speciality"}</div>),
+    //     accessor: "speciality",
+    //     className: "d-none d-md-table-cell"
+    // },
     {
         Header: (<div className="text-center">{"Appointment Date"}</div>),
         accessor: "appointment_date",
-        Cell: ({ value }) => <div className="text-center">{value}</div>
+        Cell: ({ value }) => <div className="text-center">{value}</div>,
     },
     {
         Header: (<div className="text-center">{"Days"}</div>),
@@ -70,6 +72,11 @@ export const COLUMNS = [
         Cell: ({ value }) => <div className="text-center">{value}</div>
     },
     {
+        Header: (<div className="text-center">{"Payment Status"}</div>),
+        accessor: "payment_status",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
+    },
+    {
         Header: (<div className="text-center">{"Actions"}</div>),
         accessor: "action",
         Cell: ({ value }) => <div className="text-center">{value}</div>
@@ -80,19 +87,23 @@ export const DATATABLE = (doctorAppointment, handlers, permission) =>
     doctorAppointment.map((appointment, id) => ({
         id: id + 1,
         doctorename: appointment.doctor.doctor_name || "Doctor Name",
-        speciality: appointment.doctor.speciality.lookup_value || "Speciality",
-        bmdcno: appointment.doctor.bmdc_no || "MBDC No",
+        // speciality: appointment.doctor.speciality.lookup_value || "Speciality",
         appointment_date: appointment.appointment_date ? format(parseISO(appointment.appointment_date), 'dd-MM-yyyy') : '' || "Appointment Date",
         daytime: appointment.days || "Days & Schedule Time",
         patient_name: appointment.patient_name || "Patient Name",
         mobile: appointment.mobile_no || "Mobile No",
+        payment_status: (appointment.mobile_no) || "Mobile No",
         status: (
             <span
                 className={`badge ${
-                appointment.status === 1 ? 'bg-primary'
+                  appointment.status === 1 ? 'bg-primary'
                 : appointment.status === 2 ? 'bg-warning text-dark'
                 : appointment.status === 3 ? 'bg-info'
                 : appointment.status === 4 ? 'bg-success'
+                : appointment.status === 5 ? 'bg-warning'
+                : appointment.status === 6 ? 'bg-dark'
+                : appointment.status === 7 ? 'bg-secondary'
+                : appointment.status === 0 ? 'bg-danger'
                 : 'bg-secondary'
                 }`}
             >
@@ -100,7 +111,7 @@ export const DATATABLE = (doctorAppointment, handlers, permission) =>
             </span>
         ),
         action: (
-            <>
+            <div className="d-flex justify-content-center">
                 {permission.canView && 
                     <OverlayTrigger placement="top" overlay={<Tooltip>View</Tooltip>}> 
                         <span onClick={() => handlers.handleShowDataById(appointment)}  className="btn-sm bg-info" style={{ cursor: "pointer" }}>
@@ -122,12 +133,25 @@ export const DATATABLE = (doctorAppointment, handlers, permission) =>
                         </span>
                     </OverlayTrigger> 
                 }
-                    <OverlayTrigger placement="top" overlay={<Tooltip>Quick Info</Tooltip>}> 
+                {appointment.status !== 4 && (
+                    <OverlayTrigger placement="top" overlay={<Tooltip>Quick Change</Tooltip>}> 
                         <span onClick={() => handlers.handleShowModalById(appointment)} className="btn-sm bg-success ms-2" style={{ cursor: "pointer" }}>
                             <i className="bi bi-play-circle"></i>
                         </span>
                     </OverlayTrigger> 
-            </>
+                )}
+
+                <OverlayTrigger placement="top" overlay={<Tooltip>Patient Link</Tooltip>}> 
+                        <span onClick={() => handlers.handlePatientLinkModal(appointment)} className="btn-sm bg-secondary ms-2" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-link"></i>
+                        </span>
+                </OverlayTrigger>
+                <OverlayTrigger placement="top" overlay={<Tooltip>Payment Option</Tooltip>}> 
+                        <span onClick={() => handlers.handlePatientPaymentModal(appointment)} className="btn-sm bg-warning ms-2" style={{ cursor: "pointer" }}>
+                            <i className="bi bi-bank"></i>
+                        </span>
+                </OverlayTrigger>
+            </div>
         )
     }));
 
@@ -178,12 +202,12 @@ export const BasicTable = () => {
     const [passEditFormData, setPassingEditFormData] = useState(null);
 
     // console.log(doctorAppointment)
-
+    
+    //*********Date Wise Filter (From date - To date) Start**********/
     const [fromDate, setFromDate] = useState(new Date());
     const [toDate, setToDate] = useState(new Date());
 
 
-    //*********Date Wise Filter (From date - To date) Start**********/
     const filteredAppointments = useMemo(() => {
         if (!fromDate || !toDate) return doctorAppointment;
 
@@ -198,10 +222,11 @@ export const BasicTable = () => {
     }, [doctorAppointment, fromDate, toDate]);
     //*********Date Wise Filter (From date - To date) End**********/
 
+    
+    //--------Modal Handler Patient Status Start-----------
     const [showStatusModal, setShowStatusModal] = useState(false);  //Modal Open Close
     const [selectedPatient, setSelectedPatient] = useState(null);  //Selected Id for modal
 
-    //--------Modal Handler Start-----------
         const openStatusModal = (appointment) => {
             setSelectedPatient(appointment); // full appointment object
             setShowStatusModal(true);        // modal open
@@ -211,12 +236,38 @@ export const BasicTable = () => {
             setShowStatusModal(false);
             setSelectedPatient(null);
         };
-    //--------Modal Handler End----------- 
+
+        const handleShowModalById = (appointment) => {
+            openStatusModal(appointment);
+        };
+    //--------Modal Handler Patient Status  End-----------
 
 
-    const handleShowModalById = (appointment) => {
-        openStatusModal(appointment);
-    };
+    //------Modal Patient Register Start-------
+        const [modalPatientShow, setModalPatientShow] = useState(false);  //Patient's Info Modal
+    //------Modal Patient Register End---------
+
+    //------Modal Patient Register Start-------
+        const [modalPatientLinkShow, setModalPatientLinkShow] = useState(false);  //Patient's Info Modal
+        const [selectedLinkPatient, setSelectedLinkPatient] = useState(false);  //Patient's Info Modal
+
+        const handlePatientLinkModal = (appointment) => {
+            setSelectedLinkPatient(appointment)
+            setModalPatientLinkShow(true)
+        }
+    //------Modal Patient Register End---------
+
+    //------Modal Patient Register Start-------
+        const [modalPatientPaymentShow, setModalPatientPaymentShow] = useState(false);  //Patient's Info Modal
+        const [selectedPaymentPatient, setSelectedPaymentPatient] = useState(false);  //Patient's Info Modal
+
+        const handlePatientPaymentModal = (appointment) => {
+            setSelectedPaymentPatient(appointment)
+            setModalPatientPaymentShow(true)
+        }
+    //------Modal Patient Register End---------
+
+
 
 
 
@@ -273,7 +324,6 @@ export const BasicTable = () => {
             console.log(error);
             return error;
         }
-
     };
 
 
@@ -356,7 +406,9 @@ export const BasicTable = () => {
             handleShowDataById,
             deletePermissionAlert,
             handleEditDataById,
-            handleShowModalById
+            handleShowModalById,
+            handlePatientLinkModal,
+            handlePatientPaymentModal
         },
         {
             canView,
@@ -408,12 +460,18 @@ export const BasicTable = () => {
                                 <Card.Header className="justify-content-between">
                                     <div className='card-title'>Appointment List</div>
                                     <div className="prism-toggle">
+                                        <Fragment>    
+                                            <Button className="btn btn-sm btn-info me-2" onClick={() => setModalPatientShow(true)}>
+                                                Registetion
+                                            </Button>
+                                            <PatientInfoModal show={modalPatientShow} onHide={() => setModalPatientShow(false)} />               
+                                        </Fragment>
                                         {canCreate && (
                                             <Link to={`${import.meta.env.BASE_URL}appointment/createform`} state={{doctorAppointment}}>
                                                 <OverlayTrigger placement="top" overlay={<Tooltip>Create</Tooltip>}> 
                                                     <button
-                                                        type="button"
-                                                        className="btn btn-sm btn-primary"> New
+                                                        type="button" 
+                                                        className="btn btn-sm btn-primary">New Appointment
                                                     </button>
                                                 </OverlayTrigger>
                                             </Link>
@@ -424,14 +482,29 @@ export const BasicTable = () => {
                                         show={showStatusModal}
                                         onHide={closeStatusModal}
                                         appointment={selectedPatient}
+                                        fetchItems={fetchItems}
+                                    />
+                                    
+                                    <PatientLinkModal 
+                                        show={modalPatientLinkShow} 
+                                        onHide={() => setModalPatientLinkShow(false)}
+                                        appointment={selectedLinkPatient}
+                                        fetchItems={fetchItems}
+                                    />
+
+                                    <PatientLinkModal 
+                                        show={modalPatientPaymentShow} 
+                                        onHide={() => setModalPatientPaymentShow(false)}
+                                        appointment={selectedPaymentPatient}
+                                        fetchItems={fetchItems}
                                     />
 
                                 </Card.Header>
 
                                 <Card.Body>
 
-                                    <div className="d-flex justify-content-center gap-2 border border-box">
-                                        <div className="col-auto p-2">
+                                    <div className="d-flex flex-column flex-sm-column flex-md-row justify-content-center gap-md-2 border border-box">
+                                        <div className="col-auto py-1 px-2 py-md-2">
                                             <label><strong>From Date</strong></label>
                                             <DatePicker
                                                 selected={fromDate}
@@ -445,7 +518,7 @@ export const BasicTable = () => {
                                             />
                                         </div>
 
-                                        <div className="col-auto p-2">
+                                        <div className="col-auto py-1 px-2 py-md-2">
                                             <label><strong>To Date</strong></label>
                                             <DatePicker
                                                 selected={toDate}
@@ -474,50 +547,52 @@ export const BasicTable = () => {
                                         </select>
                                         <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
                                     </div>
-                                    <table {...getTableProps()} className="table table-sm table-primary table-striped table-hover mb-0 table-bordered">
-                                        <thead className="bg-primary">
-                                            {headerGroups.map((headerGroup) => (
-                                                <tr {...headerGroup.getHeaderGroupProps()} key={Math.random()}>
-                                                    {headerGroup.headers.map((column) => (
-                                                        <th
-                                                            {...column.getHeaderProps(column.getSortByToggleProps())}
-                                                            className={column.className} key={Math.random()}
-                                                        >
-                                                            <span className="tabletitle text-white">{column.render("Header")}</span>
-                                                            <span className="float-end">
-                                                                {column.isSorted ? (
-                                                                    column.isSortedDesc ? (
-                                                                        <i className="fa fa-angle-down"></i>
+                                    <div className="table-responsive">
+                                        <table {...getTableProps()} className="table table-sm table-primary table-responsive table-striped table-hover mb-0 table-bordered">
+                                            <thead className="bg-primary">
+                                                {headerGroups.map((headerGroup) => (
+                                                    <tr {...headerGroup.getHeaderGroupProps()} key={Math.random()}>
+                                                        {headerGroup.headers.map((column) => (
+                                                            <th
+                                                                {...column.getHeaderProps(column.getSortByToggleProps())}
+                                                                className={column.className} key={Math.random()}
+                                                            >
+                                                                <span className="tabletitle text-white">{column.render("Header")}</span>
+                                                                <span className="float-end">
+                                                                    {column.isSorted ? (
+                                                                        column.isSortedDesc ? (
+                                                                            <i className="fa fa-angle-down"></i>
+                                                                        ) : (
+                                                                            <i className="fa fa-angle-up"></i>
+                                                                        )
                                                                     ) : (
-                                                                        <i className="fa fa-angle-up"></i>
-                                                                    )
-                                                                ) : (
-                                                                    ""
-                                                                )}
-                                                            </span>
-                                                        </th>
-                                                    ))}
-                                                </tr>
-                                            ))}
-                                        </thead>
-                                        <tbody {...getTableBodyProps()}>
-                                            {page.map((row) => {
-                                                prepareRow(row);
-                                                return (
-                                                    <tr {...row.getRowProps()} key={Math.random()}>
-                                                        {row.cells.map((cell) => {
-                                                            return (
-                                                                <td className="borderrigth" {...cell.getCellProps()} key={Math.random()}>
-                                                                    {cell.render("Cell")}
-                                                                </td>
-                                                            );
-                                                        })}
+                                                                        ""
+                                                                    )}
+                                                                </span>
+                                                            </th>
+                                                        ))}
                                                     </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
-                                    <div className="d-block d-sm-flex mt-4 ">
+                                                ))}
+                                            </thead>
+                                            <tbody {...getTableBodyProps()}>
+                                                {page.map((row) => {
+                                                    prepareRow(row);
+                                                    return (
+                                                        <tr {...row.getRowProps()} key={Math.random()}>
+                                                            {row.cells.map((cell) => {
+                                                                return (
+                                                                    <td className="borderrigth" {...cell.getCellProps()} key={Math.random()}>
+                                                                        {cell.render("Cell")}
+                                                                    </td>
+                                                                );
+                                                            })}
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div className="d-flex flex-column flex-sm-column flex-md-row d-block d-sm-flex mt-4 ">
                                         <span>
                                             Showing {pageIndex * pageSize + 1} to{" "}
                                             {Math.min((pageIndex + 1) * pageSize, filteredAppointments.length)} of{" "}
@@ -526,7 +601,7 @@ export const BasicTable = () => {
                                         <span className="ms-sm-auto ">
                                             <Button
                                                 variant=""
-                                                className="btn-outline-light tablebutton me-2 d-sm-inline d-block my-1"
+                                                className="d-none d-md-inline btn-outline-light tablebutton me-2 d-sm-inline d-block my-1"
                                                 onClick={() => gotoPage(0)}
                                                 disabled={!canPreviousPage}
                                             >
@@ -574,7 +649,7 @@ export const BasicTable = () => {
                                             </Button>
                                             <Button
                                                 variant=""
-                                                className="btn-outline-light tablebutton me-2 d-sm-inline d-block my-1"
+                                                className="d-none d-md-inline btn-outline-light tablebutton me-2 d-sm-inline d-block my-1"
                                                 onClick={() => gotoPage(pageCount - 1)}
                                                 disabled={!canNextPage}
                                             >
@@ -647,7 +722,7 @@ export const ResponsiveDataTable = () => {
                 <div className='table-responsive '>
                     <Table
                         {...getTableProps()}
-                        className=" table-bordered text-nowrap mb-0"
+                        className=" table table-sm table-bordered text-nowrap mb-0"
                     >
                         <thead>
                             {headerGroups.map(headerGroup => (

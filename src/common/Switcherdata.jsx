@@ -779,7 +779,17 @@ export const Reset = (actionfunction) => {
             class: ""
         }
     });
-    localStorage.clear();
+    // localStorage.clear();
+    localStorage.setItem("zanexlayout", "horizontal")
+    localStorage.setItem("zanexnavstyles", "menu-hover")
+    localStorage.setItem("zanexverticalstyles", "default")
+    localStorage.removeItem("zanexboxed");
+    localStorage.removeItem("zanexheaderscrollable");
+    localStorage.removeItem("zanexmenuscrollable");
+    localStorage.removeItem("zanexclassic");
+    localStorage.removeItem("zanexmodern");
+    localStorage.removeItem("zanexrtl");
+    localStorage.removeItem("zanexdarktheme");
 
     const headerLightInput = document.getElementById("switcher-header-light");
     const menuLightInput = document.getElementById("switcher-menu-light");
