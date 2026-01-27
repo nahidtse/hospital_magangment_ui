@@ -581,7 +581,7 @@ export const BasicTable = () => {
                                                         <tr {...row.getRowProps()} key={Math.random()}>
                                                             {row.cells.map((cell) => {
                                                                 return (
-                                                                    <td className="borderrigth" {...cell.getCellProps()} key={Math.random()}>
+                                                                    <td className="borderrigth text-nowrap" {...cell.getCellProps()} key={Math.random()}>
                                                                         {cell.render("Cell")}
                                                                     </td>
                                                                 );
