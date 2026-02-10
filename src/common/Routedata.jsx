@@ -66,6 +66,12 @@ import RoleSingleTableFunction from "../components/Role/RoleSingleTableFunction"
 import BusinessUnitTable from "../components/Business/BusinessUnitTable";
 import BusinessUnitForm from "../components/Business/BusinessUnitForm";
 // import BusinessUnitTables from "../components/BusinessUnit/BusinessUnitTables";
+import AccountVoucherTable from "../components/AccountVoucher/AccountVoucherTable";
+import AccountVoucherForm from "../components/AccountVoucher/AccountVoucherForm";
+import ChartOfAccountTable from "../components/ChartOfAccount/ChartOfAccountTable";
+import ChartOfAccountForm from "../components/ChartOfAccount/ChartOfAccountForm";
+import ChartOfAccountReportView from "../components/ChartOfAccount/ChartOfAccountReportView";
+
 
 
 export const Routedata = [
@@ -193,5 +199,18 @@ export const Routedata = [
   { id: 120, path: `${import.meta.env.BASE_URL}menu/createform`, element: <MenuForm /> },
   { id: 120, path: `${import.meta.env.BASE_URL}menu/singledata`, element: <MenuSingleTableFunction /> },
   { id: 120, path: `${import.meta.env.BASE_URL}menu/edit`, element: <MenuEditForm /> },
+
+  //Account Voucher
+   { id: 121, path: `${import.meta.env.BASE_URL}accounts/dataTable`, element: <AccountVoucherTable/> },
+   { id: 43, path: `${import.meta.env.BASE_URL}accounts_voucher/createform`, element: <AccountVoucherForm /> },
+  //  { id: 44, path: `${import.meta.env.BASE_URL}testinfo/singledata`, element: <TestInfoSingleTable /> },
+  //  { id: 45, path: `${import.meta.env.BASE_URL}testinfo/edit`, element: <TestInfoEditForm /> },
+
+
+  //Chart Of Account
+   { id: 121, path: `${import.meta.env.BASE_URL}chart_of_account/dataTable`, element: <ChartOfAccountTable/> },
+   { id: 43, path: `${import.meta.env.BASE_URL}chart_of_account/createform`, element: <ChartOfAccountForm /> },
+   { id: 44, path: `${import.meta.env.BASE_URL}chart_of_account/coa_report_view`, element: <ChartOfAccountReportView /> },
+  //  { id: 45, path: `${import.meta.env.BASE_URL}testinfo/edit`, element: <TestInfoEditForm /> },
 
 ]
