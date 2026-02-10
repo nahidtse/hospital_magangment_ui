@@ -17,28 +17,31 @@ const basURL = import.meta.env.VITE_API_BASE_URL;
 
 export const COLUMNS = [
     {
-        Header: "#",
+        Header: (<div className="text-center">{"#"}</div>),
         accessor: "id",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
     {
-        Header: "Doctor's Name",
+        Header: (<div className="text-center">{"Doctor's Name"}</div>),
         accessor: "doctorename",
     },
     {
-        Header: "Specialty",
+        Header: (<div className="text-center">{"Specialty"}</div>),
         accessor: "speciality",
     },
     {
-        Header: "Degree",
+        Header: (<div className="text-center">{"Degree"}</div>),
         accessor: "degree",
     },
     {
-        Header: "Status",
+        Header: (<div className="text-center">{"Status"}</div>),
         accessor: "status",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
     {
-        Header: "Actions",
+        Header: (<div className="text-center">{"Actions"}</div>),
         accessor: "action",
+        Cell: ({ value }) => <div className="text-center">{value}</div>
     },
 ];
 
@@ -268,6 +271,7 @@ export const BasicTable = () => {
         {
             columns: COLUMNS,
             data: dataTable,
+            initialState: { pageSize: 50 },
         },
         useGlobalFilter,
         useSortBy,
@@ -326,7 +330,7 @@ export const BasicTable = () => {
                                             value={pageSize}
                                             onChange={(e) => setPageSize((e.target.value))}
                                         >
-                                            {[10, 25, 50, 100].map((pageSize) => (
+                                            {[50, 100, 150, 200].map((pageSize) => (
                                                 <option key={pageSize} value={pageSize}>
                                                     Show {pageSize}
                                                 </option>
@@ -334,8 +338,8 @@ export const BasicTable = () => {
                                         </select>
                                         <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
                                     </div>
-                                    <table {...getTableProps()} className="table table-hover mb-0 table-bordered">
-                                        <thead>
+                                    <table {...getTableProps()} className="table table-sm table-primary table-responsive table-striped table-hover mb-0 table-bordered">
+                                        <thead className="bg-primary">
                                             {headerGroups.map((headerGroup) => (
                                                 <tr {...headerGroup.getHeaderGroupProps()} key={Math.random()}>
                                                     {headerGroup.headers.map((column) => (
@@ -343,7 +347,7 @@ export const BasicTable = () => {
                                                             {...column.getHeaderProps(column.getSortByToggleProps())}
                                                             className={column.className} key={Math.random()}
                                                         >
-                                                            <span className="tabletitle">{column.render("Header")}</span>
+                                                            <span className="tabletitle text-white">{column.render("Header")}</span>
                                                             <span className="float-end">
                                                                 {column.isSorted ? (
                                                                     column.isSortedDesc ? (

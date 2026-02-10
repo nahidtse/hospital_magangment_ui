@@ -1,10 +1,21 @@
 
-
-import slider1 from "../../assets/images/auth-slider/slider1.jpg"
 import logo from "../../assets/images/auth-slider/desktop-logo.png"
 import { useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import { toast } from 'react-toastify';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, Pagination, Navigation, EffectFade } from 'swiper/modules';
+
+// Swiper styles
+import 'swiper/css';
+import 'swiper/css/pagination';
+import 'swiper/css/navigation';
+import 'swiper/css/effect-fade';
+
+// slider images import
+import slider1 from "../../assets/images/auth-slider/slider1.jpg";
+import slider2 from "../../assets/images/auth-slider/slider2.jpg";
+import slider3 from "../../assets/images/auth-slider/slider3.jpg";
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
@@ -148,14 +159,36 @@ function Login() {
         <div className="row g-0 h-100">
           {/* Left Side */}
           <div className="col-12 col-md-6 d-flex align-items-center justify-content-center text-white">
-            <img
-             src={slider1}
-             className='img-fluid w-100' 
-             style={{
-                maxHeight: "100vh", // screen height
-                objectFit: "cover",
+            <Swiper
+              modules={[Autoplay, Pagination, Navigation, EffectFade]}
+              effect={'fade'} // Smoth fade
+              fadeEffect={{ crossFade: true }} 
+              speed={1500} // 
+              loop={true}
+              autoplay={{
+                delay: 4000,
+                disableOnInteraction: false,
               }}
-            />
+              pagination={{
+                clickable: true,
+                dynamicBullets: true,
+              }}
+              navigation={true} 
+              className="h-100 login-slider"
+            >
+              {[slider1, slider2, slider3].map((img, index) => (
+                <SwiperSlide key={index}>
+                  <img
+                    src={img}
+                    className="img-fluid w-100 login-slider"
+                    style={{
+                      maxHeight: "100vh", // screen height
+                      objectFit: "cover",
+                    }}
+                  />
+                </SwiperSlide>
+              ))}
+            </Swiper>
           </div>
 
           {/* Right Side */}
@@ -163,7 +196,7 @@ function Login() {
             {/* <h1>Success Section</h1> */}
             <div className="align-items-center justify-content-center" style={{ width: "80%", maxWidth: "350px" }}>
               <div className='text-center mb-4'>
-                <img src={logo} style={{height: '100px'}}/>
+                <img src={logo}  style={{height: '100px'}}/>
               </div>
 
               <form onSubmit={submitHandler}>

@@ -13,6 +13,7 @@ import DatePicker from "react-datepicker";
 import { StatusChangeModal } from "./StatusChangeModal";
 import { PatientInfoModal } from "../InvoiceDiagonestic/PatientInfoModal";
 import { PatientLinkModal } from "./PatientLinkModal";
+import Select from "react-select";
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 
@@ -38,10 +39,10 @@ export const COLUMNS = [
         accessor: "id",
         Cell: ({ value }) => <div className="text-center">{value}</div>
     },
-    {
-        Header: (<div className="text-center">{"Doctor's Name"}</div>),
-        accessor: "doctorename",
-    },
+    // {
+    //     Header: (<div className="text-center ">{"Doctor's Name"}</div>),
+    //     accessor: "doctorename",
+    // },
     // {
     //     Header: (<div className="text-center">{"Speciality"}</div>),
     //     accessor: "speciality",
@@ -57,25 +58,41 @@ export const COLUMNS = [
         accessor: "daytime",
         Cell: ({ value }) => <div className="text-center">{value}</div>
     },
+    // {
+    //     Header: (<div className="text-center">{"Patient Name"}</div>),
+    //     accessor: "patient_name",
+    // },
+    // {
+    //     Header: (<div className="text-center">{"Mobile No"}</div>),
+    //     accessor: "mobile",
+    //     Cell: ({ value }) => <div className="text-center">{value}</div>
+    // },
     {
-        Header: (<div className="text-center">{"Patient Name"}</div>),
-        accessor: "patient_name",
-    },
-    {
-        Header: (<div className="text-center">{"Mobile No"}</div>),
-        accessor: "mobile",
-        Cell: ({ value }) => <div className="text-center">{value}</div>
+        Header: (<div className="text-center">Patient Info</div>),
+        accessor: row =>
+            `${row.patient_name ?? ""} ${row.mobile ?? ""}`,
+        id: "patient_info",
+        Cell: ({ row }) => (
+            <div className="">
+                <strong>
+                    {row.original.patient_name}
+                </strong>{" "}
+                <span className="">
+                    ({row.original.mobile})
+                </span>
+            </div>
+        ),
     },
     {
         Header: (<div className="text-center">{"Status"}</div>),
         accessor: "status",
         Cell: ({ value }) => <div className="text-center">{value}</div>
     },
-    {
-        Header: (<div className="text-center">{"Payment Status"}</div>),
-        accessor: "payment_status",
-        Cell: ({ value }) => <div className="text-center">{value}</div>
-    },
+    // {
+    //     Header: (<div className="text-center">{"Payment Status"}</div>),
+    //     accessor: "payment_status",
+    //     Cell: ({ value }) => <div className="text-center">{value}</div>
+    // },
     {
         Header: (<div className="text-center">{"Actions"}</div>),
         accessor: "action",
@@ -86,13 +103,13 @@ export const COLUMNS = [
 export const DATATABLE = (doctorAppointment, handlers, permission) =>
     doctorAppointment.map((appointment, id) => ({
         id: id + 1,
-        doctorename: appointment.doctor.doctor_name || "Doctor Name",
+        // doctorename: appointment.doctor.doctor_name || "Doctor Name",
         // speciality: appointment.doctor.speciality.lookup_value || "Speciality",
         appointment_date: appointment.appointment_date ? format(parseISO(appointment.appointment_date), 'dd-MM-yyyy') : '' || "Appointment Date",
         daytime: appointment.days || "Days & Schedule Time",
         patient_name: appointment.patient_name || "Patient Name",
         mobile: appointment.mobile_no || "Mobile No",
-        payment_status: (appointment.mobile_no) || "Mobile No",
+        // payment_status: (appointment.mobile_no) || "Mobile No",
         status: (
             <span
                 className={`badge ${
@@ -200,27 +217,64 @@ export const BasicTable = () => {
     const [doctorAppointment, setDoctorAppointment] = useState([]);
     const [showSingleData, setSingleData] = useState([]);
     const [passEditFormData, setPassingEditFormData] = useState(null);
+    
 
     // console.log(doctorAppointment)
     
-    //*********Date Wise Filter (From date - To date) Start**********/
-    const [fromDate, setFromDate] = useState(new Date());
-    const [toDate, setToDate] = useState(new Date());
+    //*********Date & Doctors Wise Filter (From date - To date) Start**********/
+        const [fromDate, setFromDate] = useState(new Date());
+        const [toDate, setToDate] = useState(new Date());
+        const [selectedDoctor, setSelectedDoctor] = useState(null);
 
 
-    const filteredAppointments = useMemo(() => {
-        if (!fromDate || !toDate) return doctorAppointment;
+        const doctorOptions = useMemo(() => {
+            const uniqueDoctor = {}
 
-        const from = format(fromDate, "yyyy-MM-dd");
-        const to = format(toDate, "yyyy-MM-dd");
+            doctorAppointment.forEach((item) => {
+                if(item.doctor) {
+                    uniqueDoctor[item.doctor.id] = {
+                        value: item.doctor.id,
+                        label: item.doctor.doctor_name
+                    }
+                }
+            })
 
-        return doctorAppointment.filter(item =>
-            item.appointment_date &&
-            item.appointment_date >= from &&
-            item.appointment_date <= to
-        );
-    }, [doctorAppointment, fromDate, toDate]);
-    //*********Date Wise Filter (From date - To date) End**********/
+            return Object.values(uniqueDoctor)
+        }, [doctorAppointment])
+
+
+        const filteredAppointments = useMemo(() => {
+            if (!fromDate || !toDate) return doctorAppointment;
+
+            let filtered = [...doctorAppointment];
+
+            //Date wise Filter
+            if (fromDate && toDate) {
+                const from = format(fromDate, "yyyy-MM-dd");
+                const to = format(toDate, "yyyy-MM-dd");
+
+                filtered = filtered.filter(item => {
+                    if (!item.appointment_date) return false;
+
+                    const appointmentDate = format(
+                        parseISO(item.appointment_date),
+                        "yyyy-MM-dd"
+                    );
+
+                    return appointmentDate >= from && appointmentDate <= to;
+                });
+            }
+
+            //Doctor Wise Filter
+            if (selectedDoctor) {
+                filtered = filtered.filter(
+                    item => item.doctor?.id === selectedDoctor.value
+                );
+            }
+
+            return filtered;
+        }, [doctorAppointment, fromDate, toDate, selectedDoctor]);
+    //*********Date & Doctors Filter (From date - To date) End**********/
 
     
     //--------Modal Handler Patient Status Start-----------
@@ -243,9 +297,9 @@ export const BasicTable = () => {
     //--------Modal Handler Patient Status  End-----------
 
 
-    //------Modal Patient Register Start-------
+    //------Modal Patient Register Modal Start-------
         const [modalPatientShow, setModalPatientShow] = useState(false);  //Patient's Info Modal
-    //------Modal Patient Register End---------
+    //------Modal Patient Register Modal End---------
 
     //------Modal Patient Register Start-------
         const [modalPatientLinkShow, setModalPatientLinkShow] = useState(false);  //Patient's Info Modal
@@ -457,7 +511,7 @@ export const BasicTable = () => {
                     <Row className="row-sm">
                         <Col xl={12}>
                             <Card className="custom-card">
-                                <Card.Header className="justify-content-between">
+                                <Card.Header className="justify-content-between p-2">
                                     <div className='card-title'>Appointment List</div>
                                     <div className="prism-toggle">
                                         <Fragment>    
@@ -501,10 +555,22 @@ export const BasicTable = () => {
 
                                 </Card.Header>
 
-                                <Card.Body>
+                                <Card.Body className="p-2">
 
-                                    <div className="d-flex flex-column flex-sm-column flex-md-row justify-content-center gap-md-2 border border-box">
-                                        <div className="col-auto py-1 px-2 py-md-2">
+                                    <Row className="d-flex flex-column flex-sm-column flex-md-row justify-content-center gap-md-2 border-bottom pb-2">
+                                        <Col xs={12} sm={6} md={6} lg={3}>
+                                            <label><strong>Search Docotor</strong></label>
+                                            <Select
+                                                options={doctorOptions}
+                                                classNamePrefix= "react-select"
+                                                onChange={setSelectedDoctor}
+                                                value={selectedDoctor}
+                                                placeholder="Search and Select Doctor"
+                                                isSearchable={true}
+                                                isClearable={true}
+                                            />
+                                        </Col>
+                                        <Col xs={12} sm={6} md={6} lg={3}>
                                             <label><strong>From Date</strong></label>
                                             <DatePicker
                                                 selected={fromDate}
@@ -516,9 +582,9 @@ export const BasicTable = () => {
                                                 placeholderText="From date"
                                                 className="form-control"
                                             />
-                                        </div>
+                                        </Col>
 
-                                        <div className="col-auto py-1 px-2 py-md-2">
+                                        <Col xs={12} sm={6} md={6} lg={3}>
                                             <label><strong>To Date</strong></label>
                                             <DatePicker
                                                 selected={toDate}
@@ -531,8 +597,8 @@ export const BasicTable = () => {
                                                 placeholderText="To date"
                                                 className="form-control"
                                             />
-                                        </div>
-                                    </div>
+                                        </Col>
+                                    </Row>
                                     <div className="d-flex mt-1">
                                         <select
                                             className=" mb-4 selectpage border me-1"

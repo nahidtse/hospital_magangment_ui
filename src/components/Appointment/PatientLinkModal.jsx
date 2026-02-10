@@ -180,19 +180,19 @@ export function PatientLinkModal(props) {
                 <Row>
                     <Form.Group as={Col} md="8" controlId="validationCustom02">
                     <Form.Label>Patient Name<span className='text-danger ms-1'>*</span></Form.Label>
-                    <Select
-                      ref={referenceSelectRef}
-                      styles={customStyles}
-                      classNamePrefix="react-select" 
-                      options={patientOptions}
-                      onChange={selectPatientChange}
-                      value={patientOptions.find(option => option.value === addFormData.register_patient_id) || null}
-                      placeholder="Search and Select Patient"
-                      isSearchable={true}
-                      isClearable={true}
-                      tabIndex={1}
-                      autoFocus
-                    />
+                      <Select
+                        ref={referenceSelectRef}
+                        styles={customStyles}
+                        classNamePrefix="react-select" 
+                        options={patientOptions}
+                        onChange={selectPatientChange}
+                        value={patientOptions.find(option => option.value === addFormData.register_patient_id) || null}
+                        placeholder="Search and Select Patient"
+                        isSearchable={true}
+                        isClearable={true}
+                        tabIndex={1}
+                        autoFocus
+                      />
 
                     {showValidationError.register_patient_id && (
                         <Form.Control.Feedback type="invalid" className="d-block">
